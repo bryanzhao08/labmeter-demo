@@ -6,6 +6,9 @@
 <title>LabMeter demo</title>
 <meta name="description" content="Static demo of LabMeter: sensor-verified billing for shared lab instruments, on simulated data.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f766e'/%3E%3Cpath d='M6 21h5l3-10 4 14 3-9h5' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,6 +18,9 @@
   <div class="wrap bar">
     <a class="brand" href="#/"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor"/><path d="M6 21h5l3-10 4 14 3-9h5" fill="none" stroke="var(--on-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>LabMeter</span></a>
     <nav aria-label="Primary" id="nav"></nav>
+    <div class="viewsw" id="viewsw" role="group" aria-label="Instrument view">
+      <button type="button" data-v="map" aria-pressed="true">Map</button><button type="button" data-v="list" aria-pressed="false">List</button>
+    </div>
   </div>
 </header>
 <main id="main" class="wrap" tabindex="-1"><p class="muted">Loading demo data…</p></main>

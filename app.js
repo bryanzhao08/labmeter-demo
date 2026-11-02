@@ -12,6 +12,11 @@
   var D = null; // loaded data
   var $main = document.getElementById("main");
   var timer = null;
+  var T = null;                    // map scrubber time (epoch seconds)
+  var V = "map";                   // current view: map | list
+  var VIEWS = ["map", "list"], VSTORE = "labmeter-demo-view-v1";
+  var M = { sel: null, pinned: false, hideT: null, bound: false, last: null };
+  var STATE_LABEL = { run: "Running", idle: "Idle (on)", off: "Off", gap: "No sensor data" };
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
@@ -40,13 +45,14 @@
   function load() {
     return Promise.all([j("data/reconciliation.json"), j("data/utilization.json"), j("data/instruments.json")].concat(
       TAGS.map(function (t) { return j("data/timeline-" + t + ".json"); }),
-      TAGS.map(function (t) { return j("data/tag-" + t + ".json"); })
+      TAGS.map(function (t) { return j("data/tag-" + t + ".json"); }),
+      [j("data/layout.json").catch(function () { return null; })]
     )).then(function (a) {
       var inst = {}, order = [];
       a[2].forEach(function (i) { inst[i.id] = i; order.push(i.id); });
       var tl = {};
       TAGS.forEach(function (t, k) { tl[t] = a[3 + k]; });
-      D = { rec: a[0], util: a[1], inst: inst, order: order, tl: tl };
+      D = { rec: a[0], util: a[1], inst: inst, order: order, tl: tl, layout: a[a.length - 1] };
       derive();
     });
   }
@@ -81,6 +87,22 @@
     });
     D.order.forEach(function (id) { tot.run += D.u[id].run; tot.obs += D.u[id].obs; });
     D.utilPct = tot.obs ? tot.run / tot.obs * 100 : 0;
+    // time bounds and data windows for the map scrubber
+    var lo = Infinity, hi = -Infinity, last = -Infinity, iv = [];
+    TAGS.forEach(function (t) {
+      D.tl[t].states.forEach(function (s) {
+        if (s.start < lo) lo = s.start; if (s.end > hi) hi = s.end;
+        if (s.state !== "unknown") { iv.push([s.start, s.end]); if (s.end > last) last = s.end; }
+      });
+    });
+    iv.sort(function (a, b) { return a[0] - b[0]; });
+    D.windows = [];
+    iv.forEach(function (x) {
+      var w = D.windows[D.windows.length - 1];
+      if (w && x[0] - w[1] < 1800) { if (x[1] > w[1]) w[1] = x[1]; } else D.windows.push([x[0], x[1]]);
+    });
+    D.t0 = lo; D.t1 = hi; D.tLast = isFinite(last) ? last - 1 : hi;
+    if (T == null) T = D.tLast;
   }
 
   // ---- helpers
@@ -106,6 +128,207 @@
       setRev(b.getAttribute("data-key"), b.getAttribute("data-act"));
       rerender();
     });
+  }
+
+
+  // ---- view toggle (Map | List)
+  function storedView() { try { var v = localStorage.getItem(VSTORE); return VIEWS.indexOf(v) >= 0 ? v : null; } catch (e) { return null; } }
+  function saveView(v) { try { localStorage.setItem(VSTORE, v); } catch (e) { /* storage unavailable */ } }
+  function syncToggle() {
+    $$("#viewsw button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-v") === V ? "true" : "false"); });
+  }
+  function setView(v) {
+    V = v; saveView(v); syncToggle();
+    var h = location.hash || "#/", path = h.split("?")[0];
+    var onDash = !!document.getElementById("viewregion");
+    if (onDash) { try { history.replaceState(null, "", path + "?view=" + v); } catch (e) { location.hash = path + "?view=" + v; } renderView(); }
+    else location.hash = "#/?view=" + v;
+  }
+  function listHTML() {
+    return '<h2>Instruments</h2><div class="grid icards">' + D.order.map(function (id) {
+      var i = D.inst[id], u = D.u[id], pct = u.obs ? u.run / u.obs * 100 : 0;
+      var ss = D.sessions.filter(function (s) { return s.instrument_id === id; });
+      var ex = D.exc.filter(function (e) { return e.instrument_id === id; }).length;
+      var $ = ss.reduce(function (a, s) { return a + s.dollars; }, 0);
+      return '<a class="card icard" href="#/i/' + id + '"><h3><span>' + esc(i.name) + '</span><span class="muted small">' + fmtMoney(i.hourly_rate) + "/h</span></h3>" +
+        '<div class="bar-track" role="img" aria-label="' + pct.toFixed(0) + ' percent utilization"><div class="bar-fill" style="width:' + pct.toFixed(0) + '%"></div></div>' +
+        '<div class="row"><span>Util <b>' + pct.toFixed(0) + "%</b></span><span>Billed <b>" + fmtMoney($) + "</b></span><span>Exceptions <b>" + ex + "</b></span></div></a>";
+    }).join("") + "</div>";
+  }
+  function renderView() {
+    var el = document.getElementById("viewregion"); if (!el) return;
+    M.sel = null; M.pinned = false;
+    if (V === "map" && D.layout) { el.innerHTML = mapHTML(); bindMap(); updateMap(); }
+    else el.innerHTML = listHTML();
+  }
+
+  // ---- facility map
+  function stateAt(id, t) {
+    var a = D.tl[id].states;
+    for (var k = 0; k < a.length; k++) if (t >= a[k].start && t < a[k].end) return a[k].state === "unknown" ? "gap" : a[k].state;
+    return "gap";
+  }
+  function lastKnown(id, t) {
+    var a = D.tl[id].states, best = null;
+    a.forEach(function (s) { if (s.state !== "unknown" && s.end <= t && (!best || s.end > best.end)) best = s; });
+    return best;
+  }
+  function pending(id) { return D.exc.filter(function (e) { return e.instrument_id === id && !getRev()[e.key]; }).length; }
+  function mapSVG() {
+    var L = D.layout, W = L.viewBox[0], H = L.viewBox[1], R = {}, sd = L.sensor || { dx: 36, dy: -20 };
+    L.rooms.forEach(function (r) { R[r.id] = r; });
+    var hall = L.rooms.filter(function (r) { return r.kind === "hall"; })[0];
+    var busY = hall ? hall.y + hall.h / 2 : H / 2;
+    var at = function (r, p) { return [r.x + r.w * p.x / 100, r.y + r.h * p.y / 100]; };
+    D.pos = {};
+    var s = '<svg id="plan" class="plan" viewBox="0 0 ' + W + " " + H + '" role="group" aria-label="Floor plan of the core facility. Each instrument is a pin; use Tab to move between pins.">' +
+      '<defs><pattern id="hatchGap" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" class="hg-bg"/><rect width="2.5" height="6" class="hg-fg"/></pattern></defs>';
+    s += '<rect class="plan-bg" x="0" y="0" width="' + W + '" height="' + H + '"/>';
+    L.rooms.forEach(function (r) {
+      s += '<g class="room k-' + esc(r.kind) + '"><rect class="rm" x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="3"/>' +
+        '<text class="rmname" x="' + (r.kind === "hall" ? r.x + r.w / 2 : r.x + 12) + '" y="' + (r.kind === "hall" ? r.y + r.h / 2 + 5 : r.y + 25) + '"' + (r.kind === "hall" ? ' text-anchor="middle"' : "") + ">" + esc(r.name) + "</text></g>";
+    });
+    // server + uplinks
+    var sv = L.server && R[L.server.room] ? at(R[L.server.room], L.server) : null;
+    if (sv) {
+      L.rooms.forEach(function (r) {
+        if (!r.gateway) return; var g = at(r, r.gateway);
+        s += '<polyline class="uplink" points="' + g[0] + "," + g[1] + " " + g[0] + "," + busY + " " + sv[0] + "," + busY + " " + sv[0] + "," + (sv[1] - 14) + '"/>';
+      });
+    }
+    // BLE links
+    D.order.forEach(function (id) {
+      var p = L.pins[id], r = p && R[p.room]; if (!r || !r.gateway) return;
+      var c = at(r, p), g = at(r, r.gateway);
+      D.pos[id] = { x: c[0], y: c[1], l: c[0] > W * 0.55, k: r.kind };
+      s += '<line class="ble" x1="' + (c[0] + sd.dx) + '" y1="' + (c[1] + sd.dy) + '" x2="' + g[0] + '" y2="' + g[1] + '"/>';
+    });
+    L.rooms.forEach(function (r) {
+      if (!r.gateway) return; var g = at(r, r.gateway);
+      s += '<g class="gw" transform="translate(' + g[0] + "," + g[1] + ')"><title>Room gateway: collects sensor packets over BLE and uploads them</title><path class="gw-ant" d="M-6 -7 V-13 M6 -7 V-13"/><rect x="-13" y="-7" width="26" height="14" rx="3"/><circle cx="-6" cy="0" r="1.8"/><circle cx="0" cy="0" r="1.8"/><circle cx="6" cy="0" r="1.8"/></g>';
+    });
+    if (sv) {
+      s += '<g class="srv" transform="translate(' + sv[0] + "," + sv[1] + ')"><title>LabMeter server: reconciles claims, bookings and measured runs</title><rect x="-18" y="-14" width="36" height="12" rx="3"/><rect x="-18" y="1" width="36" height="12" rx="3"/><circle cx="-11" cy="-8" r="1.8"/><circle cx="-11" cy="7" r="1.8"/></g>' +
+        '<text class="srv-l" x="' + sv[0] + '" y="' + (sv[1] + 34) + '" text-anchor="middle">' + esc(L.server.label || "Server") + "</text>";
+    }
+    // sensors
+    D.order.forEach(function (id) {
+      var q = D.pos[id]; if (!q) return;
+      s += '<g class="sn" transform="translate(' + (q.x + sd.dx) + "," + (q.y + sd.dy) + ')"><title>Clip-on sensor on ' + esc(iname(id)) + '</title><rect x="-8" y="-8" width="16" height="16" rx="4"/><path d="M-5 1 L-2.5 1 L-1 -4 L1 5 L2.5 1 L5 1"/></g>';
+    });
+    // pins
+    D.order.forEach(function (id) {
+      var q = D.pos[id]; if (!q) return;
+      s += '<g class="pin st-gap' + (q.k === "dark" ? " rk-dark" : "") + '" data-id="' + id + '" tabindex="0" role="button" aria-haspopup="dialog" transform="translate(' + q.x + "," + q.y + ')">' +
+        '<circle class="hit" r="34"/><circle class="focusring" r="29"/><circle class="ring" r="21"/><circle class="disc" r="21"/>' +
+        '<g class="gl gl-run"><path d="M-5 -8 L9 0 L-5 8Z"/></g>' +
+        '<g class="gl gl-idle"><rect x="-8" y="-8" width="5.5" height="16" rx="1"/><rect x="2.5" y="-8" width="5.5" height="16" rx="1"/></g>' +
+        '<g class="gl gl-off"><path d="M-6 -5.5 A8.5 8.5 0 1 0 6 -5.5 M0 -10 V-1"/></g>' +
+        '<g class="gl gl-gap"><circle r="9"/><text y="6" text-anchor="middle">?</text></g>' +
+        '<g class="bdg zero" transform="translate(17,-17)"><circle r="10"/><text y="4" text-anchor="middle">0</text></g>' +
+        '<text class="pinlabel" y="42" text-anchor="middle">' + esc(iname(id)) + "</text></g>";
+    });
+    return s + "</svg>";
+  }
+  function mapHTML() {
+    return '<h2>Facility map</h2><p class="small muted maplede">Illustrative floor plan. Each pin is an instrument with a clip-on sensor; sensors talk to the room gateway over BLE and the gateways upload to the server. Pin colour is the sensor state at the time chosen below.</p>' +
+      '<div class="maptools"><button type="button" class="btn sm" id="tprev" aria-label="Jump to previous data window">Earlier data</button>' +
+      '<input type="range" id="tscrub" min="' + Math.floor(D.t0) + '" max="' + Math.floor(D.t1) + '" step="60" value="' + Math.floor(T) + '" aria-label="Time in the simulated week, UTC">' +
+      '<button type="button" class="btn sm" id="tnext" aria-label="Jump to next data window">Later data</button></div>' +
+      '<div class="readout"><strong id="tread"></strong> <span class="muted small" id="trep"></span></div>' +
+      '<div class="legend maplegend" aria-label="Map legend"><span><i class="lg lg-run"></i>Running</span><span><i class="lg lg-idle"></i>Idle (on)</span><span><i class="lg lg-off"></i>Off</span><span><i class="lg lg-gap"></i>No sensor data (outline = last known state)</span>' +
+      '<span><i class="lg lg-bdg">2</i>Pending exceptions</span><span><svg class="lgi" width="18" height="14" viewBox="-9 -7 18 14" aria-hidden="true"><g class="sn"><rect x="-8" y="-6" width="14" height="12" rx="3"/></g></svg>Sensor</span>' +
+      '<span><svg class="lgi" width="22" height="14" viewBox="-13 -7 26 14" aria-hidden="true"><g class="gw"><rect x="-12" y="-6" width="24" height="12" rx="3"/></g></svg>Gateway</span><span><svg class="lgi" width="28" height="8" viewBox="0 0 28 8" aria-hidden="true"><line class="ble" x1="1" y1="4" x2="27" y2="4"/></svg>BLE link</span></div>' +
+      '<div class="mapwrap" id="mapwrap">' + mapSVG() + '<div class="pcard" id="pcard" role="dialog" aria-modal="false" aria-labelledby="pc-title" hidden></div></div>' +
+      '<p class="small muted">Positions are a made-up layout (edit <code>data/layout.json</code>). Hover, focus or tap a pin for details. Prefer a table? Switch to List.</p>';
+  }
+  function cardHTML(id) {
+    var i = D.inst[id], u = D.u[id], pct = u.obs ? u.run / u.obs * 100 : 0, st = stateAt(id, T);
+    var ss = D.sessions.filter(function (x) { return x.instrument_id === id && x.start <= T; }).sort(function (a, b) { return b.start - a.start; })[0];
+    var ex = D.exc.filter(function (e) { return e.instrument_id === id; }), by = {}, pend = 0;
+    ex.forEach(function (e) { var b = by[e.type] || (by[e.type] = { n: 0, p: 0 }); b.n++; if (!getRev()[e.key]) { b.p++; pend++; } });
+    var exh = Object.keys(by).length ? Object.keys(TYPES).filter(function (t) { return by[t]; }).map(function (t) { return badge(t) + ' <span class="small">' + by[t].n + (by[t].p !== by[t].n ? " (" + by[t].p + " pending)" : "") + "</span>"; }).join(" ") : '<span class="muted">None</span>';
+    return '<div class="pc-head"><div><h3 id="pc-title">' + esc(i.name) + '</h3><div class="muted small">' + esc(i["class"]) + " · " + fmtMoney(i.hourly_rate) + '/h</div></div><button type="button" class="pc-x" id="pcx" aria-label="Close details">&times;</button></div>' +
+      '<div class="pc-state"><span class="chip st-' + st + '"><i></i>' + STATE_LABEL[st] + '</span> <span class="muted small">' + esc(fmtT(T)) + " UTC</span></div>" +
+      (st === "gap" ? '<div class="muted small" style="margin-bottom:6px">' + (lastKnown(id, T) ? "Last known: " + STATE_LABEL[lastKnown(id, T).state].toLowerCase() + " until " + esc(fmtT(lastKnown(id, T).end)) + " UTC. The simulation only observes each instrument for about an hour a day." : "No sensor data before this time.") + "</div>" : "") +
+      '<dl class="pc-dl"><dt>Run hours, week</dt><dd>' + (u.run / 3600).toFixed(1) + " h</dd><dt>Utilization</dt><dd>" + pct.toFixed(0) + '% <span class="muted small">of monitored time</span></dd>' +
+      "<dt>Exceptions</dt><dd>" + exh + "</dd><dt>Last session</dt><dd>" + (ss ? esc(uname(ss.user_id)) + ", " + esc(gname(ss.account_id)) + '<br><span class="muted small">' + esc(fmtT(ss.start)) + " UTC</span>" : '<span class="muted">None yet at this time</span>') + "</dd></dl>" +
+      '<div class="pc-act"><a class="btn sm primary" href="#/i/' + id + '">Timeline</a><a class="btn sm" href="#/t/tag-' + id + '">Tap sim</a></div>';
+  }
+  function updateMap() {
+    var root = document.getElementById("plan"); if (!root) return;
+    var live = 0;
+    D.order.forEach(function (id) {
+      var g = root.querySelector('.pin[data-id="' + id + '"]'); if (!g) return;
+      var st = stateAt(id, T), n = pending(id); if (st !== "gap") live++;
+      var lk = st === "gap" ? lastKnown(id, T) : null;
+      g.setAttribute("class", "pin st-" + st + (lk ? " lk-" + lk.state : "") + (D.pos[id] && D.pos[id].k === "dark" ? " rk-dark" : "") + (M.sel === id ? " sel" : ""));
+      g.setAttribute("aria-label", iname(id) + ", " + STATE_LABEL[st].toLowerCase() + (lk ? " (last known " + STATE_LABEL[lk.state].toLowerCase() + ")" : "") + ", " + n + " pending " + (n === 1 ? "exception" : "exceptions") + ". Press Enter for details.");
+      var b = g.querySelector(".bdg"); b.setAttribute("class", "bdg" + (n ? "" : " zero"));
+      b.querySelector("text").textContent = n > 99 ? "99+" : String(n);
+    });
+    var rd = document.getElementById("tread"); if (rd) rd.textContent = fmtT(T) + " UTC";
+    var rp = document.getElementById("trep"); if (rp) rp.textContent = live + " of " + D.order.length + " sensors reporting";
+    var sl = document.getElementById("tscrub");
+    if (sl) { sl.value = String(Math.floor(T)); sl.setAttribute("aria-valuetext", fmtT(T) + " UTC"); }
+    var card = document.getElementById("pcard");
+    if (card && M.sel && !card.hidden) { card.innerHTML = cardHTML(M.sel); placeCard(M.sel); }
+  }
+  function placeCard(id) {
+    var card = document.getElementById("pcard"), wrap = document.getElementById("mapwrap"), q = D.pos && D.pos[id]; if (!card || !wrap || !q) return;
+    var W = D.layout.viewBox[0], H = D.layout.viewBox[1];
+    card.classList.toggle("l", q.l);
+    card.style.setProperty("--x", (q.x / W * 100) + "%");
+    var wh = wrap.clientHeight, ch = card.offsetHeight;
+    if (wh && ch) card.style.setProperty("--y", Math.max(4, Math.min(q.y / H * wh - ch / 2, wh - ch - 4)) + "px");
+    else card.style.setProperty("--y", (q.y / H * 100) + "%");
+  }
+  function showCard(id) {
+    var card = document.getElementById("pcard"); if (!card) return;
+    clearTimeout(M.hideT); M.sel = id; card.innerHTML = cardHTML(id); card.hidden = false; placeCard(id); updateMap();
+  }
+  function hideCard(refocus) {
+    var card = document.getElementById("pcard"); clearTimeout(M.hideT);
+    var id = M.sel; M.sel = null; M.pinned = false;
+    if (card) { card.hidden = true; card.innerHTML = ""; }
+    updateMap();
+    if (refocus && id) { var g = document.querySelector('.pin[data-id="' + id + '"]'); if (g && g.focus) g.focus(); }
+  }
+  function softHide() { clearTimeout(M.hideT); if (M.pinned) return; M.hideT = setTimeout(function () { if (!M.pinned) hideCard(false); }, 250); }
+  function jump(dir) {
+    var w = D.windows, k;
+    if (dir < 0) { for (k = w.length - 1; k >= 0; k--) if (w[k][0] < T - 60) { T = w[k][0] + 1; break; } }
+    else { for (k = 0; k < w.length; k++) if (w[k][0] > T + 60) { T = w[k][0] + 1; break; } }
+    updateMap();
+  }
+  function bindMap() {
+    var root = document.getElementById("plan"), card = document.getElementById("pcard"); if (!root || !card) return;
+    $$(".pin", root).forEach(function (g) {
+      var id = g.getAttribute("data-id");
+      g.addEventListener("mouseenter", function () { if (!M.pinned) showCard(id); else clearTimeout(M.hideT); });
+      g.addEventListener("mouseleave", softHide);
+      g.addEventListener("focus", function () { if (!M.pinned) showCard(id); });
+      g.addEventListener("blur", softHide);
+      g.addEventListener("click", function (ev) { ev.stopPropagation(); M.pinned = true; showCard(id); });
+      g.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault(); M.pinned = true; showCard(id);
+          var f = card.querySelector("a,button"); if (f && f.focus) f.focus();
+        }
+      });
+    });
+    card.addEventListener("mouseenter", function () { clearTimeout(M.hideT); });
+    card.addEventListener("mouseleave", softHide);
+    card.addEventListener("click", function (ev) { if (ev.target.closest && ev.target.closest("#pcx")) hideCard(true); });
+    root.addEventListener("click", function () { if (M.sel) hideCard(false); });
+    var sl = document.getElementById("tscrub");
+    sl.addEventListener("input", function () { T = +sl.value; updateMap(); });
+    document.getElementById("tprev").addEventListener("click", function () { jump(-1); });
+    document.getElementById("tnext").addEventListener("click", function () { jump(1); });
+    if (!M.bound) {
+      M.bound = true;
+      document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && M.sel) hideCard(true); });
+    }
   }
 
   // ---- dashboard
@@ -135,15 +358,7 @@
       kpi("Utilization", D.utilPct.toFixed(0) + "%", "Run time as a share of monitored time (see note)") + "</div>";
     h += '<div class="card"><h3>Booking-only vs sensor-verified</h3><p class="small muted" style="margin:0 0 8px">Booking-only bills every booked slot, rounded down to 15 min. Verified billing charges measured run time that overlaps a claim.</p>' +
       '<div class="row"><span>Booking-only <b>' + fmtMoney(D.bookingOnly) + '</b></span><span>No-show bookings not billed <b>' + fmtMoney(D.noShowValue) + '</b></span><span>Verified billed <b>' + fmtMoney(D.billed) + '</b></span><span>Walk-up + overrun run time to review <b>' + fmtMoney(D.recoverable) + "</b></span></div></div>";
-    h += "<h2>Instruments</h2><div class=\"grid icards\">" + D.order.map(function (id) {
-      var i = D.inst[id], u = D.u[id], pct = u.obs ? u.run / u.obs * 100 : 0;
-      var ss = D.sessions.filter(function (s) { return s.instrument_id === id; });
-      var ex = D.exc.filter(function (e) { return e.instrument_id === id; }).length;
-      var $ = ss.reduce(function (a, s) { return a + s.dollars; }, 0);
-      return '<a class="card icard" href="#/i/' + id + '"><h3><span>' + esc(i.name) + '</span><span class="muted small">' + fmtMoney(i.hourly_rate) + "/h</span></h3>" +
-        '<div class="bar-track" role="img" aria-label="' + pct.toFixed(0) + ' percent utilization"><div class="bar-fill" style="width:' + pct.toFixed(0) + '%"></div></div>' +
-        '<div class="row"><span>Util <b>' + pct.toFixed(0) + "%</b></span><span>Billed <b>" + fmtMoney($) + "</b></span><span>Exceptions <b>" + ex + "</b></span></div></a>";
-    }).join("") + "</div>";
+    h += '<div id="viewregion"></div>';
     h += "<h2>Run minutes by hour of day</h2><div class=\"card\">" + heat() + '<p class="small muted" style="margin:8px 0 0">Total measured run minutes over 7 days, UTC. The simulator emits one 65-minute observation window per instrument per day, so activity is concentrated and utilization is relative to monitored time, not to a full working day.</p></div>';
     h += '<h2 id="queue">Exceptions review queue <span class="muted small">(' + open + " of " + D.exc.length + " undecided)</span></h2>";
     h += '<div class="toolbar"><div class="filters" id="filters" role="group" aria-label="Filter by type"><button data-f="all" aria-pressed="true">All (' + D.exc.length + ")</button>" +
@@ -155,6 +370,7 @@
       '<p class="small muted" style="margin-bottom:0">No iLab or PPMS schema has been validated; columns are a generic placeholder.</p></div>';
     h += how();
     $main.innerHTML = h;
+    renderView();
     var f = "all";
     function table() {
       var list = D.exc.filter(function (e) { return f === "all" || e.type === f; }).sort(function (a, b) { return a.start - b.start; });
@@ -162,7 +378,7 @@
     }
     table();
     $$("#filters button").forEach(function (b) { b.addEventListener("click", function () { f = b.getAttribute("data-f"); $$("#filters button").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); table(); }); });
-    bindReview(document.getElementById("qt"), function () { table(); var n = D.exc.filter(function (e) { return !getRev()[e.key]; }).length; document.querySelector("#queue .small").textContent = "(" + n + " of " + D.exc.length + " undecided)"; });
+    bindReview(document.getElementById("qt"), function () { table(); updateMap(); var n = D.exc.filter(function (e) { return !getRev()[e.key]; }).length; document.querySelector("#queue .small").textContent = "(" + n + " of " + D.exc.length + " undecided)"; });
     document.getElementById("csv").addEventListener("click", downloadCsv);
   }
   function downloadCsv() {
@@ -292,7 +508,12 @@
   }
   function route() {
     if (timer) { clearInterval(timer); timer = null; }
-    var p = (location.hash || "#/").replace(/^#\/?/, "").split("/").filter(Boolean);
+    var hash = location.hash || "#/", qi = hash.indexOf("?");
+    var qv = null;
+    if (qi >= 0) { try { qv = new URLSearchParams(hash.slice(qi + 1)).get("view"); } catch (e) { qv = null; } }
+    V = VIEWS.indexOf(qv) >= 0 ? qv : (storedView() || "map");
+    syncToggle();
+    var p = (qi >= 0 ? hash.slice(0, qi) : hash).replace(/^#\/?/, "").split("/").filter(Boolean);
     var r = p[0] || "home";
     nav(r === "i" ? "home" : r);
     if (!D) return;
@@ -304,6 +525,7 @@
     if (r !== "how") window.scrollTo(0, 0);
   }
   window.addEventListener("hashchange", route);
+  $$("#viewsw button").forEach(function (b) { b.addEventListener("click", function () { setView(b.getAttribute("data-v")); }); });
   nav("home");
   load().then(route).catch(function (e) {
     $main.innerHTML = "<h1>Could not load demo data</h1><p>" + esc(e.message) + '. Serve this folder over HTTP (for example <code>python3 -m http.server</code>) instead of opening the file directly.</p>';
