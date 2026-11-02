@@ -2,7 +2,7 @@
 
 A static GitHub Pages demo of LabMeter: clip-on sensors detect when shared lab instruments actually run, NFC taps claim the instrument to a grant, and reconciliation compares bookings, claims and measured runs. Verified run time is billed; walk-ups, overruns, idle claims, no-shows and sensor gaps go to a review queue.
 
-**All data is simulated.** There are no real instruments, sensors, users or customers. The "tap" page is a client-side simulation and persists nothing; review decisions are stored only in your browser's localStorage.
+**All data is simulated.** There are no real instruments, sensors, users or customers. The instrument "tap" page is a client-side simulation and persists nothing. Review decisions and the portable-gear actions (Mark found, Report missing, Check out, Return) are stored only in your browser's localStorage. Portable-gear locations are room-level, from simulated BLE gateway sightings (not GPS); `data/assets.json` documents the status rules.
 
 ## How the data was generated
 The real LabMeter FastAPI server (SQLite, fresh temporary DB) was started on a local port and `sim/run.py --days 7` posted deterministic synthetic gateway events, NFC claims and bookings over HTTP (16,400 events, 6 instruments, 12 demo users, 5 grants). The API responses the UI needs were then saved to `data/`: `reconciliation.json`, `utilization.json`, `instruments.json`, `timeline-<instrument>.json`, `tag-<instrument>.json`, plus `billing.csv`, `bookings.csv` and the simulator's `ground_truth.json`. The server was stopped afterwards.

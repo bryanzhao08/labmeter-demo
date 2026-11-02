@@ -7,7 +7,7 @@
 (function () {
   var S = 50; // viewBox units per world unit
   var KIND = { lab: 0x6f7dff, dark: 0xa86bff, hall: 0x3fa8dc, office: 0x6078a8 };
-  var C_RUN = 0x4df2c8, C_IDLE = 0xe8b04a, C_OFF = 0x62708a, C_GAP = 0xa9b6e8, C_ASSET = 0xff6f9c;
+  var C_RUN = 0x4df2c8, C_IDLE = 0xe8b04a, C_OFF = 0x62708a, C_GAP = 0xa9b6e8, C_ASSET = 0xff6f9c, C_MISS = 0xff5b4a, C_OUT = 0x7fb2ff;
 
   function tex(draw) {
     var c = document.createElement("canvas"); c.width = c.height = 64;
@@ -30,12 +30,13 @@
     renderer.setClearColor(0x060912, 1);
     var canvas = renderer.domElement; canvas.className = "scene-canvas"; canvas.setAttribute("aria-hidden", "true");
     host.appendChild(canvas);
-    var labels = document.createElement("div"); labels.className = "labels"; host.appendChild(labels);
+    var labels = document.createElement("div"); labels.className = "labels"; labels.setAttribute("role", "group"); labels.setAttribute("aria-label", "Instruments and portable items in the 3D view"); host.appendChild(labels);
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
     var target = new THREE.Vector3(0, 1.1, 0.2);
     var cam = { th: 0.55, ph: 1.0, r: 18 }, goal = { th: 0.55, ph: 1.0, r: 18 };
+    var tgtGoal = target.clone(), tgtHome = target.clone(), fitR = 18, selNode = null, focusRoom = null;
     var auto = !reduced, dirty = true, W = 1, H = 1;
 
     var tGlow = glowTex(), tDot = dotTex(), tRing = ringTex();
@@ -142,8 +143,12 @@
       });
       assets.forEach(function (n) {
         var ev = locAt(n, t); n.last = ev;
+        var stt = model.assetStatus ? model.assetStatus(n.id, t) : "";
+        n.st = stt; n.label.setAttribute("data-st", stt);
         n.sub.textContent = model.assetNote(n, ev, t);
         n.label.setAttribute("aria-label", n.name + ". " + model.assetNote(n, ev, t));
+        var ac = stt === "miss" ? C_MISS : stt === "out" ? C_OUT : C_ASSET;
+        n.core.material.color.setHex(ac); n.halo.material.color.setHex(ac);
         if (n.roomId == null) { n.roomId = ev.room; restPos(n, ev.room, clock, n.pos); }
         else if (ev.room !== n.roomId && rooms[ev.room]) {
           if (reduced || first) { n.roomId = ev.room; n.tween = null; restPos(n, ev.room, clock, n.pos); }
@@ -156,15 +161,75 @@
         a.lvl = past === -Infinity ? 0.1 : (t - past < 8 * 3600 ? 2 : 1);
         a.dots.material.opacity = a.lvl === 2 ? 0.95 : a.lvl === 1 ? 0.4 : 0.14;
       });
+      if (selNode) { buildTrail(); if (selNode.kind === "asset" && selNode.roomId !== focusRoom) focusSel(); }
       dirty = true;
+    }
+
+    // ---- selection: focus, bubble highlight, recent path trail and a pulsing 'last seen here' marker
+    var trail = { pts: null, wps: null, labels: [], pulse: null, flag: null };
+    function clearTrail() {
+      [trail.pts, trail.wps, trail.pulse].forEach(function (o) { if (o) { scene.remove(o); if (o.geometry) o.geometry.dispose(); o.material.dispose(); } });
+      trail.labels.forEach(function (l) { if (l.el.parentNode) l.el.parentNode.removeChild(l.el); });
+      if (trail.flag && trail.flag.parentNode) trail.flag.parentNode.removeChild(trail.flag);
+      trail.pts = trail.wps = trail.pulse = trail.flag = null; trail.labels = [];
+    }
+    function buildTrail() {
+      clearTrail();
+      var n = selNode; if (!n || n.kind !== "asset") return;
+      var wp = [];
+      n.hist.forEach(function (e) {
+        if (e.t > T || !rooms[e.room]) return;
+        var l = wp[wp.length - 1];
+        if (!l || l.room !== e.room) wp.push({ room: e.room, t: e.t, last: e.t }); else l.last = e.t;
+      });
+      wp = wp.slice(-6);
+      var arr = [], k, seen = {};
+      for (k = 1; k < wp.length; k++) {
+        var cf = curveFor(wp[k - 1].room, wp[k].room), pts = cf.c.getSpacedPoints(26);
+        if (cf.rev) pts.reverse();
+        pts.forEach(function (p) { arr.push(p.x, p.y, p.z); });
+      }
+      var col = n.st === "miss" ? C_MISS : C_ASSET;
+      if (arr.length) {
+        var g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(arr, 3));
+        trail.pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.2, map: tDot, color: 0xffb3cb, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending }));
+        trail.pts.frustumCulled = false; scene.add(trail.pts);
+      }
+      var wa = [];
+      wp.forEach(function (w, i) {
+        var rc = rooms[w.room].c; wa.push(rc.x, rc.y, rc.z);
+        if (i === wp.length - 1) return;
+        seen[w.room] = (seen[w.room] || 0) + 1;
+        var el = document.createElement("div"); el.className = "lbl lbl-trail"; el.textContent = model.fmtShort ? model.fmtShort(w.t) : String(w.t);
+        el.setAttribute("aria-hidden", "true"); labels.appendChild(el);
+        trail.labels.push({ el: el, p: rc, dy: (seen[w.room] - 1) * 16 });
+      });
+      if (wa.length) {
+        var g2 = new THREE.BufferGeometry(); g2.setAttribute("position", new THREE.Float32BufferAttribute(wa, 3));
+        trail.wps = new THREE.Points(g2, new THREE.PointsMaterial({ size: 0.34, map: tDot, color: 0xffd0e0, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
+        trail.wps.frustumCulled = false; scene.add(trail.wps);
+      }
+      trail.pulse = new THREE.Sprite(new THREE.SpriteMaterial({ map: tRing, color: col, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
+      trail.pulse.scale.set(0.8, 0.8, 1); scene.add(trail.pulse);
+      var f = document.createElement("div"); f.className = "lbl lbl-flag"; f.setAttribute("aria-hidden", "true");
+      f.textContent = model.flagText ? model.flagText(n.id, T) : "Last seen here"; labels.appendChild(f); trail.flag = f;
+    }
+    function focusSel() {
+      if (!selNode) { tgtGoal.copy(tgtHome); goal.r = fitR; focusRoom = null; return; }
+      var rm = selNode.kind === "inst" ? selNode.room : rooms[selNode.roomId]; if (!rm) return;
+      focusRoom = selNode.kind === "asset" ? selNode.roomId : null;
+      tgtGoal.set(rm.c.x, rm.c.y * 0.8, rm.c.z); goal.r = Math.max(8, Math.min(fitR, 6 + Math.max(rm.s.x, rm.s.z) * 2.2)); goal.ph = Math.min(goal.ph, 1.2);
+      stopAuto(); dirty = true;
     }
 
     function select(kind, id) {
       sel = id ? kind + ":" + id : null;
-      inst.concat(assets).forEach(function (n) { n.sel = sel === n.kind + ":" + n.id; n.label.classList.toggle("sel", n.sel); });
+      inst.concat(assets).forEach(function (n) { n.sel = sel === n.kind + ":" + n.id; n.label.classList.toggle("sel", n.sel); n.label.setAttribute("aria-pressed", n.sel ? "true" : "false"); });
       roomList.forEach(function (r) { r.want = 0; });
       inst.forEach(function (n) { if (n.sel) n.room.want = 0.5; });
-      assets.forEach(function (n) { if (n.sel && rooms[n.roomId]) rooms[n.roomId].want = 0.5; });
+      assets.forEach(function (n) { if (n.sel && rooms[n.roomId]) rooms[n.roomId].want = 0.95; });
+      selNode = null; inst.concat(assets).forEach(function (n) { if (n.sel) selNode = n; });
+      buildTrail(); focusSel();
       dirty = true;
     }
 
@@ -176,7 +241,7 @@
     }
     function fit() {
       var asp = W / Math.max(1, H), r = Math.max(13, Math.min(40, 21 / Math.max(0.35, Math.min(asp, 1.8)) * 0.95));
-      goal.r = cam.r = r;
+      goal.r = cam.r = fitR = r;
     }
     function clampG() { goal.ph = Math.max(0.35, Math.min(1.45, goal.ph)); goal.r = Math.max(7, Math.min(42, goal.r)); }
     var ptrs = {}, down = null, pinch = 0;
@@ -236,9 +301,9 @@
     function frame(now) {
       raf = requestAnimationFrame(frame);
       var dt = Math.min(0.1, (now - last) / 1000); last = now; if (!reduced) clock += dt;
-      var moving = Math.abs(goal.th - cam.th) + Math.abs(goal.ph - cam.ph) + Math.abs(goal.r - cam.r) > 0.0008;
+      var moving = Math.abs(goal.th - cam.th) + Math.abs(goal.ph - cam.ph) + Math.abs(goal.r - cam.r) + target.distanceTo(tgtGoal) > 0.0008;
       if (auto && !reduced) { goal.th += dt * 0.07; cam.th = goal.th; dirty = true; }
-      if (moving) { cam.th += (goal.th - cam.th) * 0.16; cam.ph += (goal.ph - cam.ph) * 0.16; cam.r += (goal.r - cam.r) * 0.16; dirty = true; }
+      if (moving) { cam.th += (goal.th - cam.th) * 0.16; cam.ph += (goal.ph - cam.ph) * 0.16; cam.r += (goal.r - cam.r) * 0.16; target.lerp(tgtGoal, 0.16); dirty = true; }
       if (reduced && !dirty) return;
       placeCamera();
       var k;
@@ -273,6 +338,11 @@
         for (var q = 0; q < 8; q++) { var u2 = (clock * 0.16 + q / 8) % 1, pt = a.c.getPoint(u2); a.fp[q * 3] = pt.x; a.fp[q * 3 + 1] = pt.y; a.fp[q * 3 + 2] = pt.z; }
         a.flow.geometry.attributes.position.needsUpdate = true;
       });
+      if (trail.pulse && selNode) {
+        var pf = reduced ? 0.4 : (clock * 0.9) % 1;
+        trail.pulse.position.copy(selNode.pos); trail.pulse.scale.setScalar(0.5 + pf * 1.3); trail.pulse.material.opacity = reduced ? 0.8 : 1 - pf;
+        if (!reduced) dirty = true;
+      }
       renderer.render(scene, camera);
       project();
       dirty = reduced ? moving : false;
@@ -284,6 +354,8 @@
     function project() {
       roomList.forEach(function (r) { tmp.copy(r.anchor).project(camera); put(r.label, (tmp.x * 0.5 + 0.5) * W, (-tmp.y * 0.5 + 0.5) * H, tmp.z < 1); });
       inst.concat(assets).forEach(function (n) { var s = screen(n); put(n.label, s.x, s.y, s.z < 1); });
+      trail.labels.forEach(function (l) { tmp.copy(l.p).project(camera); put(l.el, (tmp.x * 0.5 + 0.5) * W, (-tmp.y * 0.5 + 0.5) * H + l.dy, tmp.z < 1); });
+      if (trail.flag && selNode) { var fs = screen(selNode); put(trail.flag, fs.x, fs.y, fs.z < 1); }
     }
     function start() { if (!raf && alive) { last = performance.now(); dirty = true; raf = requestAnimationFrame(frame); } }
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
@@ -294,7 +366,7 @@
     return {
       setTime: setTime, select: select,
       destroy: function () {
-        alive = false; stop(); document.removeEventListener("visibilitychange", vis);
+        alive = false; stop(); clearTrail(); document.removeEventListener("visibilitychange", vis);
         if (ro) ro.disconnect(); else window.removeEventListener("resize", resize);
         host.removeEventListener("pointerdown", onDown); host.removeEventListener("pointermove", onMove);
         host.removeEventListener("pointerup", onUp); host.removeEventListener("pointercancel", onUp);

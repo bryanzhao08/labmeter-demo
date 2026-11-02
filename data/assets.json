@@ -1,10 +1,16 @@
 {
- "_help": "Simulated portable shared gear. history = location changes (t epoch seconds UTC, room = id from layout.json rooms, by = optional user id). The asset is in the room of the latest entry with t <= the selected time.",
+ "_help": "Simulated portable shared gear. history = location changes (t epoch seconds UTC, room = id from layout.json rooms, by = optional user id). The asset is in the room of the latest entry with t <= the selected time. Extra fields: home_room, room (current), battery (% of the BLE tag), tag (id), last_seen (epoch s, last gateway sighting; may be later than the last move), checked_out_by {user, since, due}. Status is derived in the app: Checked out if checked_out_by is set; otherwise Missing if last_seen is over 24 h old, or the item is outside home_room and unseen for over 6 h; Moved if outside home_room; else In place. 'Now' is the end of the simulated data (1793491199).",
+ "now": 1793491199,
  "assets": [
   {
    "id": "p200",
    "name": "P200 pipette set",
    "kind": "pipette",
+   "home_room": "prep",
+   "room": "prep",
+   "battery": 82,
+   "tag": "BLE-3A10",
+   "last_seen": 1793490119,
    "history": [
     {
      "t": 1792915200,
@@ -41,6 +47,11 @@
    "id": "minifuge2",
    "name": "Mini-centrifuge #2",
    "kind": "mini-centrifuge",
+   "home_room": "genomics",
+   "room": "flow-suite",
+   "battery": 11,
+   "tag": "BLE-3BE7",
+   "last_seen": 1793365199,
    "history": [
     {
      "t": 1792915200,
@@ -72,6 +83,11 @@
    "id": "icecart",
    "name": "Ice machine cart",
    "kind": "cart",
+   "home_room": "prep",
+   "room": "prep",
+   "battery": 74,
+   "tag": "BLE-3DBE",
+   "last_seen": 1793487599,
    "history": [
     {
      "t": 1792915200,
@@ -103,6 +119,11 @@
    "id": "gelcart",
    "name": "Gel imager cart",
    "kind": "cart",
+   "home_room": "imaging",
+   "room": "office",
+   "battery": 38,
+   "tag": "BLE-3F95",
+   "last_seen": 1793447999,
    "history": [
     {
      "t": 1792915200,
@@ -134,6 +155,11 @@
    "id": "multikit",
    "name": "Multichannel pipette kit",
    "kind": "pipette",
+   "home_room": "flow-suite",
+   "room": "prep",
+   "battery": 66,
+   "tag": "BLE-416C",
+   "last_seen": 1793482199,
    "history": [
     {
      "t": 1792915200,
@@ -160,6 +186,11 @@
    "id": "cooler",
    "name": "Dry-ice cooler",
    "kind": "cooler",
+   "home_room": "prep",
+   "room": "hall",
+   "battery": 52,
+   "tag": "BLE-4343",
+   "last_seen": 1793486879,
    "history": [
     {
      "t": 1792915200,
@@ -184,6 +215,162 @@
      "t": 1793392200,
      "room": "hall",
      "by": "user-12"
+    }
+   ]
+  },
+  {
+   "id": "vortex1",
+   "name": "Vortex-Genie vortexer",
+   "kind": "vortexer",
+   "home_room": "genomics",
+   "room": "genomics",
+   "battery": 88,
+   "tag": "BLE-451A",
+   "last_seen": 1793489039,
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "genomics"
+    },
+    {
+     "t": 1793095199,
+     "room": "prep",
+     "by": "user-6"
+    },
+    {
+     "t": 1793141999,
+     "room": "genomics",
+     "by": "user-6"
+    }
+   ]
+  },
+  {
+   "id": "laptop1",
+   "name": "Confocal control laptop",
+   "kind": "laptop",
+   "home_room": "imaging",
+   "room": "genomics",
+   "battery": 71,
+   "tag": "BLE-46F1",
+   "last_seen": 1793480399,
+   "checked_out_by": {
+    "user": "user-7",
+    "since": 1793311199,
+    "due": 1793469599
+   },
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "imaging"
+    },
+    {
+     "t": 1793311199,
+     "room": "genomics",
+     "by": "user-7"
+    }
+   ]
+  },
+  {
+   "id": "powermeter",
+   "name": "Laser power meter",
+   "kind": "power-meter",
+   "home_room": "imaging",
+   "room": "imaging",
+   "battery": 61,
+   "tag": "BLE-48C8",
+   "last_seen": 1793488319,
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "imaging"
+    },
+    {
+     "t": 1793221199,
+     "room": "flow-suite",
+     "by": "user-1"
+    },
+    {
+     "t": 1793239199,
+     "room": "imaging",
+     "by": "user-1"
+    }
+   ]
+  },
+  {
+   "id": "labelprn",
+   "name": "Label printer",
+   "kind": "label-printer",
+   "home_room": "office",
+   "room": "hall",
+   "battery": 5,
+   "tag": "BLE-4A9F",
+   "last_seen": 1793239199,
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "office"
+    },
+    {
+     "t": 1793127599,
+     "room": "prep",
+     "by": "user-5"
+    },
+    {
+     "t": 1793231999,
+     "room": "hall",
+     "by": "user-5"
+    }
+   ]
+  },
+  {
+   "id": "icebucket1",
+   "name": "Ice bucket (blue)",
+   "kind": "ice-bucket",
+   "home_room": "prep",
+   "room": "prep",
+   "battery": 47,
+   "tag": "BLE-4C76",
+   "last_seen": 1793489759,
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "prep"
+    },
+    {
+     "t": 1793419199,
+     "room": "genomics",
+     "by": "user-2"
+    },
+    {
+     "t": 1793458799,
+     "room": "prep",
+     "by": "user-2"
+    }
+   ]
+  },
+  {
+   "id": "tablet1",
+   "name": "Bench tablet",
+   "kind": "tablet",
+   "home_room": "office",
+   "room": "flow-suite",
+   "battery": 93,
+   "tag": "BLE-4E4D",
+   "last_seen": 1793490839,
+   "checked_out_by": {
+    "user": "user-3",
+    "since": 1793476799,
+    "due": 1793563199
+   },
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "office"
+    },
+    {
+     "t": 1793476799,
+     "room": "flow-suite",
+     "by": "user-3"
     }
    ]
   }
