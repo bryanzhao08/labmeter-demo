@@ -1,0 +1,16 @@
+# LabMeter demo
+
+A static GitHub Pages demo of LabMeter: clip-on sensors detect when shared lab instruments actually run, NFC taps claim the instrument to a grant, and reconciliation compares bookings, claims and measured runs. Verified run time is billed; walk-ups, overruns, idle claims, no-shows and sensor gaps go to a review queue.
+
+**All data is simulated.** There are no real instruments, sensors, users or customers. The "tap" page is a client-side simulation and persists nothing; review decisions are stored only in your browser's localStorage.
+
+## How the data was generated
+The real LabMeter FastAPI server (SQLite, fresh temporary DB) was started on a local port and `sim/run.py --days 7` posted deterministic synthetic gateway events, NFC claims and bookings over HTTP (16,400 events, 6 instruments, 12 demo users, 5 grants). The API responses the UI needs were then saved to `data/`: `reconciliation.json`, `utilization.json`, `instruments.json`, `timeline-<instrument>.json`, `tag-<instrument>.json`, plus `billing.csv`, `bookings.csv` and the simulator's `ground_truth.json`. The server was stopped afterwards.
+
+## Limitations
+- The simulator creates one ~65-minute observation window per instrument per day, so timelines are sparse and utilization is relative to monitored time.
+- Billing floors to 15-minute increments per uninterrupted run; booked-time billing is not implemented; no iLab/PPMS schema is validated.
+- "Pending review value" is run time x hourly rate for walk-ups and overruns; it is not billed.
+
+## Run locally
+`python3 -m http.server` in the parent folder, then open `/labmeter-demo/`. Uses relative paths and hash routing, so it works under any subpath. Opening via `file://` will not load the JSON.

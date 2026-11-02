@@ -1,0 +1,441 @@
+{
+  "runs": [
+    {
+      "instrument_id": "flow",
+      "start": "2026-10-25T08:10:00Z",
+      "end": "2026-10-25T08:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "confocal",
+      "start": "2026-10-25T10:10:00Z",
+      "end": "2026-10-25T10:50:00Z",
+      "scenario": "forget"
+    },
+    {
+      "instrument_id": "centrifuge",
+      "start": "2026-10-25T12:10:00Z",
+      "end": "2026-10-25T12:50:00Z",
+      "scenario": "overrun"
+    },
+    {
+      "instrument_id": "plate",
+      "start": "2026-10-25T14:10:00Z",
+      "end": "2026-10-25T14:50:00Z",
+      "scenario": "walk_up"
+    },
+    {
+      "instrument_id": "sequencer",
+      "start": "2026-10-25T18:10:00Z",
+      "end": "2026-10-25T18:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "flow",
+      "start": "2026-10-26T08:10:00Z",
+      "end": "2026-10-26T08:50:00Z",
+      "scenario": "forget"
+    },
+    {
+      "instrument_id": "confocal",
+      "start": "2026-10-26T10:10:00Z",
+      "end": "2026-10-26T10:50:00Z",
+      "scenario": "overrun"
+    },
+    {
+      "instrument_id": "centrifuge",
+      "start": "2026-10-26T12:10:00Z",
+      "end": "2026-10-26T12:50:00Z",
+      "scenario": "walk_up"
+    },
+    {
+      "instrument_id": "pcr",
+      "start": "2026-10-26T16:10:00Z",
+      "end": "2026-10-26T16:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "sequencer",
+      "start": "2026-10-26T18:10:00Z",
+      "end": "2026-10-26T18:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "flow",
+      "start": "2026-10-27T08:10:00Z",
+      "end": "2026-10-27T08:50:00Z",
+      "scenario": "overrun"
+    },
+    {
+      "instrument_id": "confocal",
+      "start": "2026-10-27T10:10:00Z",
+      "end": "2026-10-27T10:50:00Z",
+      "scenario": "walk_up"
+    },
+    {
+      "instrument_id": "plate",
+      "start": "2026-10-27T14:10:00Z",
+      "end": "2026-10-27T14:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "pcr",
+      "start": "2026-10-27T16:10:00Z",
+      "end": "2026-10-27T16:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "sequencer",
+      "start": "2026-10-27T18:10:00Z",
+      "end": "2026-10-27T18:50:00Z",
+      "scenario": "forget"
+    },
+    {
+      "instrument_id": "flow",
+      "start": "2026-10-28T08:10:00Z",
+      "end": "2026-10-28T08:50:00Z",
+      "scenario": "walk_up"
+    },
+    {
+      "instrument_id": "centrifuge",
+      "start": "2026-10-28T12:10:00Z",
+      "end": "2026-10-28T12:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "plate",
+      "start": "2026-10-28T14:10:00Z",
+      "end": "2026-10-28T14:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "pcr",
+      "start": "2026-10-28T16:10:00Z",
+      "end": "2026-10-28T16:50:00Z",
+      "scenario": "forget"
+    },
+    {
+      "instrument_id": "sequencer",
+      "start": "2026-10-28T18:10:00Z",
+      "end": "2026-10-28T18:50:00Z",
+      "scenario": "overrun"
+    },
+    {
+      "instrument_id": "confocal",
+      "start": "2026-10-29T10:10:00Z",
+      "end": "2026-10-29T10:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "centrifuge",
+      "start": "2026-10-29T12:10:00Z",
+      "end": "2026-10-29T12:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "plate",
+      "start": "2026-10-29T14:10:00Z",
+      "end": "2026-10-29T14:50:00Z",
+      "scenario": "forget"
+    },
+    {
+      "instrument_id": "pcr",
+      "start": "2026-10-29T16:10:00Z",
+      "end": "2026-10-29T16:50:00Z",
+      "scenario": "overrun"
+    },
+    {
+      "instrument_id": "sequencer",
+      "start": "2026-10-29T18:10:00Z",
+      "end": "2026-10-29T18:50:00Z",
+      "scenario": "walk_up"
+    },
+    {
+      "instrument_id": "flow",
+      "start": "2026-10-30T08:10:00Z",
+      "end": "2026-10-30T08:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "confocal",
+      "start": "2026-10-30T10:10:00Z",
+      "end": "2026-10-30T10:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "centrifuge",
+      "start": "2026-10-30T12:10:00Z",
+      "end": "2026-10-30T12:50:00Z",
+      "scenario": "forget"
+    },
+    {
+      "instrument_id": "plate",
+      "start": "2026-10-30T14:10:00Z",
+      "end": "2026-10-30T14:50:00Z",
+      "scenario": "overrun"
+    },
+    {
+      "instrument_id": "pcr",
+      "start": "2026-10-30T16:10:00Z",
+      "end": "2026-10-30T16:50:00Z",
+      "scenario": "walk_up"
+    },
+    {
+      "instrument_id": "flow",
+      "start": "2026-10-31T08:10:00Z",
+      "end": "2026-10-31T08:50:00Z",
+      "scenario": "normal"
+    },
+    {
+      "instrument_id": "confocal",
+      "start": "2026-10-31T10:10:00Z",
+      "end": "2026-10-31T10:50:00Z",
+      "scenario": "forget"
+    },
+    {
+      "instrument_id": "centrifuge",
+      "start": "2026-10-31T12:10:00Z",
+      "end": "2026-10-31T12:50:00Z",
+      "scenario": "overrun"
+    },
+    {
+      "instrument_id": "plate",
+      "start": "2026-10-31T14:10:00Z",
+      "end": "2026-10-31T14:50:00Z",
+      "scenario": "walk_up"
+    },
+    {
+      "instrument_id": "sequencer",
+      "start": "2026-10-31T18:10:00Z",
+      "end": "2026-10-31T18:50:00Z",
+      "scenario": "normal"
+    }
+  ],
+  "events_accepted": 16400,
+  "bookings": [
+    {
+      "id": "sim-0-flow",
+      "instrument_id": "flow",
+      "user_id": "user-1",
+      "account_id": "grant-1",
+      "start": "2026-10-25T08:10:00Z",
+      "end": "2026-10-25T08:50:00Z"
+    },
+    {
+      "id": "sim-0-centrifuge",
+      "instrument_id": "centrifuge",
+      "user_id": "user-3",
+      "account_id": "grant-3",
+      "start": "2026-10-25T12:10:00Z",
+      "end": "2026-10-25T12:40:00Z"
+    },
+    {
+      "id": "sim-0-pcr",
+      "instrument_id": "pcr",
+      "user_id": "user-5",
+      "account_id": "grant-5",
+      "start": "2026-10-25T16:10:00Z",
+      "end": "2026-10-25T16:50:00Z"
+    },
+    {
+      "id": "sim-0-sequencer",
+      "instrument_id": "sequencer",
+      "user_id": "user-6",
+      "account_id": "grant-1",
+      "start": "2026-10-25T18:10:00Z",
+      "end": "2026-10-25T18:50:00Z"
+    },
+    {
+      "id": "sim-1-confocal",
+      "instrument_id": "confocal",
+      "user_id": "user-2",
+      "account_id": "grant-2",
+      "start": "2026-10-26T10:10:00Z",
+      "end": "2026-10-26T10:40:00Z"
+    },
+    {
+      "id": "sim-1-plate",
+      "instrument_id": "plate",
+      "user_id": "user-4",
+      "account_id": "grant-4",
+      "start": "2026-10-26T14:10:00Z",
+      "end": "2026-10-26T14:50:00Z"
+    },
+    {
+      "id": "sim-1-pcr",
+      "instrument_id": "pcr",
+      "user_id": "user-5",
+      "account_id": "grant-5",
+      "start": "2026-10-26T16:10:00Z",
+      "end": "2026-10-26T16:50:00Z"
+    },
+    {
+      "id": "sim-1-sequencer",
+      "instrument_id": "sequencer",
+      "user_id": "user-6",
+      "account_id": "grant-1",
+      "start": "2026-10-26T18:10:00Z",
+      "end": "2026-10-26T18:50:00Z"
+    },
+    {
+      "id": "sim-2-flow",
+      "instrument_id": "flow",
+      "user_id": "user-1",
+      "account_id": "grant-1",
+      "start": "2026-10-27T08:10:00Z",
+      "end": "2026-10-27T08:40:00Z"
+    },
+    {
+      "id": "sim-2-centrifuge",
+      "instrument_id": "centrifuge",
+      "user_id": "user-3",
+      "account_id": "grant-3",
+      "start": "2026-10-27T12:10:00Z",
+      "end": "2026-10-27T12:50:00Z"
+    },
+    {
+      "id": "sim-2-plate",
+      "instrument_id": "plate",
+      "user_id": "user-4",
+      "account_id": "grant-4",
+      "start": "2026-10-27T14:10:00Z",
+      "end": "2026-10-27T14:50:00Z"
+    },
+    {
+      "id": "sim-2-pcr",
+      "instrument_id": "pcr",
+      "user_id": "user-5",
+      "account_id": "grant-5",
+      "start": "2026-10-27T16:10:00Z",
+      "end": "2026-10-27T16:50:00Z"
+    },
+    {
+      "id": "sim-3-confocal",
+      "instrument_id": "confocal",
+      "user_id": "user-2",
+      "account_id": "grant-2",
+      "start": "2026-10-28T10:10:00Z",
+      "end": "2026-10-28T10:50:00Z"
+    },
+    {
+      "id": "sim-3-centrifuge",
+      "instrument_id": "centrifuge",
+      "user_id": "user-3",
+      "account_id": "grant-3",
+      "start": "2026-10-28T12:10:00Z",
+      "end": "2026-10-28T12:50:00Z"
+    },
+    {
+      "id": "sim-3-plate",
+      "instrument_id": "plate",
+      "user_id": "user-4",
+      "account_id": "grant-4",
+      "start": "2026-10-28T14:10:00Z",
+      "end": "2026-10-28T14:50:00Z"
+    },
+    {
+      "id": "sim-3-sequencer",
+      "instrument_id": "sequencer",
+      "user_id": "user-6",
+      "account_id": "grant-1",
+      "start": "2026-10-28T18:10:00Z",
+      "end": "2026-10-28T18:40:00Z"
+    },
+    {
+      "id": "sim-4-flow",
+      "instrument_id": "flow",
+      "user_id": "user-1",
+      "account_id": "grant-1",
+      "start": "2026-10-29T08:10:00Z",
+      "end": "2026-10-29T08:50:00Z"
+    },
+    {
+      "id": "sim-4-confocal",
+      "instrument_id": "confocal",
+      "user_id": "user-2",
+      "account_id": "grant-2",
+      "start": "2026-10-29T10:10:00Z",
+      "end": "2026-10-29T10:50:00Z"
+    },
+    {
+      "id": "sim-4-centrifuge",
+      "instrument_id": "centrifuge",
+      "user_id": "user-3",
+      "account_id": "grant-3",
+      "start": "2026-10-29T12:10:00Z",
+      "end": "2026-10-29T12:50:00Z"
+    },
+    {
+      "id": "sim-4-pcr",
+      "instrument_id": "pcr",
+      "user_id": "user-5",
+      "account_id": "grant-5",
+      "start": "2026-10-29T16:10:00Z",
+      "end": "2026-10-29T16:40:00Z"
+    },
+    {
+      "id": "sim-5-flow",
+      "instrument_id": "flow",
+      "user_id": "user-1",
+      "account_id": "grant-1",
+      "start": "2026-10-30T08:10:00Z",
+      "end": "2026-10-30T08:50:00Z"
+    },
+    {
+      "id": "sim-5-confocal",
+      "instrument_id": "confocal",
+      "user_id": "user-2",
+      "account_id": "grant-2",
+      "start": "2026-10-30T10:10:00Z",
+      "end": "2026-10-30T10:50:00Z"
+    },
+    {
+      "id": "sim-5-plate",
+      "instrument_id": "plate",
+      "user_id": "user-4",
+      "account_id": "grant-4",
+      "start": "2026-10-30T14:10:00Z",
+      "end": "2026-10-30T14:40:00Z"
+    },
+    {
+      "id": "sim-5-sequencer",
+      "instrument_id": "sequencer",
+      "user_id": "user-6",
+      "account_id": "grant-1",
+      "start": "2026-10-30T18:10:00Z",
+      "end": "2026-10-30T18:50:00Z"
+    },
+    {
+      "id": "sim-6-flow",
+      "instrument_id": "flow",
+      "user_id": "user-1",
+      "account_id": "grant-1",
+      "start": "2026-10-31T08:10:00Z",
+      "end": "2026-10-31T08:50:00Z"
+    },
+    {
+      "id": "sim-6-centrifuge",
+      "instrument_id": "centrifuge",
+      "user_id": "user-3",
+      "account_id": "grant-3",
+      "start": "2026-10-31T12:10:00Z",
+      "end": "2026-10-31T12:40:00Z"
+    },
+    {
+      "id": "sim-6-pcr",
+      "instrument_id": "pcr",
+      "user_id": "user-5",
+      "account_id": "grant-5",
+      "start": "2026-10-31T16:10:00Z",
+      "end": "2026-10-31T16:50:00Z"
+    },
+    {
+      "id": "sim-6-sequencer",
+      "instrument_id": "sequencer",
+      "user_id": "user-6",
+      "account_id": "grant-1",
+      "start": "2026-10-31T18:10:00Z",
+      "end": "2026-10-31T18:50:00Z"
+    }
+  ]
+}
