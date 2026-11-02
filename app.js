@@ -15,7 +15,6 @@
   var T = null;                    // map scrubber time (epoch seconds)
   var V = "map";                   // current view: map | list
   var VIEWS = ["map", "list"], VSTORE = "labmeter-demo-view-v1";
-  var M = { sel: null, pinned: false, hideT: null, bound: false, last: null };
   var STATE_LABEL = { run: "Running", idle: "Idle (on)", off: "Off", gap: "No sensor data" };
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -46,13 +45,13 @@
     return Promise.all([j("data/reconciliation.json"), j("data/utilization.json"), j("data/instruments.json")].concat(
       TAGS.map(function (t) { return j("data/timeline-" + t + ".json"); }),
       TAGS.map(function (t) { return j("data/tag-" + t + ".json"); }),
-      [j("data/layout.json").catch(function () { return null; })]
+      [j("data/layout.json").catch(function () { return null; }), j("data/assets.json").catch(function () { return { assets: [] }; })]
     )).then(function (a) {
       var inst = {}, order = [];
       a[2].forEach(function (i) { inst[i.id] = i; order.push(i.id); });
       var tl = {};
       TAGS.forEach(function (t, k) { tl[t] = a[3 + k]; });
-      D = { rec: a[0], util: a[1], inst: inst, order: order, tl: tl, layout: a[a.length - 1] };
+      D = { rec: a[0], util: a[1], inst: inst, order: order, tl: tl, layout: a[a.length - 2], assets: ((a[a.length - 1] && a[a.length - 1].assets) || []).filter(function (x) { return x && x.history && x.history.length; }) };
       derive();
     });
   }
@@ -102,6 +101,14 @@
       if (w && x[0] - w[1] < 1800) { if (x[1] > w[1]) w[1] = x[1]; } else D.windows.push([x[0], x[1]]);
     });
     D.t0 = lo; D.t1 = hi; D.tLast = isFinite(last) ? last - 1 : hi;
+    D.assets = D.assets || [];
+    if (D.layout) { var ok = {}; D.layout.rooms.forEach(function (r) { ok[r.id] = 1; }); D.assets = D.assets.filter(function (a) { a.history = a.history.filter(function (e) { return ok[e.room]; }); return a.history.length; }); }
+    // activity windows for the time slider and playback speed (run states only)
+    var rw = [];
+    TAGS.forEach(function (t) { D.tl[t].states.forEach(function (s) { if (s.state === "run") rw.push([s.start, s.end]); }); });
+    rw.sort(function (a, b) { return a[0] - b[0]; });
+    D.runWin = [];
+    rw.forEach(function (x) { var w = D.runWin[D.runWin.length - 1]; if (w && x[0] - w[1] < 1800) { if (x[1] > w[1]) w[1] = x[1]; } else D.runWin.push([x[0], x[1]]); });
     if (T == null) T = D.tLast;
   }
 
@@ -131,207 +138,242 @@
   }
 
 
+  // ---- facility helpers
+  var THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+  var SC = null, SCTOK = 0, VEFF = "map", SEL = null, playing = false, playRaf = 0, threeP = null;
+  var LS = { key: "name", dir: 1 };
+  function roomName(id) { var r = D.layout && D.layout.rooms.filter(function (x) { return x.id === id; })[0]; return r ? r.name.replace(/ \(dark\)$/, "") : id; }
+  function stateAt(id, t) {
+    var a = D.tl[id].states, lo = 0, hi = a.length - 1;
+    while (lo <= hi) {
+      var m = (lo + hi) >> 1, s = a[m];
+      if (t < s.start) hi = m - 1; else if (t >= s.end) lo = m + 1; else return s.state === "unknown" ? "gap" : s.state;
+    }
+    return "gap";
+  }
+  function pending(id) { return D.exc.filter(function (e) { return e.instrument_id === id && !getRev()[e.key]; }).length; }
+  function runH(id) { return D.u[id].run / 3600; }
+  function assetEv(a, t) { var h = a.history, ev = h[0]; for (var k = 0; k < h.length; k++) if (h[k].t <= t && h[k].t >= ev.t) ev = h[k]; return ev; }
+  function ago(sec) {
+    if (sec < 90) return "just now";
+    if (sec < 5400) return Math.round(sec / 60) + " min ago";
+    if (sec < 48 * 3600) return Math.round(sec / 3600) + " h ago";
+    return Math.round(sec / 86400) + " d ago";
+  }
+  function assetNote(a, ev, t) { return "Last seen " + roomName(ev.room) + (t > ev.t ? ", " + ago(t - ev.t) : ""); }
+  function lastClaim(id, t) {
+    var best = null; D.tl[id].claims.forEach(function (c) { if (c.start <= t && (!best || c.start > best.start)) best = c; });
+    return best;
+  }
+  function runningNow(t) { return D.order.filter(function (id) { return stateAt(id, t) === "run"; }).length; }
+
   // ---- view toggle (Map | List)
   function storedView() { try { var v = localStorage.getItem(VSTORE); return VIEWS.indexOf(v) >= 0 ? v : null; } catch (e) { return null; } }
   function saveView(v) { try { localStorage.setItem(VSTORE, v); } catch (e) { /* storage unavailable */ } }
   function syncToggle() {
-    $$("#viewsw button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-v") === V ? "true" : "false"); });
+    $$("#viewsw button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-v") === VEFF ? "true" : "false"); });
+    var sw = document.getElementById("viewsw"); if (sw) sw.hidden = !document.getElementById("viewregion");
   }
   function setView(v) {
-    V = v; saveView(v); syncToggle();
-    var h = location.hash || "#/", path = h.split("?")[0];
-    var onDash = !!document.getElementById("viewregion");
-    if (onDash) { try { history.replaceState(null, "", path + "?view=" + v); } catch (e) { location.hash = path + "?view=" + v; } renderView(); }
+    V = v; VEFF = v; saveView(v);
+    var path = (location.hash || "#/").split("?")[0];
+    var next = path + "?view=" + v;
+    if (document.getElementById("viewregion")) { try { history.replaceState(null, "", next); } catch (e) { location.hash = next; } renderView(); }
     else location.hash = "#/?view=" + v;
+    syncToggle();
+  }
+
+  // ---- panel
+  function panelEl() { return document.getElementById("panel"); }
+  function stat(l, v) { return '<div><dt>' + l + "</dt><dd>" + v + "</dd></div>"; }
+  function panelHTML() {
+    if (!SEL) return "";
+    var h = '<button type="button" class="x" id="pclose" aria-label="Close details">&times;</button>';
+    if (SEL.kind === "inst") {
+      var id = SEL.id, i = D.inst[id], st = stateAt(id, T), u = D.u[id], pct = u.obs ? u.run / u.obs * 100 : 0, c = lastClaim(id, T);
+      var room = D.layout && D.layout.pins[id] ? roomName(D.layout.pins[id].room) : "";
+      h += '<h2 id="ptitle">' + esc(i.name) + '</h2><p class="sub"><span class="dot s-' + st + '"></span>' + esc(STATE_LABEL[st]) + (room ? " · " + esc(room) : "") + "</p>" +
+        '<dl class="stats">' + stat("Rate", fmtMoney(i.hourly_rate) + "/h") + stat("Run this week", runH(id).toFixed(1) + " h") + stat("Utilization", pct.toFixed(0) + "%") + stat("Open exceptions", pending(id)) + "</dl>" +
+        '<p class="last">' + (c ? "Last claimed by " + esc(uname(c.user_id)) + " on " + esc(gname(c.account_id)) + ", " + esc(fmtT(c.start)) : "No claim yet at this time") + "</p>" +
+        '<div class="acts"><a class="btn primary" href="#/i/' + id + '">Timeline</a><a class="btn" href="#/t/tag-' + id + '">Tap demo</a></div>';
+    } else {
+      var a = D.assets.filter(function (x) { return x.id === SEL.id; })[0]; if (!a) return "";
+      var ev = assetEv(a, T), mv = a.history.filter(function (e) { return e.t <= T && e.t > a.history[0].t; }).sort(function (p, q) { return q.t - p.t; });
+      h += '<h2 id="ptitle">' + esc(a.name) + '</h2><p class="sub"><span class="dot s-asset"></span>Portable · in ' + esc(roomName(ev.room)) + "</p>" +
+        '<dl class="stats">' + stat("Last seen", esc(roomName(ev.room)) + (T > ev.t ? "<small>" + ago(T - ev.t) + "</small>" : "")) + stat("Moves this week", mv.length) + "</dl>" +
+        '<ol class="moves">' + (mv.length ? mv.slice(0, 5).map(function (e) {
+          var prev = assetEv(a, e.t - 1);
+          return "<li><span>" + esc(fmtT(e.t)) + "</span> " + esc(roomName(prev.room)) + " to " + esc(roomName(e.room)) + (e.by ? ", " + esc(uname(e.by)) : "") + "</li>";
+        }).join("") : '<li class="muted">No moves yet at this time.</li>') + "</ol>";
+    }
+    return h;
+  }
+  function showPanel(kind, id) {
+    var p = panelEl(); if (!p) return;
+    if (!kind) { hidePanel(); return; }
+    var fresh = !SEL || SEL.kind !== kind || SEL.id !== id;
+    SEL = { kind: kind, id: id }; p.innerHTML = panelHTML(); p.hidden = false;
+    p.setAttribute("aria-labelledby", "ptitle");
+    if (SC) SC.select(kind, id);
+    $$("[data-row]").forEach(function (r) { r.classList.toggle("sel", r.getAttribute("data-row") === kind + ":" + id); });
+    var x = document.getElementById("pclose"); if (x) { x.addEventListener("click", hidePanel); if (fresh) x.focus({ preventScroll: true }); }
+  }
+  function refreshPanel() { var p = panelEl(); if (p && !p.hidden && SEL) { var f = document.activeElement && document.activeElement.id === "pclose"; p.innerHTML = panelHTML(); var x = document.getElementById("pclose"); if (x) { x.addEventListener("click", hidePanel); if (f) x.focus({ preventScroll: true }); } } }
+  function hidePanel() {
+    var p = panelEl(), was = SEL; SEL = null; if (p) { p.hidden = true; p.innerHTML = ""; }
+    if (SC) SC.select(null, null);
+    $$("[data-row]").forEach(function (r) { r.classList.remove("sel"); });
+    if (was) { var b = document.querySelector('[data-pick="' + was.kind + ":" + was.id + '"]'); if (b) b.focus({ preventScroll: true }); }
+  }
+
+  // ---- list view
+  function listRows() {
+    var rows = D.order.map(function (id) {
+      var st = stateAt(id, T);
+      return { kind: "inst", id: id, name: D.inst[id].name, room: D.layout && D.layout.pins[id] ? roomName(D.layout.pins[id].room) : "", state: st, srank: { run: 0, idle: 1, off: 2, gap: 3 }[st], note: STATE_LABEL[st], runh: runH(id), exc: pending(id) };
+    });
+    D.assets.forEach(function (a) {
+      var ev = assetEv(a, T);
+      rows.push({ kind: "asset", id: a.id, name: a.name, room: roomName(ev.room), state: "asset", srank: 4, note: assetNote(a, ev, T).replace("Last seen " + roomName(ev.room), "Last seen").replace(/^Last seen,/, "Last seen"), runh: -1, exc: -1 });
+    });
+    var k = LS.key, d = LS.dir;
+    rows.sort(function (a, b) {
+      var x = a[k], y = b[k]; if (typeof x === "string") { x = x.toLowerCase(); y = y.toLowerCase(); }
+      return (x < y ? -1 : x > y ? 1 : a.name < b.name ? -1 : 1) * d;
+    });
+    return rows;
   }
   function listHTML() {
-    return '<h2>Instruments</h2><div class="grid icards">' + D.order.map(function (id) {
-      var i = D.inst[id], u = D.u[id], pct = u.obs ? u.run / u.obs * 100 : 0;
-      var ss = D.sessions.filter(function (s) { return s.instrument_id === id; });
-      var ex = D.exc.filter(function (e) { return e.instrument_id === id; }).length;
-      var $ = ss.reduce(function (a, s) { return a + s.dollars; }, 0);
-      return '<a class="card icard" href="#/i/' + id + '"><h3><span>' + esc(i.name) + '</span><span class="muted small">' + fmtMoney(i.hourly_rate) + "/h</span></h3>" +
-        '<div class="bar-track" role="img" aria-label="' + pct.toFixed(0) + ' percent utilization"><div class="bar-fill" style="width:' + pct.toFixed(0) + '%"></div></div>' +
-        '<div class="row"><span>Util <b>' + pct.toFixed(0) + "%</b></span><span>Billed <b>" + fmtMoney($) + "</b></span><span>Exceptions <b>" + ex + "</b></span></div></a>";
-    }).join("") + "</div>";
+    var cols = [["name", "Name"], ["room", "Room"], ["srank", "State now"], ["runh", "Run this week", 1], ["exc", "Open exceptions", 1]];
+    var h = '<div class="listwrap"><table class="tbl lt"><thead><tr>' + cols.map(function (c) {
+      var on = LS.key === c[0];
+      return '<th' + (c[2] ? ' class="num"' : "") + ' aria-sort="' + (on ? (LS.dir > 0 ? "ascending" : "descending") : "none") + '"><button type="button" class="sort" data-sort="' + c[0] + '">' + c[1] + (on ? (LS.dir > 0 ? " &#9650;" : " &#9660;") : "") + "</button></th>";
+    }).join("") + "</tr></thead><tbody>";
+    h += listRows().map(function (r) {
+      return '<tr data-row="' + r.kind + ":" + r.id + '"><td data-l="Name"><button type="button" class="pick" data-pick="' + r.kind + ":" + r.id + '">' + esc(r.name) + "</button>" + (r.kind === "asset" ? ' <span class="tag">portable</span>' : "") + "</td>" +
+        '<td data-l="Room">' + esc(r.room) + '</td><td data-l="State now"><span class="dot s-' + r.state + '"></span>' + esc(r.note) + '</td><td class="num" data-l="Run this week">' + (r.runh < 0 ? "&ndash;" : r.runh.toFixed(1) + " h") + '</td><td class="num" data-l="Open exceptions">' + (r.exc < 0 ? "&ndash;" : r.exc) + "</td></tr>";
+    }).join("") + '</tbody></table></div><p class="small muted asof">As of ' + esc(fmtT(T)) + " UTC, the end of the simulated data. Switch to Map to scrub through the week.</p>";
+    return h;
+  }
+  function bindList(el) {
+    el.addEventListener("click", function (ev) {
+      var s = ev.target.closest("[data-sort]"), p = ev.target.closest("[data-pick]");
+      if (s) { var k = s.getAttribute("data-sort"); if (LS.key === k) LS.dir = -LS.dir; else { LS.key = k; LS.dir = 1; } el.innerHTML = listHTML(); var again = el.querySelector('[data-sort="' + k + '"]'); if (again) again.focus(); if (SEL) $$("[data-row]").forEach(function (r) { r.classList.toggle("sel", r.getAttribute("data-row") === SEL.kind + ":" + SEL.id); }); }
+      else if (p) { var q = p.getAttribute("data-pick").split(":"); showPanel(q[0], q[1]); }
+    });
+  }
+
+  // ---- map view
+  function loadThree() {
+    if (window.THREE) return Promise.resolve();
+    if (threeP) return threeP;
+    threeP = new Promise(function (res, rej) {
+      var s = document.createElement("script"); s.src = THREE_URL; s.async = true;
+      var to = setTimeout(function () { rej(new Error("three.js timed out")); }, 12000);
+      s.onload = function () { clearTimeout(to); window.THREE ? res() : rej(new Error("three.js missing")); };
+      s.onerror = function () { clearTimeout(to); rej(new Error("three.js failed to load")); };
+      document.head.appendChild(s);
+    });
+    threeP.catch(function () { threeP = null; });
+    return threeP;
+  }
+  function webglOK() { try { var c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); } catch (e) { return false; } }
+  function marks() {
+    var span = D.t1 - D.t0, pc = function (t) { return ((t - D.t0) / span * 100).toFixed(2); }, h = "";
+    D.runWin.forEach(function (w) { h += '<i class="w" style="left:' + pc(w[0]) + "%;width:" + Math.max(0.5, (w[1] - w[0]) / span * 100).toFixed(2) + '%"></i>'; });
+    D.assets.forEach(function (a) { a.history.forEach(function (e, k) { if (k) h += '<i class="m" style="left:' + pc(e.t) + '%"></i>'; }); });
+    return h;
+  }
+  function mapHTML() {
+    return '<div class="stage" id="stage"><div class="scene" id="scene" tabindex="0" role="group" aria-label="3D facility view. Drag to rotate, scroll or pinch to zoom, arrow keys also rotate."><p class="loading">Loading 3D view</p></div>' +
+      '<ul class="key" aria-label="Legend"><li><i class="dot s-run"></i>Running</li><li><i class="dot s-idle"></i>Idle</li><li><i class="dot s-off"></i>Off</li><li><i class="dot s-gap"></i>No data</li><li><i class="dot s-asset"></i>Portable</li></ul>' +
+      '<div class="sbar"><button type="button" class="play" id="play" aria-label="Play"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path id="pp" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>' +
+      '<div class="track"><div class="marks" aria-hidden="true">' + marks() + '</div><input type="range" id="tr" min="' + Math.floor(D.t0) + '" max="' + Math.ceil(D.t1) + '" step="60" value="' + Math.round(T) + '" aria-label="Time in the simulated week"></div>' +
+      '<output id="ro" for="tr">' + esc(fmtT(T)) + "</output></div></div>";
+  }
+  function setPlayIcon() {
+    var pb = document.getElementById("play"), pp = document.getElementById("pp"); if (!pb) return;
+    pb.setAttribute("aria-label", playing ? "Pause" : "Play");
+    pp.setAttribute("d", playing ? "M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z" : "M4 2.5v11l9-5.5z");
+  }
+  function inRunWin(t) { for (var k = 0; k < D.runWin.length; k++) if (t >= D.runWin[k][0] - 600 && t <= D.runWin[k][1] + 600) return true; return false; }
+  function applyTime(t, fromSlider) {
+    T = t;
+    if (SC) SC.setTime(t);
+    var ro = document.getElementById("ro"), tr = document.getElementById("tr");
+    if (ro) ro.textContent = fmtT(t);
+    if (tr && !fromSlider) tr.value = Math.round(t);
+    renderHeads(); refreshPanel();
+  }
+  function pause() { playing = false; if (playRaf) cancelAnimationFrame(playRaf); playRaf = 0; setPlayIcon(); }
+  function play() {
+    if (playing) { pause(); return; }
+    if (T >= D.t1 - 60) T = D.t0;
+    playing = true; setPlayIcon();
+    var last = performance.now();
+    (function step(now) {
+      if (!playing) return;
+      var dt = Math.min(0.1, (now - last) / 1000); last = now;
+      var t = Math.min(D.t1, T + dt * (inRunWin(T) ? 900 : 30000));
+      applyTime(t, false);
+      if (t >= D.t1) { pause(); return; }
+      playRaf = requestAnimationFrame(step);
+    })(last);
+  }
+  function destroyScene() { SCTOK++; pause(); if (SC) { try { SC.destroy(); } catch (e) { /* ignore */ } SC = null; } }
+  function fallback(msg) {
+    var el = document.getElementById("viewregion"); if (!el) return;
+    destroyScene(); VEFF = "list"; syncToggle();
+    var mb = document.querySelector('#viewsw [data-v="map"]'); if (mb) { mb.setAttribute("aria-disabled", "true"); mb.title = "3D view is unavailable on this device"; }
+    el.innerHTML = '<p class="notice" role="status">' + esc(msg) + "</p>" + listHTML(); bindList(el);
+  }
+  function startScene(tok) {
+    var host = document.getElementById("scene");
+    if (!host) return;
+    if (!D.layout) return fallback("3D view unavailable: layout data is missing. Showing the list instead.");
+    if (!webglOK()) return fallback("3D view unavailable: WebGL is off on this device. Showing the list instead.");
+    loadThree().then(function () {
+      if (tok !== SCTOK || !document.getElementById("scene")) return;
+      host.innerHTML = "";
+      var model = {
+        vb: D.layout.viewBox, rooms: D.layout.rooms, pins: D.layout.pins,
+        instruments: D.order.map(function (id) { return { id: id, name: D.inst[id].name }; }),
+        assets: D.assets, stateAt: stateAt, stateText: function (s) { return STATE_LABEL[s]; }, assetNote: assetNote
+      };
+      SC = window.LabScene.create(host, model, { onPick: function (k, id) { showPanel(k, id); } });
+      SC.setTime(T);
+      if (SEL) SC.select(SEL.kind, SEL.id);
+    }).catch(function (e) {
+      if (tok === SCTOK) fallback("3D view unavailable (" + e.message + "). Showing the list instead.");
+    });
   }
   function renderView() {
     var el = document.getElementById("viewregion"); if (!el) return;
-    M.sel = null; M.pinned = false;
-    if (V === "map" && D.layout) { el.innerHTML = mapHTML(); bindMap(); updateMap(); }
-    else el.innerHTML = listHTML();
+    destroyScene(); VEFF = V; syncToggle();
+    var mb = document.querySelector('#viewsw [data-v="map"]'); if (mb && V === "map") { mb.removeAttribute("aria-disabled"); mb.removeAttribute("title"); }
+    if (V === "map") {
+      el.innerHTML = mapHTML();
+      var tr = document.getElementById("tr");
+      tr.addEventListener("input", function () { pause(); applyTime(Number(tr.value), true); });
+      document.getElementById("play").addEventListener("click", play);
+      el.querySelector(".stage").addEventListener("keydown", function (ev) { if (ev.key === " " && ev.target.id === "scene") { ev.preventDefault(); play(); } });
+      startScene(SCTOK);
+    } else { el.innerHTML = listHTML(); bindList(el); }
+    if (SEL) showPanel(SEL.kind, SEL.id);
   }
 
-  // ---- facility map
-  function stateAt(id, t) {
-    var a = D.tl[id].states;
-    for (var k = 0; k < a.length; k++) if (t >= a[k].start && t < a[k].end) return a[k].state === "unknown" ? "gap" : a[k].state;
-    return "gap";
+  // ---- facility page
+  function renderHeads() {
+    var el = document.getElementById("heads"); if (!el) return;
+    var open = D.exc.filter(function (e) { return !getRev()[e.key]; }).length;
+    el.innerHTML = '<div><dt>Running at this time</dt><dd>' + runningNow(T) + '<small> of ' + D.order.length + "</small></dd></div>" +
+      "<div><dt>Billed this week</dt><dd>" + fmtMoney(D.billed) + "</dd></div>" +
+      '<div><dt>Needs review</dt><dd><a href="#/billing">' + open + "</a></dd></div>";
   }
-  function lastKnown(id, t) {
-    var a = D.tl[id].states, best = null;
-    a.forEach(function (s) { if (s.state !== "unknown" && s.end <= t && (!best || s.end > best.end)) best = s; });
-    return best;
+  function facility() {
+    $main.innerHTML = '<div id="viewregion"></div><dl class="heads" id="heads"></dl><aside class="panel" id="panel" role="dialog" aria-modal="false" hidden></aside>';
+    renderHeads(); renderView();
   }
-  function pending(id) { return D.exc.filter(function (e) { return e.instrument_id === id && !getRev()[e.key]; }).length; }
-  function mapSVG() {
-    var L = D.layout, W = L.viewBox[0], H = L.viewBox[1], R = {}, sd = L.sensor || { dx: 36, dy: -20 };
-    L.rooms.forEach(function (r) { R[r.id] = r; });
-    var hall = L.rooms.filter(function (r) { return r.kind === "hall"; })[0];
-    var busY = hall ? hall.y + hall.h / 2 : H / 2;
-    var at = function (r, p) { return [r.x + r.w * p.x / 100, r.y + r.h * p.y / 100]; };
-    D.pos = {};
-    var s = '<svg id="plan" class="plan" viewBox="0 0 ' + W + " " + H + '" role="group" aria-label="Floor plan of the core facility. Each instrument is a pin; use Tab to move between pins.">' +
-      '<defs><pattern id="hatchGap" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" class="hg-bg"/><rect width="2.5" height="6" class="hg-fg"/></pattern></defs>';
-    s += '<rect class="plan-bg" x="0" y="0" width="' + W + '" height="' + H + '"/>';
-    L.rooms.forEach(function (r) {
-      s += '<g class="room k-' + esc(r.kind) + '"><rect class="rm" x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="3"/>' +
-        '<text class="rmname" x="' + (r.kind === "hall" ? r.x + r.w / 2 : r.x + 12) + '" y="' + (r.kind === "hall" ? r.y + r.h / 2 + 5 : r.y + 25) + '"' + (r.kind === "hall" ? ' text-anchor="middle"' : "") + ">" + esc(r.name) + "</text></g>";
-    });
-    // server + uplinks
-    var sv = L.server && R[L.server.room] ? at(R[L.server.room], L.server) : null;
-    if (sv) {
-      L.rooms.forEach(function (r) {
-        if (!r.gateway) return; var g = at(r, r.gateway);
-        s += '<polyline class="uplink" points="' + g[0] + "," + g[1] + " " + g[0] + "," + busY + " " + sv[0] + "," + busY + " " + sv[0] + "," + (sv[1] - 14) + '"/>';
-      });
-    }
-    // BLE links
-    D.order.forEach(function (id) {
-      var p = L.pins[id], r = p && R[p.room]; if (!r || !r.gateway) return;
-      var c = at(r, p), g = at(r, r.gateway);
-      D.pos[id] = { x: c[0], y: c[1], l: c[0] > W * 0.55, k: r.kind };
-      s += '<line class="ble" x1="' + (c[0] + sd.dx) + '" y1="' + (c[1] + sd.dy) + '" x2="' + g[0] + '" y2="' + g[1] + '"/>';
-    });
-    L.rooms.forEach(function (r) {
-      if (!r.gateway) return; var g = at(r, r.gateway);
-      s += '<g class="gw" transform="translate(' + g[0] + "," + g[1] + ')"><title>Room gateway: collects sensor packets over BLE and uploads them</title><path class="gw-ant" d="M-6 -7 V-13 M6 -7 V-13"/><rect x="-13" y="-7" width="26" height="14" rx="3"/><circle cx="-6" cy="0" r="1.8"/><circle cx="0" cy="0" r="1.8"/><circle cx="6" cy="0" r="1.8"/></g>';
-    });
-    if (sv) {
-      s += '<g class="srv" transform="translate(' + sv[0] + "," + sv[1] + ')"><title>LabMeter server: reconciles claims, bookings and measured runs</title><rect x="-18" y="-14" width="36" height="12" rx="3"/><rect x="-18" y="1" width="36" height="12" rx="3"/><circle cx="-11" cy="-8" r="1.8"/><circle cx="-11" cy="7" r="1.8"/></g>' +
-        '<text class="srv-l" x="' + sv[0] + '" y="' + (sv[1] + 34) + '" text-anchor="middle">' + esc(L.server.label || "Server") + "</text>";
-    }
-    // sensors
-    D.order.forEach(function (id) {
-      var q = D.pos[id]; if (!q) return;
-      s += '<g class="sn" transform="translate(' + (q.x + sd.dx) + "," + (q.y + sd.dy) + ')"><title>Clip-on sensor on ' + esc(iname(id)) + '</title><rect x="-8" y="-8" width="16" height="16" rx="4"/><path d="M-5 1 L-2.5 1 L-1 -4 L1 5 L2.5 1 L5 1"/></g>';
-    });
-    // pins
-    D.order.forEach(function (id) {
-      var q = D.pos[id]; if (!q) return;
-      s += '<g class="pin st-gap' + (q.k === "dark" ? " rk-dark" : "") + '" data-id="' + id + '" tabindex="0" role="button" aria-haspopup="dialog" transform="translate(' + q.x + "," + q.y + ')">' +
-        '<circle class="hit" r="34"/><circle class="focusring" r="29"/><circle class="ring" r="21"/><circle class="disc" r="21"/>' +
-        '<g class="gl gl-run"><path d="M-5 -8 L9 0 L-5 8Z"/></g>' +
-        '<g class="gl gl-idle"><rect x="-8" y="-8" width="5.5" height="16" rx="1"/><rect x="2.5" y="-8" width="5.5" height="16" rx="1"/></g>' +
-        '<g class="gl gl-off"><path d="M-6 -5.5 A8.5 8.5 0 1 0 6 -5.5 M0 -10 V-1"/></g>' +
-        '<g class="gl gl-gap"><circle r="9"/><text y="6" text-anchor="middle">?</text></g>' +
-        '<g class="bdg zero" transform="translate(17,-17)"><circle r="10"/><text y="4" text-anchor="middle">0</text></g>' +
-        '<text class="pinlabel" y="42" text-anchor="middle">' + esc(iname(id)) + "</text></g>";
-    });
-    return s + "</svg>";
-  }
-  function mapHTML() {
-    return '<h2>Facility map</h2><p class="small muted maplede">Illustrative floor plan. Each pin is an instrument with a clip-on sensor; sensors talk to the room gateway over BLE and the gateways upload to the server. Pin colour is the sensor state at the time chosen below.</p>' +
-      '<div class="maptools"><button type="button" class="btn sm" id="tprev" aria-label="Jump to previous data window">Earlier data</button>' +
-      '<input type="range" id="tscrub" min="' + Math.floor(D.t0) + '" max="' + Math.floor(D.t1) + '" step="60" value="' + Math.floor(T) + '" aria-label="Time in the simulated week, UTC">' +
-      '<button type="button" class="btn sm" id="tnext" aria-label="Jump to next data window">Later data</button></div>' +
-      '<div class="readout"><strong id="tread"></strong> <span class="muted small" id="trep"></span></div>' +
-      '<div class="legend maplegend" aria-label="Map legend"><span><i class="lg lg-run"></i>Running</span><span><i class="lg lg-idle"></i>Idle (on)</span><span><i class="lg lg-off"></i>Off</span><span><i class="lg lg-gap"></i>No sensor data (outline = last known state)</span>' +
-      '<span><i class="lg lg-bdg">2</i>Pending exceptions</span><span><svg class="lgi" width="18" height="14" viewBox="-9 -7 18 14" aria-hidden="true"><g class="sn"><rect x="-8" y="-6" width="14" height="12" rx="3"/></g></svg>Sensor</span>' +
-      '<span><svg class="lgi" width="22" height="14" viewBox="-13 -7 26 14" aria-hidden="true"><g class="gw"><rect x="-12" y="-6" width="24" height="12" rx="3"/></g></svg>Gateway</span><span><svg class="lgi" width="28" height="8" viewBox="0 0 28 8" aria-hidden="true"><line class="ble" x1="1" y1="4" x2="27" y2="4"/></svg>BLE link</span></div>' +
-      '<div class="mapwrap" id="mapwrap">' + mapSVG() + '<div class="pcard" id="pcard" role="dialog" aria-modal="false" aria-labelledby="pc-title" hidden></div></div>' +
-      '<p class="small muted">Positions are a made-up layout (edit <code>data/layout.json</code>). Hover, focus or tap a pin for details. Prefer a table? Switch to List.</p>';
-  }
-  function cardHTML(id) {
-    var i = D.inst[id], u = D.u[id], pct = u.obs ? u.run / u.obs * 100 : 0, st = stateAt(id, T);
-    var ss = D.sessions.filter(function (x) { return x.instrument_id === id && x.start <= T; }).sort(function (a, b) { return b.start - a.start; })[0];
-    var ex = D.exc.filter(function (e) { return e.instrument_id === id; }), by = {}, pend = 0;
-    ex.forEach(function (e) { var b = by[e.type] || (by[e.type] = { n: 0, p: 0 }); b.n++; if (!getRev()[e.key]) { b.p++; pend++; } });
-    var exh = Object.keys(by).length ? Object.keys(TYPES).filter(function (t) { return by[t]; }).map(function (t) { return badge(t) + ' <span class="small">' + by[t].n + (by[t].p !== by[t].n ? " (" + by[t].p + " pending)" : "") + "</span>"; }).join(" ") : '<span class="muted">None</span>';
-    return '<div class="pc-head"><div><h3 id="pc-title">' + esc(i.name) + '</h3><div class="muted small">' + esc(i["class"]) + " · " + fmtMoney(i.hourly_rate) + '/h</div></div><button type="button" class="pc-x" id="pcx" aria-label="Close details">&times;</button></div>' +
-      '<div class="pc-state"><span class="chip st-' + st + '"><i></i>' + STATE_LABEL[st] + '</span> <span class="muted small">' + esc(fmtT(T)) + " UTC</span></div>" +
-      (st === "gap" ? '<div class="muted small" style="margin-bottom:6px">' + (lastKnown(id, T) ? "Last known: " + STATE_LABEL[lastKnown(id, T).state].toLowerCase() + " until " + esc(fmtT(lastKnown(id, T).end)) + " UTC. The simulation only observes each instrument for about an hour a day." : "No sensor data before this time.") + "</div>" : "") +
-      '<dl class="pc-dl"><dt>Run hours, week</dt><dd>' + (u.run / 3600).toFixed(1) + " h</dd><dt>Utilization</dt><dd>" + pct.toFixed(0) + '% <span class="muted small">of monitored time</span></dd>' +
-      "<dt>Exceptions</dt><dd>" + exh + "</dd><dt>Last session</dt><dd>" + (ss ? esc(uname(ss.user_id)) + ", " + esc(gname(ss.account_id)) + '<br><span class="muted small">' + esc(fmtT(ss.start)) + " UTC</span>" : '<span class="muted">None yet at this time</span>') + "</dd></dl>" +
-      '<div class="pc-act"><a class="btn sm primary" href="#/i/' + id + '">Timeline</a><a class="btn sm" href="#/t/tag-' + id + '">Tap sim</a></div>';
-  }
-  function updateMap() {
-    var root = document.getElementById("plan"); if (!root) return;
-    var live = 0;
-    D.order.forEach(function (id) {
-      var g = root.querySelector('.pin[data-id="' + id + '"]'); if (!g) return;
-      var st = stateAt(id, T), n = pending(id); if (st !== "gap") live++;
-      var lk = st === "gap" ? lastKnown(id, T) : null;
-      g.setAttribute("class", "pin st-" + st + (lk ? " lk-" + lk.state : "") + (D.pos[id] && D.pos[id].k === "dark" ? " rk-dark" : "") + (M.sel === id ? " sel" : ""));
-      g.setAttribute("aria-label", iname(id) + ", " + STATE_LABEL[st].toLowerCase() + (lk ? " (last known " + STATE_LABEL[lk.state].toLowerCase() + ")" : "") + ", " + n + " pending " + (n === 1 ? "exception" : "exceptions") + ". Press Enter for details.");
-      var b = g.querySelector(".bdg"); b.setAttribute("class", "bdg" + (n ? "" : " zero"));
-      b.querySelector("text").textContent = n > 99 ? "99+" : String(n);
-    });
-    var rd = document.getElementById("tread"); if (rd) rd.textContent = fmtT(T) + " UTC";
-    var rp = document.getElementById("trep"); if (rp) rp.textContent = live + " of " + D.order.length + " sensors reporting";
-    var sl = document.getElementById("tscrub");
-    if (sl) { sl.value = String(Math.floor(T)); sl.setAttribute("aria-valuetext", fmtT(T) + " UTC"); }
-    var card = document.getElementById("pcard");
-    if (card && M.sel && !card.hidden) { card.innerHTML = cardHTML(M.sel); placeCard(M.sel); }
-  }
-  function placeCard(id) {
-    var card = document.getElementById("pcard"), wrap = document.getElementById("mapwrap"), q = D.pos && D.pos[id]; if (!card || !wrap || !q) return;
-    var W = D.layout.viewBox[0], H = D.layout.viewBox[1];
-    card.classList.toggle("l", q.l);
-    card.style.setProperty("--x", (q.x / W * 100) + "%");
-    var wh = wrap.clientHeight, ch = card.offsetHeight;
-    if (wh && ch) card.style.setProperty("--y", Math.max(4, Math.min(q.y / H * wh - ch / 2, wh - ch - 4)) + "px");
-    else card.style.setProperty("--y", (q.y / H * 100) + "%");
-  }
-  function showCard(id) {
-    var card = document.getElementById("pcard"); if (!card) return;
-    clearTimeout(M.hideT); M.sel = id; card.innerHTML = cardHTML(id); card.hidden = false; placeCard(id); updateMap();
-  }
-  function hideCard(refocus) {
-    var card = document.getElementById("pcard"); clearTimeout(M.hideT);
-    var id = M.sel; M.sel = null; M.pinned = false;
-    if (card) { card.hidden = true; card.innerHTML = ""; }
-    updateMap();
-    if (refocus && id) { var g = document.querySelector('.pin[data-id="' + id + '"]'); if (g && g.focus) g.focus(); }
-  }
-  function softHide() { clearTimeout(M.hideT); if (M.pinned) return; M.hideT = setTimeout(function () { if (!M.pinned) hideCard(false); }, 250); }
-  function jump(dir) {
-    var w = D.windows, k;
-    if (dir < 0) { for (k = w.length - 1; k >= 0; k--) if (w[k][0] < T - 60) { T = w[k][0] + 1; break; } }
-    else { for (k = 0; k < w.length; k++) if (w[k][0] > T + 60) { T = w[k][0] + 1; break; } }
-    updateMap();
-  }
-  function bindMap() {
-    var root = document.getElementById("plan"), card = document.getElementById("pcard"); if (!root || !card) return;
-    $$(".pin", root).forEach(function (g) {
-      var id = g.getAttribute("data-id");
-      g.addEventListener("mouseenter", function () { if (!M.pinned) showCard(id); else clearTimeout(M.hideT); });
-      g.addEventListener("mouseleave", softHide);
-      g.addEventListener("focus", function () { if (!M.pinned) showCard(id); });
-      g.addEventListener("blur", softHide);
-      g.addEventListener("click", function (ev) { ev.stopPropagation(); M.pinned = true; showCard(id); });
-      g.addEventListener("keydown", function (ev) {
-        if (ev.key === "Enter" || ev.key === " ") {
-          ev.preventDefault(); M.pinned = true; showCard(id);
-          var f = card.querySelector("a,button"); if (f && f.focus) f.focus();
-        }
-      });
-    });
-    card.addEventListener("mouseenter", function () { clearTimeout(M.hideT); });
-    card.addEventListener("mouseleave", softHide);
-    card.addEventListener("click", function (ev) { if (ev.target.closest && ev.target.closest("#pcx")) hideCard(true); });
-    root.addEventListener("click", function () { if (M.sel) hideCard(false); });
-    var sl = document.getElementById("tscrub");
-    sl.addEventListener("input", function () { T = +sl.value; updateMap(); });
-    document.getElementById("tprev").addEventListener("click", function () { jump(-1); });
-    document.getElementById("tnext").addEventListener("click", function () { jump(1); });
-    if (!M.bound) {
-      M.bound = true;
-      document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && M.sel) hideCard(true); });
-    }
-  }
-
-  // ---- dashboard
   function kpi(l, v, n) { return '<div class="card kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div><div class="n">' + n + "</div></div>"; }
   function heat() {
     var cw = 30, ch = 28, lx = 118, w = lx + 24 * cw + 6, h = 6 * ch + 40, max = 1;
@@ -347,30 +389,22 @@
     for (var hr = 0; hr < 24; hr += 3) s += '<text x="' + (lx + hr * cw + 2) + '" y="' + (6 * ch + 16) + '">' + ("0" + hr).slice(-2) + ":00</text>";
     return s + "</svg>";
   }
-  function dashboard() {
+  // ---- billing page
+  function billing() {
     var open = D.exc.filter(function (e) { return !getRev()[e.key]; }).length;
-    var h = '<section class="hero"><h1>Bill shared instruments for what actually ran.</h1>' +
-      "<p>LabMeter clips a sensor onto each instrument, matches measured run time to NFC claims and bookings, bills verified time, and sends the awkward cases to a review queue instead of auto-billing them. Everything below is a week of simulated data.</p></section>";
-    h += '<div class="grid kpis">' +
-      kpi("Verified billable hours", (D.billMin / 60).toFixed(2) + " h", D.sessions.length + " sessions, " + (D.runMin / 60).toFixed(1) + " h measured run time, 15-min floor") +
-      kpi("Billed (verified runs)", fmtMoney(D.billed), "Booking-only billing would be " + fmtMoney(D.bookingOnly)) +
-      kpi("Pending review value", fmtMoney(D.recoverable), "Walk-ups and overruns the bookings missed; not billed until reviewed") +
-      kpi("Utilization", D.utilPct.toFixed(0) + "%", "Run time as a share of monitored time (see note)") + "</div>";
-    h += '<div class="card"><h3>Booking-only vs sensor-verified</h3><p class="small muted" style="margin:0 0 8px">Booking-only bills every booked slot, rounded down to 15 min. Verified billing charges measured run time that overlaps a claim.</p>' +
-      '<div class="row"><span>Booking-only <b>' + fmtMoney(D.bookingOnly) + '</b></span><span>No-show bookings not billed <b>' + fmtMoney(D.noShowValue) + '</b></span><span>Verified billed <b>' + fmtMoney(D.billed) + '</b></span><span>Walk-up + overrun run time to review <b>' + fmtMoney(D.recoverable) + "</b></span></div></div>";
-    h += '<div id="viewregion"></div>';
-    h += "<h2>Run minutes by hour of day</h2><div class=\"card\">" + heat() + '<p class="small muted" style="margin:8px 0 0">Total measured run minutes over 7 days, UTC. The simulator emits one 65-minute observation window per instrument per day, so activity is concentrated and utilization is relative to monitored time, not to a full working day.</p></div>';
-    h += '<h2 id="queue">Exceptions review queue <span class="muted small">(' + open + " of " + D.exc.length + " undecided)</span></h2>";
-    h += '<div class="toolbar"><div class="filters" id="filters" role="group" aria-label="Filter by type"><button data-f="all" aria-pressed="true">All (' + D.exc.length + ")</button>" +
-      Object.keys(TYPES).map(function (t) { return D.byType[t] ? '<button data-f="' + t + '" aria-pressed="false">' + TYPES[t][0] + " (" + D.byType[t].n + ")</button>" : ""; }).join("") + "</div></div>";
-    h += '<div class="card scroll"><table class="tbl" id="qt"><thead><tr><th>Type</th><th>Instrument</th><th>When (UTC)</th><th class="num">Run value</th><th>Decision</th></tr></thead><tbody></tbody></table></div>' +
-      '<p class="small muted">Approve/reject is saved in this browser only (localStorage). As in the backend, a decision records a review outcome and does not create a charge.</p>';
-    h += '<h2>Billing export</h2><div class="card"><p style="margin-top:0">Provisional CSV of the ' + D.sessions.length + " verified sessions, generated in your browser from the JSON snapshot.</p>" +
-      '<button class="btn primary" id="csv">Download billing CSV</button> <a class="btn" href="data/billing.csv" download>Original server CSV</a>' +
-      '<p class="small muted" style="margin-bottom:0">No iLab or PPMS schema has been validated; columns are a generic placeholder.</p></div>';
-    h += how();
+    var h = "<h1>Billing</h1>" +
+      '<dl class="heads"><div><dt>Verified billed</dt><dd>' + fmtMoney(D.billed) + '<small> ' + D.sessions.length + " sessions</small></dd></div>" +
+      "<div><dt>Booking-only would bill</dt><dd>" + fmtMoney(D.bookingOnly) + "</dd></div>" +
+      "<div><dt>Waiting on review</dt><dd>" + fmtMoney(D.recoverable) + "</dd></div></dl>" +
+      '<h2 id="queue">Review queue <span class="muted small">' + open + " of " + D.exc.length + " undecided</span></h2>" +
+      '<div class="toolbar"><div class="filters" id="filters" role="group" aria-label="Filter by type"><button data-f="all" aria-pressed="true">All (' + D.exc.length + ")</button>" +
+      Object.keys(TYPES).map(function (t) { return D.byType[t] ? '<button data-f="' + t + '" aria-pressed="false" title="' + esc(TYPES[t][1]) + '">' + TYPES[t][0] + " (" + D.byType[t].n + ")</button>" : ""; }).join("") + "</div></div>" +
+      '<div class="card scroll"><table class="tbl" id="qt"><thead><tr><th>Type</th><th>Instrument</th><th>When (UTC)</th><th class="num">Run value</th><th>Decision</th></tr></thead><tbody></tbody></table></div>' +
+      '<p class="small muted">Decisions are saved in this browser only and do not create a charge.</p>' +
+      '<h2>Run minutes by hour of day</h2><div class="card">' + heat() + "</div>" +
+      '<h2>Export</h2><div class="card"><button class="btn primary" id="csv">Download billing CSV</button> <a class="btn" href="data/billing.csv" download>Server CSV</a>' +
+      '<p class="small muted" style="margin:10px 0 0">' + D.sessions.length + " verified sessions. Columns are a generic placeholder; no iLab or PPMS schema is validated.</p></div>";
     $main.innerHTML = h;
-    renderView();
     var f = "all";
     function table() {
       var list = D.exc.filter(function (e) { return f === "all" || e.type === f; }).sort(function (a, b) { return a.start - b.start; });
@@ -378,7 +412,7 @@
     }
     table();
     $$("#filters button").forEach(function (b) { b.addEventListener("click", function () { f = b.getAttribute("data-f"); $$("#filters button").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); table(); }); });
-    bindReview(document.getElementById("qt"), function () { table(); updateMap(); var n = D.exc.filter(function (e) { return !getRev()[e.key]; }).length; document.querySelector("#queue .small").textContent = "(" + n + " of " + D.exc.length + " undecided)"; });
+    bindReview(document.getElementById("qt"), function () { table(); document.querySelector("#queue .small").textContent = D.exc.filter(function (e) { return !getRev()[e.key]; }).length + " of " + D.exc.length + " undecided"; });
     document.getElementById("csv").addEventListener("click", downloadCsv);
   }
   function downloadCsv() {
@@ -391,15 +425,6 @@
     var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "labmeter-billing-demo.csv";
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
-  function how() {
-    return '<h2 id="how">How it works</h2><div class="grid steps">' +
-      '<div class="card step"><h3>Clip-on sensor</h3><p class="small muted">A current clamp and vibration sensor on the instrument power lead measures whether it is off, idle or running. No instrument integration needed.</p></div>' +
-      '<div class="card step"><h3>BLE to gateway</h3><p class="small muted">The sensor advertises state every 2 s while running. A lab gateway collects the packets and posts batches to the server, deduplicating and buffering offline.</p></div>' +
-      '<div class="card step"><h3>Reconcile</h3><p class="small muted">Researchers tap an NFC sticker to claim the instrument and pick a grant. The server compares bookings, claims and measured runs, and flags walk-ups, overruns, idle claims, no-shows and sensor gaps.</p></div>' +
-      '<div class="card step"><h3>Billing export</h3><p class="small muted">Verified run time is billed per grant at the instrument rate, rounded down to 15 minutes. Exceptions wait for a human decision. Export as CSV.</p></div></div>' +
-      '<div class="note"><strong>Demo on simulated data; no real instruments or hardware yet.</strong> Detection accuracy, billing rules and integrations have not been validated against real equipment.</div>';
-  }
-
   // ---- instrument page
   function timeline(id) {
     var t = D.tl[id], days = {}, lo = 24, hi = 0;
@@ -449,7 +474,7 @@
     var ss = D.sessions.filter(function (s) { return s.instrument_id === id; }).sort(function (a, b) { return a.start - b.start; });
     var ex = D.exc.filter(function (e) { return e.instrument_id === id; }).sort(function (a, b) { return a.start - b.start; });
     var bk = D.tl[id].bookings.length, $ = ss.reduce(function (a, s) { return a + s.dollars; }, 0);
-    var h = '<div class="crumb"><a href="#/">Dashboard</a> / ' + esc(i.name) + "</div><h1>" + esc(i.name) + '</h1><p class="muted">' + fmtMoney(i.hourly_rate) + "/h · run threshold " + i.run_threshold_ma + " mA · idle baseline " + i.idle_baseline_ma + ' mA · <a href="#/t/' + id + '">Open NFC tap page</a></p>';
+    var h = '<div class="crumb"><a href="#/">Facility</a> / ' + esc(i.name) + "</div><h1>" + esc(i.name) + '</h1><p class="muted">' + fmtMoney(i.hourly_rate) + "/h · run threshold " + i.run_threshold_ma + " mA · idle baseline " + i.idle_baseline_ma + ' mA · <a href="#/t/' + id + '">Open NFC tap page</a></p>';
     h += '<div class="grid kpis">' + kpi("Utilization", pct.toFixed(0) + "%", "of monitored time") + kpi("Verified sessions", ss.length, fmtH(ss.reduce(function (a, s) { return a + s.billable_minutes; }, 0)) + " billable") + kpi("Billed", fmtMoney($), bk + " bookings this week") + kpi("Exceptions", ex.length, "in the review queue") + "</div>";
     h += '<h2>Week timeline (UTC)</h2><div class="card">' + timeline(id) +
       '<div class="legend"><span><i style="background:var(--run)"></i>Run</span><span><i style="background:var(--idle)"></i>Idle (on)</span><span><i style="background:var(--off)"></i>Off</span><span><i style="background:repeating-linear-gradient(45deg,var(--unk) 0 3px,var(--surface) 3px 6px)"></i>Data gap</span><span><i style="background:var(--claim)"></i>NFC claim</span><span><i style="background:var(--book);opacity:.75"></i>Booking</span></div>' +
@@ -499,32 +524,37 @@
     draw();
   }
 
-  function notFound(msg) { $main.innerHTML = "<h1>Not found</h1><p>" + esc(msg || "That page does not exist.") + '</p><a class="btn" href="#/">Back to dashboard</a>'; }
+
+  function notFound(msg) { $main.innerHTML = "<h1>Not found</h1><p>" + esc(msg || "That page does not exist.") + '</p><a class="btn" href="#/">Back to facility</a>'; }
 
   // ---- router
   function nav(route) {
-    var items = [["#/", "Dashboard", "home"], ["#/t", "Tap demo", "t"], ["#/how", "How it works", "how"]];
+    var items = [["#/", "Facility", "home"], ["#/billing", "Billing", "billing"], ["#/t", "Tap demo", "t"]];
     document.getElementById("nav").innerHTML = items.map(function (x) { return '<a href="' + x[0] + '"' + (route === x[2] ? ' aria-current="page"' : "") + ">" + x[1] + "</a>"; }).join("");
   }
   function route() {
     if (timer) { clearInterval(timer); timer = null; }
+    destroyScene(); SEL = null;
     var hash = location.hash || "#/", qi = hash.indexOf("?");
     var qv = null;
     if (qi >= 0) { try { qv = new URLSearchParams(hash.slice(qi + 1)).get("view"); } catch (e) { qv = null; } }
-    V = VIEWS.indexOf(qv) >= 0 ? qv : (storedView() || "map");
-    syncToggle();
+    V = VIEWS.indexOf(qv) >= 0 ? qv : (storedView() || "map"); VEFF = V;
     var p = (qi >= 0 ? hash.slice(0, qi) : hash).replace(/^#\/?/, "").split("/").filter(Boolean);
     var r = p[0] || "home";
-    nav(r === "i" ? "home" : r);
-    if (!D) return;
+    nav(r === "i" ? "home" : r === "how" ? "home" : r);
+    $main.innerHTML = "";
+    if (!D) { syncToggle(); return; }
     try {
       if (r === "i") instrument(p[1]);
       else if (r === "t") p[1] ? tap(decodeURIComponent(p[1])) : tapIndex();
-      else { dashboard(); if (r === "how") { var el = document.getElementById("how"); if (el) el.scrollIntoView(); } else window.scrollTo(0, 0); }
+      else if (r === "billing") billing();
+      else facility();
     } catch (e) { $main.innerHTML = "<h1>Something went wrong</h1><pre>" + esc(e.message) + "</pre>"; }
-    if (r !== "how") window.scrollTo(0, 0);
+    syncToggle();
+    window.scrollTo(0, 0);
   }
   window.addEventListener("hashchange", route);
+  document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && SEL) hidePanel(); });
   $$("#viewsw button").forEach(function (b) { b.addEventListener("click", function () { setView(b.getAttribute("data-v")); }); });
   nav("home");
   load().then(route).catch(function (e) {

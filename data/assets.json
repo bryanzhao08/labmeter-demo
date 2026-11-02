@@ -1,0 +1,191 @@
+{
+ "_help": "Simulated portable shared gear. history = location changes (t epoch seconds UTC, room = id from layout.json rooms, by = optional user id). The asset is in the room of the latest entry with t <= the selected time.",
+ "assets": [
+  {
+   "id": "p200",
+   "name": "P200 pipette set",
+   "kind": "pipette",
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "prep"
+    },
+    {
+     "t": 1793004480,
+     "room": "genomics",
+     "by": "user-3"
+    },
+    {
+     "t": 1793108520,
+     "room": "prep",
+     "by": "user-3"
+    },
+    {
+     "t": 1793177640,
+     "room": "genomics",
+     "by": "user-7"
+    },
+    {
+     "t": 1793281320,
+     "room": "imaging",
+     "by": "user-7"
+    },
+    {
+     "t": 1793440080,
+     "room": "prep",
+     "by": "user-2"
+    }
+   ]
+  },
+  {
+   "id": "minifuge2",
+   "name": "Mini-centrifuge #2",
+   "kind": "mini-centrifuge",
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "genomics"
+    },
+    {
+     "t": 1793023200,
+     "room": "prep",
+     "by": "user-5"
+    },
+    {
+     "t": 1793091600,
+     "room": "genomics",
+     "by": "user-5"
+    },
+    {
+     "t": 1793195280,
+     "room": "hall",
+     "by": "user-9"
+    },
+    {
+     "t": 1793350080,
+     "room": "flow-suite",
+     "by": "user-1"
+    }
+   ]
+  },
+  {
+   "id": "icecart",
+   "name": "Ice machine cart",
+   "kind": "cart",
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "prep"
+    },
+    {
+     "t": 1793005200,
+     "room": "hall",
+     "by": "user-4"
+    },
+    {
+     "t": 1793046600,
+     "room": "genomics",
+     "by": "user-4"
+    },
+    {
+     "t": 1793134080,
+     "room": "hall",
+     "by": "user-8"
+    },
+    {
+     "t": 1793263680,
+     "room": "prep",
+     "by": "user-4"
+    }
+   ]
+  },
+  {
+   "id": "gelcart",
+   "name": "Gel imager cart",
+   "kind": "cart",
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "imaging"
+    },
+    {
+     "t": 1793093400,
+     "room": "genomics",
+     "by": "user-6"
+    },
+    {
+     "t": 1793195280,
+     "room": "imaging",
+     "by": "user-6"
+    },
+    {
+     "t": 1793368080,
+     "room": "hall",
+     "by": "user-10"
+    },
+    {
+     "t": 1793440800,
+     "room": "office",
+     "by": "user-10"
+    }
+   ]
+  },
+  {
+   "id": "multikit",
+   "name": "Multichannel pipette kit",
+   "kind": "pipette",
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "flow-suite"
+    },
+    {
+     "t": 1793021760,
+     "room": "imaging",
+     "by": "user-1"
+    },
+    {
+     "t": 1793108880,
+     "room": "flow-suite",
+     "by": "user-1"
+    },
+    {
+     "t": 1793350800,
+     "room": "prep",
+     "by": "user-11"
+    }
+   ]
+  },
+  {
+   "id": "cooler",
+   "name": "Dry-ice cooler",
+   "kind": "cooler",
+   "history": [
+    {
+     "t": 1792915200,
+     "room": "hall"
+    },
+    {
+     "t": 1792920600,
+     "room": "prep",
+     "by": "user-12"
+    },
+    {
+     "t": 1793048400,
+     "room": "genomics",
+     "by": "user-2"
+    },
+    {
+     "t": 1793178000,
+     "room": "prep",
+     "by": "user-2"
+    },
+    {
+     "t": 1793392200,
+     "room": "hall",
+     "by": "user-12"
+    }
+   ]
+  }
+ ]
+}
