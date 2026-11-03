@@ -422,3 +422,7 @@ svg text{fill:var(--muted);font:11px "Instrument Sans",ui-sans-serif,system-ui,s
 }
 .sku{width:96px!important;margin-left:var(--s2)}
 .arow2 input[type="text"]{width:140px}
+.fbsr{margin-bottom:var(--s5);border-color:color-mix(in srgb,#7c3aed 40%,var(--line))}
+.fbsh{display:flex;gap:var(--s3);align-items:center;margin-bottom:var(--s4)}
+.fbsb{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:#5b2a86;color:#fff;font-weight:700;font-size:var(--fs-sm)}
+.fbsr .strip{margin-bottom:var(--s3)}

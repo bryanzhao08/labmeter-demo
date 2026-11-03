@@ -167,7 +167,20 @@
     }
     var resBy = {}; B.res.forEach(function (r) { (resBy[r.res + "|" + r.user] || (resBy[r.res + "|" + r.user] = [])).push(r); });
     var hit = {};
-    B.use.forEach(function (u) {
+    // Instruments with sensor runs but no session log (no computer, e.g. centrifuges): SoftLock and Bookitlab
+    // can't see them, so each run becomes a session attributed to the reservation it overlaps most.
+    var logged = {}; B.use.forEach(function (u) { logged[u.res] = 1; });
+    var sessions = B.use.slice();
+    Object.keys(runsBy).forEach(function (res) {
+      if (logged[res]) return;
+      runsBy[res].forEach(function (iv) {
+        var best = null, bo = 0;
+        B.res.forEach(function (r) { if (r.res !== res) return; var core = Math.min(iv[1], r.e) - Math.max(iv[0], r.s - R.early), ext = Math.min(iv[1], r.e + R.grace + 240) - Math.max(iv[0], r.s - R.early);
+          var o = core > 0 ? 1e6 + core : ext > 0 ? ext : 0; if (o > bo) { bo = o; best = r; } });
+        sessions.push({ res: res, user: best ? best.user : "(no user)", s: iv[0], e: iv[1], sensorOnly: true });
+      });
+    });
+    sessions.forEach(function (u) {
       var mine = resBy[u.res + "|" + u.user] || [];
       var win = mine.map(function (r) { return [r.s - R.early, r.e]; });
       var sess = [[u.s, u.e]], runs = hasRuns ? inter(sess, runsBy[u.res] || []) : [];
@@ -178,14 +191,16 @@
       var rw = row(u.res, u.user, Math.floor(u.s / 1440)), rate = rateOf(u.res) / 60;
       var inc = Math.max(1, +R.round || 1), billM = Math.ceil(usedM / inc - 1e-9) * inc;
       if (usedM < 0.5) billM = 0;
-      rw.ss.push([u.s, u.e]); runs.forEach(function (x) { rw.rn.push(x); });
-      rw.comp += u.e - u.s; rw.inst += len(runs); rw.billed += billM; rw.outside += out;
+      if (!u.sensorOnly) rw.ss.push([u.s, u.e]); runs.forEach(function (x) { rw.rn.push(x); });
+      if (!u.sensorOnly) rw.comp += u.e - u.s; rw.inst += len(runs); if (u.sensorOnly) rw.sensorOnly = 1; rw.billed += billM; rw.outside += out;
       var base = billM * rate, pen = 0;
-      if (usedM < 0.5) { rw.flags.idle = 1; rw.notes.push("Logged in " + clock(u.s) + "–" + clock(u.e) + ", instrument never ran"); }
+      if (u.user === "(no user)") { base = 0; rw.flags.nouser = 1; rw.notes.push("Ran " + clock(u.s) + "–" + clock(u.e) + " (" + hm(usedM) + ") with no reservation nearby; no one to bill"); }
+      else if (usedM < 0.5) { rw.flags.idle = 1; rw.notes.push("Logged in " + clock(u.s) + "–" + clock(u.e) + ", instrument never ran"); }
       else if (!touches.length || covM < 0.5) { pen = billM * rate * (R.mult - 1) + (+R.flat || 0); rw.flags.unbooked = 1; rw.notes.push("No reservation for " + clock(u.s) + "–" + clock(u.e) + " (" + hm(usedM) + " used)"); }
       else if (out > R.grace) { pen = out * rate * (R.mult - 1) + (+R.flat || 0); rw.flags.penalty = 1; rw.notes.push("Ran " + hm(out) + " past the reservation (grace " + hm(R.grace) + ")"); }
       else if (out >= 5) { rw.flags.grace = 1; rw.notes.push("Ran " + hm(out) + " past the reservation, within grace, billed at actual"); }
-      if (hasRuns && (u.e - u.s) - len(runs) >= R.transferMin && usedM >= 0.5) { rw.flags.transfer = 1; rw.notes.push("Computer stayed on " + hm((u.e - u.s) - len(runs)) + " after acquisition (data transfer)" + (basis === "instrument" ? ", not billed" : "")); }
+      if (u.sensorOnly && u.user !== "(no user)" && rw.notes.length === 0 && !rw.snote) { rw.snote = 1; rw.notes.push("No computer on this instrument: use measured by the sensor only"); }
+      if (!u.sensorOnly && hasRuns && (u.e - u.s) - len(runs) >= R.transferMin && usedM >= 0.5) { rw.flags.transfer = 1; rw.notes.push("Computer stayed on " + hm((u.e - u.s) - len(runs)) + " after acquisition (data transfer)" + (basis === "instrument" ? ", not billed" : "")); }
       rw.charge += base + pen; rw.penalty += pen;
     });
     B.res.forEach(function (r) {
@@ -196,16 +211,16 @@
         rw.flags.noshow = 1; rw.penalty += pen; rw.charge += pen; rw.notes.push("Booked " + clock(r.s) + "–" + clock(r.e) + ", no session" + (pen ? ", no-show fee" : ""));
       }
     });
-    var list = Object.keys(rows).map(function (k) { var r = rows[k], a = acctOf[r.user] || { acct: "(unknown user)", pi: "" }; r.acct = a.acct; r.pi = a.pi; r.name = B.names[r.user] || r.user; r.email = B.emails[r.user] || r.user; r.status = status(r); return r; });
+    var list = Object.keys(rows).map(function (k) { var r = rows[k], a = acctOf[r.user] || { acct: "(unknown user)", pi: "" }; r.acct = a.acct; r.pi = a.pi; r.penalty = Math.round((r.penalty + 1e-9) * 100) / 100; r.charge = Math.round((r.penalty + Math.round((r.charge - r.penalty + 1e-9) * 100) / 100) * 100) / 100; r.name = B.names[r.user] || r.user; r.email = B.emails[r.user] || r.user; r.status = status(r); return r; });
     list.sort(function (a, b) { return a.day - b.day || a.res.localeCompare(b.res) || a.name.localeCompare(b.name); });
     return { rows: list, basis: basis, hasRuns: hasRuns };
   }
   var STATUS = {
-    unbooked: ["Unbooked use", "danger", 0], penalty: ["Overrun past grace", "danger", 1], noshow: ["No-show", "muted", 2],
+    nouser: ["Run, no one to bill", "danger", -1], unbooked: ["Unbooked use", "danger", 0], penalty: ["Overrun past grace", "danger", 1], noshow: ["No-show", "muted", 2],
     idle: ["Logged in, never ran", "muted", 3], grace: ["Overrun within grace", "warn", 4], transfer: ["Data transfer excluded", "info", 5], ok: ["Matches", "ok", 6]
   };
   function status(r) { var best = "ok"; Object.keys(r.flags).forEach(function (f) { if (STATUS[f][2] < STATUS[best][2]) best = f; }); return best; }
-  function needsAction(r) { return r.flags.unbooked || r.flags.penalty || r.flags.noshow; }
+  function needsAction(r) { return r.flags.nouser || r.flags.unbooked || r.flags.penalty || r.flags.noshow; }
 
   // ---------- render
   function srcCard(k) {
@@ -281,7 +296,7 @@
       (B.bad.res + B.bad.use + B.bad.run ? " Skipped " + (B.bad.res + B.bad.use + B.bad.run) + " rows with unreadable times." : "") +
       (B.unmapped.use.length ? ' <b class="warnt">' + B.unmapped.use.length + " workstation" + (B.unmapped.use.length > 1 ? "s" : "") + " not matched to an instrument.</b>" : "") + "</p>";
     h += H.strip([
-      { l: "Needs a decision", v: String(act.length), n: cnt("unbooked") + " unbooked · " + cnt("penalty") + " past grace · " + cnt("noshow") + " no-shows" },
+      { l: "Needs a decision", v: String(act.length), n: cnt("unbooked") + " unbooked · " + cnt("penalty") + " past grace · " + cnt("noshow") + " no-shows" + (cnt("nouser") ? " · " + cnt("nouser") + " no user" : "") },
       { l: "Penalties", v: money(pen), n: "From your rules above" },
       { l: "Total to bill", v: money(chg), n: rows.length + " user-days" },
       A.hasRuns ? { l: "Data transfer not billed", v: hm(sum(rows, function (r) { return r.flags.transfer && r.inst ? r.comp - r.inst : 0; })), n: A.basis === "instrument" ? "Computer on, instrument idle" : "Switch to Instrument running to exclude" }
@@ -293,7 +308,7 @@
         ? "Billing on computer logon time instead would flag <b>" + oa + "</b> user-days and charge <b>" + money(op) + "</b> in penalties, mostly for people moving data after the run."
         : "Billing on instrument run time instead would flag <b>" + oa + "</b> user-days and charge <b>" + money(op) + "</b> in penalties.") + "</p>";
     }
-    var F = [["action", "Needs a decision", act.length], ["all", "All", rows.length], ["unbooked", "Unbooked", cnt("unbooked")], ["penalty", "Past grace", cnt("penalty")], ["noshow", "No-show", cnt("noshow")], ["grace", "Within grace", cnt("grace")]];
+    var F = [["action", "Needs a decision", act.length], ["all", "All", rows.length], ["unbooked", "Unbooked", cnt("unbooked")], ["penalty", "Past grace", cnt("penalty")], ["noshow", "No-show", cnt("noshow")], ["nouser", "No user", cnt("nouser")], ["grace", "Within grace", cnt("grace")]];
     if (A.hasRuns) F.push(["transfer", "Data transfer", cnt("transfer")]);
     h += '<h2 class="sec">Per user, per day</h2><div class="toolbar"><div class="filters" id="afil" role="group" aria-label="Filter findings">' +
       F.map(function (f) { return '<button type="button" data-f="' + f[0] + '" aria-pressed="' + (ST.filter === f[0]) + '">' + f[1] + " (" + f[2] + ")</button>"; }).join("") + "</div></div>";
@@ -302,7 +317,7 @@
       (shown.length ? shown.map(function (r) {
         var o = ST.open[r.key];
         return '<tr class="arow3' + (o ? " on" : "") + '" data-k="' + esc(r.key) + '"><td data-l="Day"><button type="button" class="aexp" aria-expanded="' + !!o + '"><span aria-hidden="true">' + (o ? "▾" : "▸") + "</span> " + esc(dayLabel(r.day)) + '</button></td><td data-l="User">' + esc(r.name) + '<span class="sub">' + esc(r.pi ? r.pi + " lab" : r.acct) + '</span></td><td data-l="Instrument">' + esc(r.res) + "</td>" +
-          '<td class="num" data-l="Reserved">' + (r.booked ? hm(r.booked) : "—") + '</td><td class="num" data-l="Computer">' + (r.comp ? hm(r.comp) : "—") + "</td>" + (A.hasRuns ? '<td class="num" data-l="Instrument time">' + (r.inst ? hm(r.inst) : "—") + "</td>" : "") +
+          '<td class="num" data-l="Reserved">' + (r.booked ? hm(r.booked) : "—") + '</td><td class="num" data-l="Computer">' + (r.comp ? hm(r.comp) : r.sensorOnly ? '<span class="muted small">no computer</span>' : "—") + "</td>" + (A.hasRuns ? '<td class="num" data-l="Instrument time">' + (r.inst ? hm(r.inst) : "—") + "</td>" : "") +
           '<td data-l="Finding">' + tag(r.status) + '</td><td class="num" data-l="Charge">' + money(r.charge) + '</td><td class="num" data-l="Penalty">' + (r.penalty ? money(r.penalty) : "—") + "</td></tr>" +
           (o ? '<tr class="adet"><td colspan="' + (A.hasRuns ? 9 : 8) + '"><div class="adetin">' + mini(r) + '<ul class="anotes">' + (r.notes.length ? r.notes.map(function (n) { return "<li>" + esc(n) + "</li>"; }).join("") : "<li>Use matches the reservation.</li>") + "</ul></div></td></tr>" : "");
       }).join("") : '<tr><td colspan="9" class="muted">Nothing in this filter.</td></tr>') + "</tbody></table></div>";
@@ -317,7 +332,7 @@
     h += '<h2 class="sec">By account</h2><div class="card flush"><table class="tbl stack"><thead><tr><th>Account</th><th class="num">Users</th><th class="num">Billed time</th><th class="num">Reserved, not used</th><th class="num">Issues</th><th class="num">Penalties</th><th class="num">Total</th></tr></thead><tbody>' +
       al.map(function (a) { return '<tr><td data-l="Account">' + esc(a.acct) + (a.pi ? '<span class="sub">' + esc(a.pi) + " lab</span>" : "") + '</td><td class="num" data-l="Users">' + Object.keys(a.users).length + '</td><td class="num" data-l="Billed time">' + hm(a.billed) + '</td><td class="num" data-l="Reserved, not used">' + hm(a.unused) + '</td><td class="num" data-l="Issues">' + a.issues + '</td><td class="num" data-l="Penalties">' + money(a.penalty) + '</td><td class="num" data-l="Total"><b>' + money(a.charge) + "</b></td></tr>"; }).join("") + "</tbody></table></div>" +
       '<p class="small muted">"Reserved, not used" is time held on the calendar while the instrument sat idle. The core pays for that time either way, so it goes on each PI statement.</p>';
-    h += '<h2 class="sec">Export</h2><div class="card"><div class="btnrow"><button class="btn primary" type="button" id="ax3">Download FBS charge upload</button><button class="btn" type="button" id="ax1">Findings CSV</button><button class="btn" type="button" id="ax2">Account totals CSV</button></div><p class="small muted tight">The FBS file has one usage line (hours × rate) and, when needed, one penalty line per user, instrument and day, with your area, facility and SKU codes. The column layout is provisional until it is checked against your FBS charge-upload template. Findings give the reason for every charge, ready to attach to a PI statement.</p></div>';
+    h += '<h2 class="sec">Export</h2><div class="card"><div class="btnrow"><button class="btn primary" type="button" id="ax4">Send to FBS (dummy)</button><button class="btn" type="button" id="ax3">Download FBS charge upload</button><button class="btn" type="button" id="ax1">Findings CSV</button><button class="btn" type="button" id="ax2">Account totals CSV</button></div><p class="small muted tight">The FBS file has one usage line (hours × rate) and, when needed, one penalty line per user, instrument and day, with your area, facility and SKU codes. The column layout is provisional until it is checked against your FBS charge-upload template. Findings give the reason for every charge, ready to attach to a PI statement.</p></div>';
     el.innerHTML = h;
     el.querySelector("#afil").addEventListener("click", function (ev) { var b = ev.target.closest("[data-f]"); if (!b) return; ST.filter = b.getAttribute("data-f"); results(B); var nb = root.querySelector('#afil [data-f="' + ST.filter + '"]'); if (nb) nb.focus(); });
     el.querySelector(".atbl").addEventListener("click", function (ev) { var tr = ev.target.closest(".arow3"); if (!tr || !ev.target.closest(".aexp")) return; var k = tr.getAttribute("data-k"); if (ST.open[k]) delete ST.open[k]; else ST.open[k] = 1; results(B); var nb = root.querySelector('.arow3[data-k="' + k.replace(/"/g, '\\"') + '"] .aexp'); if (nb) nb.focus(); });
@@ -326,15 +341,18 @@
         return [isoDay(r.day), r.user, r.name, r.acct, r.pi, r.res, Math.round(r.booked), Math.round(r.comp), A.hasRuns ? Math.round(r.inst) : "", Math.round(r.billed), Math.round(r.outside), STATUS[r.status][0], r.notes.join("; "), r.charge.toFixed(2), r.penalty.toFixed(2)];
       })));
     });
-    el.querySelector("#ax3").addEventListener("click", function () {
+    function fbsLines() {
       var out = [["Area Code", "Facility Code", "SKU Code", "Customer Email", "Account", "PI", "Service Date", "Quantity", "Unit", "Unit Price", "Line Total", "Description"]];
       rows.forEach(function (r) {
+        if (r.flags.nouser && !r.charge) return; // nobody to bill: stays in review, never sent to FBS
         var rate = parseFloat(R.rates[r.res]); if (isNaN(rate)) rate = 50;
-        if (r.billed > 0) out.push([R.fbs.area, R.fbs.facility, R.fbs.skus[r.res] || "", r.email, r.acct, r.pi, isoDay(r.day), (r.billed / 60).toFixed(2), "Hour", rate.toFixed(2), (r.charge - r.penalty).toFixed(2), r.res + " usage (" + (A.basis === "instrument" ? "instrument run time" : "session time") + ")"]);
+        if (r.billed > 0 && r.charge - r.penalty > 0) out.push([R.fbs.area, R.fbs.facility, R.fbs.skus[r.res] || "", r.email, r.acct, r.pi, isoDay(r.day), (r.billed / 60).toFixed(2), "Hour", rate.toFixed(2), (r.charge - r.penalty).toFixed(2), r.res + " usage (" + (A.basis === "instrument" ? "instrument run time" : "session time") + ")"]);
         if (r.penalty > 0) out.push([R.fbs.area, R.fbs.facility, R.fbs.penalty, r.email, r.acct, r.pi, isoDay(r.day), "1", "Each", r.penalty.toFixed(2), r.penalty.toFixed(2), r.res + " " + STATUS[r.status][0].toLowerCase() + ": " + r.notes.filter(function (n) { return /reservation|no session/.test(n); }).join("; ")]);
       });
-      dl("labmeter-fbs-charges.csv", out);
-    });
+      return out;
+    }
+    el.querySelector("#ax3").addEventListener("click", function () { dl("labmeter-fbs-charges.csv", fbsLines()); });
+    el.querySelector("#ax4").addEventListener("click", function () { ST.push = mockFbsPost(fbsLines(), B); drawPush(); var p = root.querySelector("#apush"); if (p) p.scrollIntoView({ behavior: "smooth", block: "start" }); });
     el.querySelector("#ax2").addEventListener("click", function () {
       dl("labmeter-audit-accounts.csv", [["account", "pi", "users", "billed_hours", "reserved_unused_hours", "issues", "penalties", "total"]].concat(al.map(function (a) { return [a.acct, a.pi, Object.keys(a.users).length, (a.billed / 60).toFixed(2), (a.unused / 60).toFixed(2), a.issues, a.penalty.toFixed(2), a.charge.toFixed(2)]; })));
     });
@@ -349,10 +367,53 @@
     var B = build();
     B.resources.forEach(function (r) { if (R.rates[r] == null) R.rates[r] = sampleRate(r); });
     root.querySelector("#asrcs").innerHTML = ["res", "use", "run"].map(srcCard).join("");
+    if (ST.sample) prefillMock();
     root.querySelector("#arules").innerHTML = rulesCard(B);
-    results(B);
+    results(B); drawPush();
   }
-  function sampleRate(r) { var m = { "Zeiss LSM 880 Confocal": 45, "BD LSRFortessa Analyzer": 60, "Leica SP8 Lightning": 50, "Nikon Ti2 Widefield": 30 }; return m[r] != null ? m[r] : 50; }
+  // ---- dummy FBS (same checks as server/mock_fbs.py). Not Priority Software's FBS, which publishes no import API.
+  var MOCK = { area: "USC", facility: "IMG-CORE", skus: { "LSM880-HR": ["Zeiss LSM 880 Confocal", 45], "FORTESSA-HR": ["BD LSRFortessa Analyzer", 60], "SP8-HR": ["Leica SP8 Lightning", 50], "TI2-HR": ["Nikon Ti2 Widefield", 30], "XPN-HR": ["Beckman Optima XPN Ultracentrifuge", 25], "PENALTY": ["Usage policy penalty", null] } };
+  function prefillMock() {
+    if (R.fbs.area) return;
+    R.fbs.area = MOCK.area; R.fbs.facility = MOCK.facility; R.fbs.penalty = "PENALTY";
+    Object.keys(MOCK.skus).forEach(function (k) { if (MOCK.skus[k][1] != null) R.fbs.skus[MOCK.skus[k][0]] = k; });
+    saveRules();
+  }
+  function mockFbsPost(lines, B) {
+    var emails = {}, accts = {};
+    B.res.forEach(function (r) { emails[(B.emails[r.user] || r.user).toLowerCase()] = 1; accts[r.acct] = 1; });
+    var ok = [], bad = [], seen = ST.posted || (ST.posted = {}), key = JSON.stringify(lines);
+    if (seen[key]) return { dup: true };
+    lines.slice(1).forEach(function (l, i) {
+      var q = +l[7], p = +l[9], t = +l[10], sku = l[2], err = null;
+      if (l[0] !== MOCK.area) err = "Unknown area code '" + l[0] + "'";
+      else if (l[1] !== MOCK.facility) err = "Unknown facility code '" + l[1] + "'";
+      else if (!MOCK.skus[sku]) err = sku ? "Unknown SKU '" + sku + "'" : "SKU code is blank";
+      else if (!emails[String(l[3]).toLowerCase()]) err = "No FBS customer with email '" + l[3] + "'";
+      else if (!accts[l[4]]) err = "Account '" + l[4] + "' is not active";
+      else if (!(q > 0)) err = "Quantity must be positive";
+      else if (Math.abs(q * p - t) > Math.max(0.6, 0.01 * t)) err = "Line total does not match quantity × price";
+      else if (MOCK.skus[sku][1] != null && Math.abs(MOCK.skus[sku][1] - p) > 0.005) err = "Unit price " + p.toFixed(2) + " differs from the FBS rate " + MOCK.skus[sku][1].toFixed(2) + " for " + sku;
+      (err ? bad : ok).push(err ? { line: i + 2, err: err, l: l } : l);
+    });
+    var inv = {};
+    ok.forEach(function (l) { var a = inv[l[4]] || (inv[l[4]] = { acct: l[4], pi: l[5], n: 0, use: 0, pen: 0 }); a.n++; if (l[2] === "PENALTY") a.pen += +l[10]; else a.use += +l[10]; });
+    if (ok.length) seen[key] = 1;
+    ST.batch = (ST.batch || 0) + (ok.length ? 1 : 0);
+    return { ok: ok.length, bad: bad, total: ok.reduce(function (s, l) { return s + +l[10]; }, 0), inv: Object.keys(inv).map(function (k) { return inv[k]; }).sort(function (a, b) { return b.use + b.pen - a.use - a.pen; }), batch: "B" + ("000" + ST.batch).slice(-4) };
+  }
+  function drawPush() {
+    var el = root.querySelector("#apush"); if (!el) return;
+    var P = ST.push; if (!P) { el.innerHTML = ""; return; }
+    if (P.dup) { el.innerHTML = '<div class="card fbsr"><p><b>Dummy FBS refused the upload:</b> this exact file was already posted. Change a rule or load new data to post again.</p></div>'; return; }
+    el.innerHTML = '<div class="card fbsr"><div class="fbsh"><span class="fbsb">FBS</span><div><h3>Dummy FBS · facility ' + esc(MOCK.facility) + '</h3><p class="small muted">Batch ' + esc(P.batch) + " · a stand-in that checks lines the way a billing system would. It is not Priority Software's FBS.</p></div></div>" +
+      H.strip([{ l: "Lines posted", v: String(P.ok), n: money(P.total) + " posted to accounts" }, { l: "Lines rejected", v: String(P.bad.length), n: P.bad.length ? "Fix and send again" : "Every line matched the FBS catalog" }, { l: "Accounts invoiced", v: String(P.inv.length), n: "Usage and penalty lines" }]) +
+      (P.bad.length ? '<p class="small"><b>Rejected:</b></p><ul class="anotes">' + P.bad.slice(0, 8).map(function (b) { return "<li>Line " + b.line + ": " + esc(b.err) + "</li>"; }).join("") + (P.bad.length > 8 ? "<li>and " + (P.bad.length - 8) + " more</li>" : "") + "</ul>" : "") +
+      '<table class="tbl stack"><thead><tr><th>Account</th><th class="num">Lines</th><th class="num">Usage</th><th class="num">Penalties</th><th class="num">Invoice</th></tr></thead><tbody>' +
+      P.inv.map(function (a) { return '<tr><td data-l="Account">' + esc(a.acct) + (a.pi ? '<span class="sub">' + esc(a.pi) + " lab</span>" : "") + '</td><td class="num" data-l="Lines">' + a.n + '</td><td class="num" data-l="Usage">' + money(a.use) + '</td><td class="num" data-l="Penalties">' + money(a.pen) + '</td><td class="num" data-l="Invoice"><b>' + money(a.use + a.pen) + "</b></td></tr>"; }).join("") + "</tbody></table>" +
+      '<p class="small muted tight">With the real FBS this is a file upload today (no public API). The same connector posts to an API once FBS or USC provides one.</p></div>';
+  }
+  function sampleRate(r) { var m = { "Zeiss LSM 880 Confocal": 45, "BD LSRFortessa Analyzer": 60, "Leica SP8 Lightning": 50, "Nikon Ti2 Widefield": 30, "Beckman Optima XPN Ultracentrifuge": 25 }; return m[r] != null ? m[r] : 50; }
   function bind() {
     root.addEventListener("change", function (ev) {
       var t = ev.target;
@@ -388,7 +449,7 @@
       '<p class="notice">Works beside FBS and your current usage tracker. Files are read in this browser and never uploaded. The sample month is synthetic, and the sample column layouts are mock-ups of an FBS export and a login log. <button type="button" class="linkb" id="asample">Reload the sample month</button></p>' +
       '<h2 class="sec">1. Data</h2><div class="agrid" id="asrcs"></div>' +
       '<h2 class="sec">2. Your rules <button type="button" class="linkb small" id="areset">Reset to defaults</button></h2><div id="arules"></div>' +
-      '<h2 class="sec">3. Results</h2><div id="ares"><p class="muted loadmsg" role="status"><span class="spin" aria-hidden="true"></span>Loading the sample month</p></div>';
+      '<h2 class="sec">3. Results</h2><div id="apush"></div><div id="ares"><p class="muted loadmsg" role="status"><span class="spin" aria-hidden="true"></span>Loading the sample month</p></div>';
     bind();
     if (ST.files.res) draw();
     else loadSample().then(draw).catch(function (e) { root.querySelector("#ares").innerHTML = '<p class="notice" role="alert">Could not load the sample files (' + esc(e.message) + "). You can still upload your own.</p>"; draw(); });
