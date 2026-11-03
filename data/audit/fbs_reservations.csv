@@ -1,0 +1,258 @@
+Reservation ID,Resource,Reserved By,Email,PI,Account,Start Date,Start Time,End Date,End Time,Status
+R40103,BD LSRFortessa Analyzer,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/01/2026,9:00 AM,10/01/2026,11:00 AM,Confirmed
+R40106,Leica SP8 Lightning,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/01/2026,9:00 AM,10/01/2026,11:00 AM,Confirmed
+R40109,Nikon Ti2 Widefield,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/01/2026,9:00 AM,10/01/2026,11:00 AM,Confirmed
+R40101,Zeiss LSM 880 Confocal,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/01/2026,9:00 AM,10/01/2026,1:00 PM,Confirmed
+R40110,Nikon Ti2 Widefield,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/01/2026,11:00 AM,10/01/2026,1:00 PM,Confirmed
+R40104,BD LSRFortessa Analyzer,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/01/2026,12:00 PM,10/01/2026,2:00 PM,Confirmed
+R40107,Leica SP8 Lightning,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/01/2026,12:30 PM,10/01/2026,2:30 PM,Confirmed
+R40102,Zeiss LSM 880 Confocal,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/01/2026,1:15 PM,10/01/2026,2:45 PM,Confirmed
+R40111,Nikon Ti2 Widefield,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/01/2026,2:30 PM,10/01/2026,6:30 PM,Confirmed
+R40105,BD LSRFortessa Analyzer,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/01/2026,2:45 PM,10/01/2026,4:45 PM,Confirmed
+R40108,Leica SP8 Lightning,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/01/2026,3:00 PM,10/01/2026,4:30 PM,Confirmed
+R40115,BD LSRFortessa Analyzer,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/02/2026,8:00 AM,10/02/2026,12:00 PM,Confirmed
+R40120,Nikon Ti2 Widefield,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/02/2026,8:30 AM,10/02/2026,10:30 AM,Confirmed
+R40118,Leica SP8 Lightning,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/02/2026,8:45 AM,10/02/2026,12:45 PM,Confirmed
+R40112,Zeiss LSM 880 Confocal,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/02/2026,8:45 AM,10/02/2026,12:45 PM,Confirmed
+R40121,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/02/2026,11:45 AM,10/02/2026,3:45 PM,Confirmed
+R40116,BD LSRFortessa Analyzer,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/02/2026,12:00 PM,10/02/2026,1:00 PM,Confirmed
+R40113,Zeiss LSM 880 Confocal,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/02/2026,1:15 PM,10/02/2026,2:45 PM,Confirmed
+R40119,Leica SP8 Lightning,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/02/2026,1:45 PM,10/02/2026,5:45 PM,Confirmed
+R40117,BD LSRFortessa Analyzer,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/02/2026,2:00 PM,10/02/2026,4:00 PM,Confirmed
+R40122,Nikon Ti2 Widefield,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/02/2026,4:00 PM,10/02/2026,5:30 PM,Confirmed
+R40114,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/02/2026,4:00 PM,10/02/2026,6:00 PM,Confirmed
+R40123,BD LSRFortessa Analyzer,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/03/2026,8:00 AM,10/03/2026,12:00 PM,Confirmed
+R40124,Leica SP8 Lightning,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/03/2026,8:45 AM,10/03/2026,11:45 AM,Confirmed
+R40125,Leica SP8 Lightning,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/04/2026,9:00 AM,10/04/2026,11:00 AM,Confirmed
+R40130,BD LSRFortessa Analyzer,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/05/2026,8:00 AM,10/05/2026,10:00 AM,Confirmed
+R40126,Zeiss LSM 880 Confocal,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/05/2026,8:00 AM,10/05/2026,9:00 AM,Confirmed
+R40135,Nikon Ti2 Widefield,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/05/2026,8:45 AM,10/05/2026,10:45 AM,Confirmed
+R40133,Leica SP8 Lightning,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/05/2026,9:00 AM,10/05/2026,10:30 AM,Confirmed
+R40127,Zeiss LSM 880 Confocal,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/05/2026,10:00 AM,10/05/2026,12:00 PM,Confirmed
+R40131,BD LSRFortessa Analyzer,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/05/2026,11:00 AM,10/05/2026,2:00 PM,Confirmed
+R40136,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/05/2026,11:00 AM,10/05/2026,1:00 PM,Confirmed
+R40134,Leica SP8 Lightning,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/05/2026,11:15 AM,10/05/2026,2:15 PM,Confirmed
+R40128,Zeiss LSM 880 Confocal,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/05/2026,12:15 PM,10/05/2026,1:45 PM,Confirmed
+R40137,Nikon Ti2 Widefield,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/05/2026,1:00 PM,10/05/2026,3:00 PM,Confirmed
+R40132,BD LSRFortessa Analyzer,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/05/2026,2:30 PM,10/05/2026,5:30 PM,Confirmed
+R40129,Zeiss LSM 880 Confocal,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/05/2026,2:30 PM,10/05/2026,6:30 PM,Confirmed
+R40138,Nikon Ti2 Widefield,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/05/2026,3:45 PM,10/05/2026,5:45 PM,Cancelled
+R40143,BD LSRFortessa Analyzer,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/06/2026,8:15 AM,10/06/2026,12:15 PM,Confirmed
+R40139,Zeiss LSM 880 Confocal,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/06/2026,8:45 AM,10/06/2026,9:45 AM,Confirmed
+R40146,Leica SP8 Lightning,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/06/2026,9:00 AM,10/06/2026,11:00 AM,Confirmed
+R40149,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/06/2026,9:00 AM,10/06/2026,11:00 AM,Cancelled
+R40140,Zeiss LSM 880 Confocal,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/06/2026,10:15 AM,10/06/2026,11:15 AM,Confirmed
+R40150,Nikon Ti2 Widefield,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/06/2026,11:45 AM,10/06/2026,1:45 PM,Confirmed
+R40144,BD LSRFortessa Analyzer,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/06/2026,12:15 PM,10/06/2026,3:15 PM,Confirmed
+R40147,Leica SP8 Lightning,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/06/2026,12:15 PM,10/06/2026,2:15 PM,Confirmed
+R40141,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/06/2026,12:30 PM,10/06/2026,2:30 PM,Confirmed
+R40151,Nikon Ti2 Widefield,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/06/2026,2:00 PM,10/06/2026,3:00 PM,Confirmed
+R40148,Leica SP8 Lightning,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/06/2026,2:30 PM,10/06/2026,6:30 PM,Confirmed
+R40142,Zeiss LSM 880 Confocal,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/06/2026,3:30 PM,10/06/2026,6:30 PM,Confirmed
+R40145,BD LSRFortessa Analyzer,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/06/2026,3:45 PM,10/06/2026,5:45 PM,Confirmed
+R40157,Leica SP8 Lightning,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/07/2026,8:00 AM,10/07/2026,12:00 PM,Confirmed
+R40155,BD LSRFortessa Analyzer,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/07/2026,8:30 AM,10/07/2026,9:30 AM,Confirmed
+R40159,Nikon Ti2 Widefield,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/07/2026,8:30 AM,10/07/2026,12:30 PM,Confirmed
+R40152,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/07/2026,8:45 AM,10/07/2026,10:45 AM,Confirmed
+R40156,BD LSRFortessa Analyzer,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/07/2026,10:30 AM,10/07/2026,1:30 PM,Cancelled
+R40153,Zeiss LSM 880 Confocal,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/07/2026,10:45 AM,10/07/2026,11:45 AM,Confirmed
+R40154,Zeiss LSM 880 Confocal,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/07/2026,12:45 PM,10/07/2026,4:45 PM,Confirmed
+R40158,Leica SP8 Lightning,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/07/2026,1:30 PM,10/07/2026,5:30 PM,Confirmed
+R40160,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/07/2026,1:30 PM,10/07/2026,3:30 PM,Confirmed
+R40165,Leica SP8 Lightning,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/08/2026,8:00 AM,10/08/2026,9:30 AM,Confirmed
+R40163,BD LSRFortessa Analyzer,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/08/2026,8:30 AM,10/08/2026,10:30 AM,Confirmed
+R40167,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/08/2026,8:30 AM,10/08/2026,12:30 PM,Confirmed
+R40161,Zeiss LSM 880 Confocal,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/08/2026,8:45 AM,10/08/2026,10:45 AM,Confirmed
+R40166,Leica SP8 Lightning,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/08/2026,10:00 AM,10/08/2026,2:00 PM,Confirmed
+R40164,BD LSRFortessa Analyzer,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/08/2026,11:00 AM,10/08/2026,1:00 PM,Confirmed
+R40162,Zeiss LSM 880 Confocal,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/08/2026,11:45 AM,10/08/2026,1:15 PM,Confirmed
+R40168,Nikon Ti2 Widefield,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/08/2026,12:30 PM,10/08/2026,2:00 PM,Confirmed
+R40169,Nikon Ti2 Widefield,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/08/2026,2:45 PM,10/08/2026,4:45 PM,Confirmed
+R40172,BD LSRFortessa Analyzer,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/09/2026,8:15 AM,10/09/2026,10:15 AM,Confirmed
+R40175,Leica SP8 Lightning,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/09/2026,8:15 AM,10/09/2026,10:15 AM,Confirmed
+R40170,Zeiss LSM 880 Confocal,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/09/2026,8:45 AM,10/09/2026,11:45 AM,Confirmed
+R40177,Nikon Ti2 Widefield,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/09/2026,9:00 AM,10/09/2026,10:00 AM,Confirmed
+R40178,Nikon Ti2 Widefield,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/09/2026,10:30 AM,10/09/2026,12:30 PM,Confirmed
+R40173,BD LSRFortessa Analyzer,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/09/2026,11:00 AM,10/09/2026,12:00 PM,Confirmed
+R40176,Leica SP8 Lightning,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/09/2026,11:45 AM,10/09/2026,3:45 PM,Confirmed
+R40174,BD LSRFortessa Analyzer,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/09/2026,12:30 PM,10/09/2026,2:00 PM,Confirmed
+R40179,Nikon Ti2 Widefield,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/09/2026,12:30 PM,10/09/2026,4:30 PM,Confirmed
+R40171,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/09/2026,12:30 PM,10/09/2026,3:30 PM,Confirmed
+R40180,Zeiss LSM 880 Confocal,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/10/2026,8:45 AM,10/10/2026,11:45 AM,Confirmed
+R40181,BD LSRFortessa Analyzer,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/10/2026,9:00 AM,10/10/2026,12:00 PM,Confirmed
+R40185,Nikon Ti2 Widefield,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/11/2026,8:00 AM,10/11/2026,11:00 AM,Cancelled
+R40183,BD LSRFortessa Analyzer,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/11/2026,8:15 AM,10/11/2026,12:15 PM,Confirmed
+R40182,Zeiss LSM 880 Confocal,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/11/2026,8:45 AM,10/11/2026,12:45 PM,Confirmed
+R40184,Leica SP8 Lightning,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/11/2026,9:00 AM,10/11/2026,12:00 PM,Confirmed
+R40194,Nikon Ti2 Widefield,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/12/2026,8:00 AM,10/12/2026,10:00 AM,Confirmed
+R40191,Leica SP8 Lightning,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/12/2026,8:30 AM,10/12/2026,9:30 AM,Confirmed
+R40189,BD LSRFortessa Analyzer,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/12/2026,8:45 AM,10/12/2026,12:45 PM,Confirmed
+R40186,Zeiss LSM 880 Confocal,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/12/2026,9:00 AM,10/12/2026,10:30 AM,Confirmed
+R40192,Leica SP8 Lightning,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/12/2026,10:00 AM,10/12/2026,1:00 PM,Confirmed
+R40195,Nikon Ti2 Widefield,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/12/2026,10:15 AM,10/12/2026,11:45 AM,Confirmed
+R40187,Zeiss LSM 880 Confocal,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/12/2026,12:00 PM,10/12/2026,4:00 PM,Confirmed
+R40190,BD LSRFortessa Analyzer,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/12/2026,12:45 PM,10/12/2026,2:15 PM,Confirmed
+R40193,Leica SP8 Lightning,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/12/2026,1:00 PM,10/12/2026,5:00 PM,Confirmed
+R40196,Nikon Ti2 Widefield,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/12/2026,1:00 PM,10/12/2026,2:30 PM,Confirmed
+R40188,Zeiss LSM 880 Confocal,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/12/2026,4:15 PM,10/12/2026,5:15 PM,Cancelled
+R40205,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/13/2026,8:00 AM,10/13/2026,10:00 AM,Confirmed
+R40200,BD LSRFortessa Analyzer,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/13/2026,8:15 AM,10/13/2026,11:15 AM,Confirmed
+R40197,Zeiss LSM 880 Confocal,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/13/2026,8:30 AM,10/13/2026,10:30 AM,Confirmed
+R40202,Leica SP8 Lightning,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/13/2026,8:45 AM,10/13/2026,10:15 AM,Confirmed
+R40206,Nikon Ti2 Widefield,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/13/2026,10:00 AM,10/13/2026,12:00 PM,Confirmed
+R40198,Zeiss LSM 880 Confocal,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/13/2026,11:00 AM,10/13/2026,12:00 PM,Confirmed
+R40201,BD LSRFortessa Analyzer,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/13/2026,11:15 AM,10/13/2026,2:15 PM,Confirmed
+R40203,Leica SP8 Lightning,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/13/2026,11:30 AM,10/13/2026,1:30 PM,Confirmed
+R40207,Nikon Ti2 Widefield,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/13/2026,1:00 PM,10/13/2026,2:00 PM,Confirmed
+R40199,Zeiss LSM 880 Confocal,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/13/2026,1:00 PM,10/13/2026,5:00 PM,Confirmed
+R40208,Nikon Ti2 Widefield,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/13/2026,2:00 PM,10/13/2026,3:00 PM,Confirmed
+R40204,Leica SP8 Lightning,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/13/2026,3:00 PM,10/13/2026,6:00 PM,Confirmed
+R40215,Leica SP8 Lightning,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/14/2026,8:30 AM,10/14/2026,10:30 AM,Confirmed
+R40219,Nikon Ti2 Widefield,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/14/2026,8:30 AM,10/14/2026,10:30 AM,Confirmed
+R40213,BD LSRFortessa Analyzer,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/14/2026,8:45 AM,10/14/2026,10:15 AM,Confirmed
+R40209,Zeiss LSM 880 Confocal,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/14/2026,8:45 AM,10/14/2026,9:45 AM,Confirmed
+R40214,BD LSRFortessa Analyzer,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/14/2026,10:45 AM,10/14/2026,11:45 AM,Confirmed
+R40210,Zeiss LSM 880 Confocal,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/14/2026,10:45 AM,10/14/2026,11:45 AM,Confirmed
+R40220,Nikon Ti2 Widefield,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/14/2026,11:00 AM,10/14/2026,3:00 PM,Confirmed
+R40216,Leica SP8 Lightning,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/14/2026,11:45 AM,10/14/2026,1:15 PM,Confirmed
+R40211,Zeiss LSM 880 Confocal,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/14/2026,12:00 PM,10/14/2026,1:30 PM,Confirmed
+R40217,Leica SP8 Lightning,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/14/2026,2:00 PM,10/14/2026,4:00 PM,Confirmed
+R40212,Zeiss LSM 880 Confocal,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/14/2026,2:45 PM,10/14/2026,4:15 PM,Confirmed
+R40221,Nikon Ti2 Widefield,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/14/2026,3:15 PM,10/14/2026,6:15 PM,Confirmed
+R40218,Leica SP8 Lightning,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/14/2026,4:30 PM,10/14/2026,6:30 PM,Confirmed
+R40227,Leica SP8 Lightning,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/15/2026,8:45 AM,10/15/2026,10:15 AM,Confirmed
+R40222,Zeiss LSM 880 Confocal,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/15/2026,8:45 AM,10/15/2026,11:45 AM,Confirmed
+R40224,BD LSRFortessa Analyzer,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/15/2026,9:00 AM,10/15/2026,11:00 AM,Confirmed
+R40229,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/15/2026,9:00 AM,10/15/2026,10:00 AM,Confirmed
+R40225,BD LSRFortessa Analyzer,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/15/2026,11:15 AM,10/15/2026,12:15 PM,Cancelled
+R40228,Leica SP8 Lightning,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/15/2026,11:30 AM,10/15/2026,1:00 PM,Confirmed
+R40230,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/15/2026,11:30 AM,10/15/2026,1:00 PM,Confirmed
+R40223,Zeiss LSM 880 Confocal,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/15/2026,1:00 PM,10/15/2026,5:00 PM,Confirmed
+R40226,BD LSRFortessa Analyzer,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/15/2026,1:30 PM,10/15/2026,3:30 PM,Confirmed
+R40231,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/15/2026,1:30 PM,10/15/2026,5:30 PM,Confirmed
+R40234,BD LSRFortessa Analyzer,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/16/2026,8:00 AM,10/16/2026,9:00 AM,Confirmed
+R40241,Nikon Ti2 Widefield,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/16/2026,8:30 AM,10/16/2026,10:30 AM,Confirmed
+R40232,Zeiss LSM 880 Confocal,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/16/2026,8:30 AM,10/16/2026,12:30 PM,Confirmed
+R40238,Leica SP8 Lightning,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/16/2026,8:45 AM,10/16/2026,11:45 AM,Confirmed
+R40235,BD LSRFortessa Analyzer,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/16/2026,9:00 AM,10/16/2026,10:30 AM,Confirmed
+R40242,Nikon Ti2 Widefield,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/16/2026,11:00 AM,10/16/2026,1:00 PM,Confirmed
+R40236,BD LSRFortessa Analyzer,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/16/2026,11:45 AM,10/16/2026,3:45 PM,Confirmed
+R40239,Leica SP8 Lightning,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/16/2026,11:45 AM,10/16/2026,2:45 PM,Confirmed
+R40233,Zeiss LSM 880 Confocal,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/16/2026,12:30 PM,10/16/2026,1:30 PM,Confirmed
+R40243,Nikon Ti2 Widefield,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/16/2026,1:45 PM,10/16/2026,4:45 PM,Confirmed
+R40240,Leica SP8 Lightning,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/16/2026,4:00 PM,10/16/2026,6:00 PM,Confirmed
+R40237,BD LSRFortessa Analyzer,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/16/2026,5:15 PM,10/16/2026,6:15 PM,Confirmed
+R40244,Leica SP8 Lightning,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/17/2026,8:00 AM,10/17/2026,11:00 AM,Confirmed
+R40245,BD LSRFortessa Analyzer,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/18/2026,9:00 AM,10/18/2026,1:00 PM,Confirmed
+R40248,BD LSRFortessa Analyzer,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/19/2026,8:30 AM,10/19/2026,12:30 PM,Confirmed
+R40253,Nikon Ti2 Widefield,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/19/2026,8:30 AM,10/19/2026,11:30 AM,Confirmed
+R40246,Zeiss LSM 880 Confocal,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/19/2026,8:30 AM,10/19/2026,9:30 AM,Confirmed
+R40250,Leica SP8 Lightning,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/19/2026,8:45 AM,10/19/2026,10:45 AM,Confirmed
+R40247,Zeiss LSM 880 Confocal,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/19/2026,10:15 AM,10/19/2026,11:45 AM,Confirmed
+R40251,Leica SP8 Lightning,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/19/2026,11:15 AM,10/19/2026,2:15 PM,Confirmed
+R40254,Nikon Ti2 Widefield,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/19/2026,12:00 PM,10/19/2026,4:00 PM,Confirmed
+R40249,BD LSRFortessa Analyzer,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/19/2026,12:45 PM,10/19/2026,3:45 PM,Confirmed
+R40252,Leica SP8 Lightning,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/19/2026,3:30 PM,10/19/2026,5:00 PM,Confirmed
+R40259,BD LSRFortessa Analyzer,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/20/2026,8:00 AM,10/20/2026,10:00 AM,Confirmed
+R40265,Nikon Ti2 Widefield,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/20/2026,8:15 AM,10/20/2026,9:45 AM,Cancelled
+R40255,Zeiss LSM 880 Confocal,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/20/2026,8:15 AM,10/20/2026,9:15 AM,Confirmed
+R40261,Leica SP8 Lightning,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/20/2026,8:45 AM,10/20/2026,10:45 AM,Confirmed
+R40256,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/20/2026,9:15 AM,10/20/2026,10:45 AM,Confirmed
+R40266,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/20/2026,10:00 AM,10/20/2026,12:00 PM,Confirmed
+R40260,BD LSRFortessa Analyzer,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/20/2026,10:45 AM,10/20/2026,2:45 PM,Confirmed
+R40262,Leica SP8 Lightning,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/20/2026,11:45 AM,10/20/2026,12:45 PM,Confirmed
+R40257,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/20/2026,12:00 PM,10/20/2026,2:00 PM,Confirmed
+R40263,Leica SP8 Lightning,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/20/2026,2:00 PM,10/20/2026,5:00 PM,Confirmed
+R40258,Zeiss LSM 880 Confocal,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/20/2026,3:30 PM,10/20/2026,5:00 PM,Cancelled
+R40264,Leica SP8 Lightning,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/20/2026,5:30 PM,10/20/2026,6:30 PM,Confirmed
+R40269,BD LSRFortessa Analyzer,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/21/2026,8:00 AM,10/21/2026,10:00 AM,Confirmed
+R40273,Nikon Ti2 Widefield,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/21/2026,8:00 AM,10/21/2026,9:00 AM,Confirmed
+R40267,Zeiss LSM 880 Confocal,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/21/2026,8:00 AM,10/21/2026,10:00 AM,Confirmed
+R40271,Leica SP8 Lightning,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/21/2026,8:15 AM,10/21/2026,10:15 AM,Confirmed
+R40274,Nikon Ti2 Widefield,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/21/2026,9:00 AM,10/21/2026,12:00 PM,Confirmed
+R40268,Zeiss LSM 880 Confocal,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/21/2026,10:45 AM,10/21/2026,1:45 PM,Confirmed
+R40270,BD LSRFortessa Analyzer,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/21/2026,11:15 AM,10/21/2026,1:15 PM,Confirmed
+R40272,Leica SP8 Lightning,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/21/2026,11:30 AM,10/21/2026,12:30 PM,Confirmed
+R40275,Nikon Ti2 Widefield,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/21/2026,12:30 PM,10/21/2026,4:30 PM,Confirmed
+R40279,BD LSRFortessa Analyzer,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/22/2026,8:30 AM,10/22/2026,10:00 AM,Confirmed
+R40282,Leica SP8 Lightning,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/22/2026,8:30 AM,10/22/2026,11:30 AM,Confirmed
+R40284,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/22/2026,8:45 AM,10/22/2026,12:45 PM,Confirmed
+R40276,Zeiss LSM 880 Confocal,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/22/2026,8:45 AM,10/22/2026,10:15 AM,Confirmed
+R40280,BD LSRFortessa Analyzer,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/22/2026,10:30 AM,10/22/2026,1:30 PM,Confirmed
+R40277,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/22/2026,11:30 AM,10/22/2026,1:30 PM,Confirmed
+R40283,Leica SP8 Lightning,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/22/2026,12:30 PM,10/22/2026,3:30 PM,Confirmed
+R40285,Nikon Ti2 Widefield,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/22/2026,1:45 PM,10/22/2026,4:45 PM,Confirmed
+R40281,BD LSRFortessa Analyzer,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/22/2026,2:30 PM,10/22/2026,4:00 PM,Confirmed
+R40278,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/22/2026,2:45 PM,10/22/2026,6:45 PM,Confirmed
+R40286,Nikon Ti2 Widefield,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/22/2026,4:45 PM,10/22/2026,6:45 PM,Confirmed
+R40287,Zeiss LSM 880 Confocal,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/23/2026,8:15 AM,10/23/2026,12:15 PM,Confirmed
+R40290,BD LSRFortessa Analyzer,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/23/2026,8:30 AM,10/23/2026,10:00 AM,Confirmed
+R40293,Leica SP8 Lightning,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/23/2026,9:00 AM,10/23/2026,12:00 PM,Confirmed
+R40295,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/23/2026,9:00 AM,10/23/2026,10:00 AM,Confirmed
+R40291,BD LSRFortessa Analyzer,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/23/2026,10:45 AM,10/23/2026,1:45 PM,Confirmed
+R40296,Nikon Ti2 Widefield,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/23/2026,11:30 AM,10/23/2026,1:00 PM,Confirmed
+R40294,Leica SP8 Lightning,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/23/2026,12:45 PM,10/23/2026,2:15 PM,Confirmed
+R40288,Zeiss LSM 880 Confocal,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/23/2026,1:00 PM,10/23/2026,3:00 PM,Confirmed
+R40297,Nikon Ti2 Widefield,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/23/2026,2:00 PM,10/23/2026,4:00 PM,Confirmed
+R40292,BD LSRFortessa Analyzer,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/23/2026,3:00 PM,10/23/2026,5:00 PM,Confirmed
+R40289,Zeiss LSM 880 Confocal,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/23/2026,3:45 PM,10/23/2026,4:45 PM,Confirmed
+R40298,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/23/2026,4:00 PM,10/23/2026,6:00 PM,Confirmed
+R40299,Zeiss LSM 880 Confocal,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/24/2026,8:30 AM,10/24/2026,11:30 AM,Confirmed
+R40301,Leica SP8 Lightning,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/24/2026,8:45 AM,10/24/2026,11:45 AM,Confirmed
+R40300,BD LSRFortessa Analyzer,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/24/2026,9:00 AM,10/24/2026,1:00 PM,Confirmed
+R40303,BD LSRFortessa Analyzer,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/25/2026,8:00 AM,10/25/2026,10:00 AM,Confirmed
+R40302,Zeiss LSM 880 Confocal,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/25/2026,8:15 AM,10/25/2026,9:15 AM,Confirmed
+R40304,Leica SP8 Lightning,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/25/2026,8:30 AM,10/25/2026,10:30 AM,Confirmed
+R40307,BD LSRFortessa Analyzer,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/26/2026,8:15 AM,10/26/2026,9:15 AM,Confirmed
+R40310,Leica SP8 Lightning,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/26/2026,8:45 AM,10/26/2026,9:45 AM,Confirmed
+R40312,Nikon Ti2 Widefield,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/26/2026,8:45 AM,10/26/2026,9:45 AM,Confirmed
+R40305,Zeiss LSM 880 Confocal,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/26/2026,9:00 AM,10/26/2026,11:00 AM,Confirmed
+R40313,Nikon Ti2 Widefield,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/26/2026,9:45 AM,10/26/2026,11:45 AM,Confirmed
+R40308,BD LSRFortessa Analyzer,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/26/2026,10:45 AM,10/26/2026,2:45 PM,Confirmed
+R40311,Leica SP8 Lightning,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/26/2026,11:15 AM,10/26/2026,2:15 PM,Confirmed
+R40306,Zeiss LSM 880 Confocal,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/26/2026,12:15 PM,10/26/2026,1:15 PM,Confirmed
+R40314,Nikon Ti2 Widefield,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/26/2026,12:45 PM,10/26/2026,2:45 PM,Confirmed
+R40309,BD LSRFortessa Analyzer,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/26/2026,4:00 PM,10/26/2026,6:00 PM,Confirmed
+R40315,Zeiss LSM 880 Confocal,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/27/2026,8:00 AM,10/27/2026,9:00 AM,Confirmed
+R40317,BD LSRFortessa Analyzer,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/27/2026,8:15 AM,10/27/2026,11:15 AM,Confirmed
+R40319,Leica SP8 Lightning,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/27/2026,8:45 AM,10/27/2026,9:45 AM,Confirmed
+R40321,Nikon Ti2 Widefield,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/27/2026,8:45 AM,10/27/2026,12:45 PM,Confirmed
+R40316,Zeiss LSM 880 Confocal,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/27/2026,10:00 AM,10/27/2026,1:00 PM,Confirmed
+R40320,Leica SP8 Lightning,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/27/2026,11:15 AM,10/27/2026,12:45 PM,Confirmed
+R40318,BD LSRFortessa Analyzer,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/27/2026,11:45 AM,10/27/2026,12:45 PM,Cancelled
+R40322,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/27/2026,1:45 PM,10/27/2026,2:45 PM,Confirmed
+R40323,Nikon Ti2 Widefield,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/27/2026,3:15 PM,10/27/2026,4:15 PM,Confirmed
+R40324,Zeiss LSM 880 Confocal,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/28/2026,8:30 AM,10/28/2026,9:30 AM,Confirmed
+R40332,Nikon Ti2 Widefield,Elias Haddad,ehaddad@usc.edu,Harlow,1-4410-0927,10/28/2026,8:45 AM,10/28/2026,11:45 AM,Confirmed
+R40326,BD LSRFortessa Analyzer,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/28/2026,9:00 AM,10/28/2026,12:00 PM,Confirmed
+R40329,Leica SP8 Lightning,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/28/2026,9:00 AM,10/28/2026,12:00 PM,Confirmed
+R40325,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/28/2026,10:45 AM,10/28/2026,11:45 AM,Confirmed
+R40327,BD LSRFortessa Analyzer,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/28/2026,12:00 PM,10/28/2026,2:00 PM,Confirmed
+R40333,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/28/2026,12:15 PM,10/28/2026,1:15 PM,Confirmed
+R40330,Leica SP8 Lightning,Hana Tanaka,htanaka@usc.edu,Feldman,1-3305-1182,10/28/2026,12:30 PM,10/28/2026,2:30 PM,Confirmed
+R40334,Nikon Ti2 Widefield,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/28/2026,2:15 PM,10/28/2026,6:15 PM,Confirmed
+R40328,BD LSRFortessa Analyzer,Maya Chen,mchen@usc.edu,Ruiz,1-2210-4471,10/28/2026,2:30 PM,10/28/2026,4:30 PM,Confirmed
+R40331,Leica SP8 Lightning,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/28/2026,3:45 PM,10/28/2026,6:45 PM,Cancelled
+R40339,Leica SP8 Lightning,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/29/2026,8:00 AM,10/29/2026,11:00 AM,Confirmed
+R40335,Zeiss LSM 880 Confocal,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/29/2026,8:30 AM,10/29/2026,10:30 AM,Confirmed
+R40337,BD LSRFortessa Analyzer,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/29/2026,9:00 AM,10/29/2026,11:00 AM,Confirmed
+R40342,Nikon Ti2 Widefield,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/29/2026,9:00 AM,10/29/2026,11:00 AM,Confirmed
+R40336,Zeiss LSM 880 Confocal,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/29/2026,10:45 AM,10/29/2026,12:45 PM,Confirmed
+R40343,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/29/2026,11:30 AM,10/29/2026,3:30 PM,Confirmed
+R40340,Leica SP8 Lightning,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/29/2026,12:15 PM,10/29/2026,2:15 PM,Confirmed
+R40338,BD LSRFortessa Analyzer,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/29/2026,12:30 PM,10/29/2026,1:30 PM,Confirmed
+R40341,Leica SP8 Lightning,Pia Kowalski,pkowalsk@usc.edu,Feldman,1-3305-1182,10/29/2026,2:15 PM,10/29/2026,4:15 PM,Confirmed
+R40347,BD LSRFortessa Analyzer,Diego Alvarez,dalvarez@usc.edu,Feldman,1-3305-1182,10/30/2026,8:30 AM,10/30/2026,11:30 AM,Confirmed
+R40349,Leica SP8 Lightning,Tom Brooks,tbrooks@usc.edu,Harlow,1-4410-0927,10/30/2026,8:30 AM,10/30/2026,10:30 AM,Confirmed
+R40353,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/30/2026,9:00 AM,10/30/2026,1:00 PM,Confirmed
+R40344,Zeiss LSM 880 Confocal,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/30/2026,9:00 AM,10/30/2026,10:30 AM,Confirmed
+R40350,Leica SP8 Lightning,Lena Moreau,lmoreau@usc.edu,Ruiz,1-2210-4471,10/30/2026,11:15 AM,10/30/2026,1:15 PM,Confirmed
+R40345,Zeiss LSM 880 Confocal,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/30/2026,11:15 AM,10/30/2026,2:15 PM,Confirmed
+R40348,BD LSRFortessa Analyzer,Kenji Ito,kito@usc.edu,Harlow,1-4410-0927,10/30/2026,12:00 PM,10/30/2026,1:00 PM,Confirmed
+R40354,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/30/2026,1:00 PM,10/30/2026,2:00 PM,Confirmed
+R40351,Leica SP8 Lightning,Arjun Patel,arjunpat@usc.edu,Ruiz,1-2210-4471,10/30/2026,2:15 PM,10/30/2026,3:45 PM,Confirmed
+R40346,Zeiss LSM 880 Confocal,Sofia Lindgren,slindgre@usc.edu,Okonkwo,1-2210-5530,10/30/2026,2:45 PM,10/30/2026,4:15 PM,Confirmed
+R40355,Nikon Ti2 Widefield,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/30/2026,3:30 PM,10/30/2026,4:30 PM,Confirmed
+R40352,Leica SP8 Lightning,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/30/2026,3:45 PM,10/30/2026,5:45 PM,Confirmed
+R40356,BD LSRFortessa Analyzer,James Okafor,jokafor@usc.edu,Okonkwo,1-2210-5530,10/31/2026,8:00 AM,10/31/2026,9:00 AM,Confirmed
+R40357,Nikon Ti2 Widefield,Ravi Nair,rnair@usc.edu,Okonkwo,1-2210-5530,10/31/2026,8:45 AM,10/31/2026,10:45 AM,Confirmed

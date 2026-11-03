@@ -296,6 +296,19 @@
 
   // ---- mode: overview (default, static 2D) or live simulation (3D, auto-playing)
   var MODE = "overview", MSTORE = "labmeter-demo-mode-v1";
+  // ---- setup: "fbs" = LabMeter complements FBS (audit + verified usage), "suite" = LabMeter runs the whole workflow
+  var SETUP_KEY = "labmeter-demo-setup-v1";
+  var SETUP = (function () { try { return localStorage.getItem(SETUP_KEY) === "suite" ? "suite" : "fbs"; } catch (e) { return "fbs"; } })();
+  function syncSetup() { $$("#setup [data-setup]").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-setup") === SETUP ? "true" : "false"); }); }
+  function setSetup(v) {
+    SETUP = v === "suite" ? "suite" : "fbs";
+    try { localStorage.setItem(SETUP_KEY, SETUP); } catch (e) { /* ignore */ }
+    syncSetup();
+    var r = parseHash().p[0] || "home";
+    if ((r === "audit" && SETUP === "suite") || (r === "book" && SETUP === "fbs")) location.hash = SETUP === "suite" ? "#/book" : "#/audit";
+    else route(null);
+    toast(SETUP === "suite" ? "All-in-one: LabMeter handles booking, claims, measured use and PI statements." : "With FBS: FBS keeps scheduling; LabMeter audits actual use against it.");
+  }
   function storedMode() { try { return localStorage.getItem(MSTORE) === "sim" ? "sim" : "overview"; } catch (e) { return "overview"; } }
   function saveMode(m) { try { localStorage.setItem(MSTORE, m); } catch (e) { /* storage unavailable */ } }
   function modeFromUrl(q) {
@@ -727,22 +740,32 @@
   // ---- billing page
   function billing() {
     var open = D.exc.filter(function (e) { return !getRev()[e.key]; }).length;
-    var h = pageHead("Billing", "Only time the sensors measured the instrument running is billed. Runs that need a person to decide are in the review queue below.") +
+    var h = pageHead("Billing", SETUP === "suite"
+        ? "Only time the sensors measured the instrument running is billed. Decide the runs in the review queue, then send each PI a statement."
+        : "Only time the sensors measured the instrument running is billed. Decide the runs in the review queue, then export charges to load into FBS.") +
       strip([{ l: "Verified billed", v: fmtMoney(D.billed), n: D.sessions.length + " sessions" }, { l: "Booking-only would bill", v: fmtMoney(D.bookingOnly), n: "If bookings were charged as made" }, { l: "Waiting on review", v: fmtMoney(D.recoverable), n: "Walk-ups and overruns, not billed" }]) +
+      (SETUP === "suite" ? statementsHtml() : "") +
       '<h2 class="sec" id="queue">Review queue <span class="muted small">' + open + " of " + D.exc.length + " undecided</span></h2>" +
       '<div class="toolbar"><div class="filters" id="filters" role="group" aria-label="Filter by type"><button data-f="all" aria-pressed="true">All (' + D.exc.length + ")</button>" +
       Object.keys(TYPES).map(function (t) { return D.byType[t] ? '<button data-f="' + t + '" aria-pressed="false" title="' + esc(TYPES[t][1]) + '">' + TYPES[t][0] + " (" + D.byType[t].n + ")</button>" : ""; }).join("") + "</div></div>" +
       '<div class="card flush"><table class="tbl stack" id="qt"><thead><tr><th>Type</th><th>Instrument</th><th>When (UTC)</th><th class="num">Run value</th><th>Decision</th></tr></thead><tbody></tbody></table></div>' +
+      '<div class="btnrow tight"><button type="button" class="btn sm" id="qmore" hidden></button></div>' +
       '<p class="small muted">Decisions are saved in this browser only and do not create a charge.</p>' +
       '<h2 class="sec">Run minutes by hour of day</h2><div class="card">' + heat() + "</div>" +
       '<h2 class="sec">Export</h2><div class="card"><div class="btnrow"><button class="btn primary" id="csv">Download billing CSV</button><a class="btn" href="data/billing.csv" download>Server CSV</a></div>' +
-      '<p class="small muted tight">' + D.sessions.length + " verified sessions. Columns are a generic placeholder; no iLab or PPMS schema is validated.</p></div>";
+      '<p class="small muted tight">' + D.sessions.length + " verified sessions. " + (SETUP === "suite" ? "Also feeds the university ledger export." : "Columns are a placeholder until mapped to the FBS charge import; no FBS, iLab or PPMS schema is validated yet.") + "</p></div>" +
+      (SETUP === "suite" ? "" : '<p class="notice topgap">Want the monthly reservation-vs-use check? <a href="#/audit">Open the audit</a> to compare an FBS export with your usage log.</p>');
     $main.innerHTML = h;
+    if (SETUP === "suite") bindStatements();
     var f = "all";
     function table() {
       var list = D.exc.filter(function (e) { return f === "all" || e.type === f; }).sort(function (a, b) { return a.start - b.start; });
-      document.querySelector("#qt tbody").innerHTML = excRows(list, true);
+      var mb = document.getElementById("qmore");
+      if (mb) { mb.hidden = list.length <= 12; mb.textContent = qall ? "Show fewer" : "Show all " + list.length; }
+      document.querySelector("#qt tbody").innerHTML = excRows(qall ? list : list.slice(0, 12), true);
     }
+    var qall = false;
+    document.getElementById("qmore").addEventListener("click", function () { qall = !qall; table(); });
     table();
     $$("#filters button").forEach(function (b) { b.addEventListener("click", function () { f = b.getAttribute("data-f"); $$("#filters button").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); table(); }); });
     bindReview(document.getElementById("qt"), function () { table(); document.querySelector("#queue .small").textContent = D.exc.filter(function (e) { return !getRev()[e.key]; }).length + " of " + D.exc.length + " undecided"; });
@@ -904,16 +927,113 @@
 
   function notFound(msg) { document.title = "Not found · LabMeter"; $main.innerHTML = "<h1>Page not found</h1><p>" + esc(msg || "That page does not exist.") + '</p><div class="btnrow"><a class="btn primary" href="#/">Back to overview</a><a class="btn" href="#/find">Find an item</a></div>'; }
 
+  // ---- All-in-one: PI statements
+  function acctRows() {
+    var a = {};
+    D.sessions.forEach(function (s) { var x = a[s.account_id] || (a[s.account_id] = { id: s.account_id, n: 0, min: 0, $: 0, users: {}, booked: 0, lines: [] }); x.n++; x.min += s.billable_minutes; x.$ += s.dollars; x.users[s.user_id] = 1; x.lines.push(s); });
+    allBookings().forEach(function (b) { var x = a[b.account_id]; if (x) x.booked += (b.end - b.start) / 60; });
+    return Object.keys(a).map(function (k) { var x = a[k]; x.unused = Math.max(0, x.booked - x.min); return x; }).sort(function (p, q) { return q.$ - p.$; });
+  }
+  var STMT = null;
+  function statementsHtml() {
+    var rows = acctRows();
+    if (!STMT || !rows.some(function (r) { return r.id === STMT; })) STMT = rows.length ? rows[0].id : null;
+    return '<h2 class="sec">PI statements</h2><div class="stm"><div class="card flush"><table class="tbl stack"><thead><tr><th>Grant</th><th class="num">Sessions</th><th class="num">Billed</th><th class="num">Reserved, not used</th><th class="num">Amount</th><th></th></tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr><td data-l="Grant">' + esc(gname(r.id)) + '<span class="sub">' + Object.keys(r.users).length + (Object.keys(r.users).length === 1 ? " user" : " users") + '</span></td><td class="num" data-l="Sessions">' + r.n + '</td><td class="num" data-l="Billed">' + fmtH(r.min) + '</td><td class="num" data-l="Reserved, not used">' + fmtH(r.unused) + '</td><td class="num" data-l="Amount"><b>' + fmtMoney(r.$) + '</b></td><td data-l=""><button type="button" class="btn sm" data-stmt="' + esc(r.id) + '"' + (r.id === STMT ? ' aria-pressed="true"' : "") + ">Preview</button></td></tr>"; }).join("") +
+      '</tbody></table></div><div class="card stmt" id="stmt">' + stmtBody(rows) + "</div></div>" +
+      '<div class="btnrow topgap"><button class="btn primary" type="button" id="sendst">Send all ' + rows.length + ' statements</button><button class="btn" type="button" id="ledger">Download ledger export</button></div><p class="small muted tight">Simulated: nothing is emailed. The ledger export is one line per grant for the university journal entry.</p>';
+  }
+  function stmtBody(rows) {
+    var r = rows.filter(function (x) { return x.id === STMT; })[0]; if (!r) return '<p class="empty">No usage this period.</p>';
+    var lines = r.lines.slice().sort(function (a, b) { return a.start - b.start; });
+    return '<p class="small muted">Statement preview</p><h3>' + esc(gname(r.id)) + '</h3><p class="small muted">' + esc(fmtDay(lines[0].start)) + " – " + esc(fmtDay(lines[lines.length - 1].start)) + "</p>" +
+      '<table class="tbl stl"><tbody>' + lines.map(function (s) { return "<tr><td>" + esc(fmtDay(s.start)) + '<span class="sub">' + esc(iname(s.instrument_id)) + " · " + esc(uname(s.user_id)) + '</span></td><td class="num">' + s.billable_minutes + ' min</td><td class="num">' + fmtMoney(s.dollars) + "</td></tr>"; }).join("") +
+      '<tr class="tot"><td>Total</td><td class="num">' + fmtH(r.min) + '</td><td class="num">' + fmtMoney(r.$) + "</td></tr></tbody></table>" +
+      '<p class="small stnote">Your lab reserved <b>' + fmtH(r.booked) + "</b> and ran instruments for <b>" + fmtH(r.min) + "</b>. Idle instruments still cost the core service contracts, staff and depreciation, so reserved time that goes unused keeps everyone's hourly rate high. Releasing slots you won't use lowers it.</p>";
+  }
+  function bindStatements() {
+    $$("[data-stmt]").forEach(function (b) { b.addEventListener("click", function () { STMT = b.getAttribute("data-stmt"); $$("[data-stmt]").forEach(function (x) { if (x === b) x.setAttribute("aria-pressed", "true"); else x.removeAttribute("aria-pressed"); }); document.getElementById("stmt").innerHTML = stmtBody(acctRows()); }); });
+    var sd = document.getElementById("sendst"); if (sd) sd.addEventListener("click", function () { toast("Simulated: " + acctRows().length + " statements would be emailed to PIs and their admins."); });
+    var lg = document.getElementById("ledger"); if (lg) lg.addEventListener("click", function () {
+      var rows = acctRows(), csv = "grant,sessions,billed_hours,amount\n" + rows.map(function (r) { return [gname(r.id), r.n, (r.min / 60).toFixed(2), r.$.toFixed(2)].join(","); }).join("\n") + "\n";
+      var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "labmeter-ledger-demo.csv"; document.body.appendChild(a); a.click(); a.remove();
+    });
+  }
+
+  // ---- All-in-one: booking calendar (replaces FBS scheduling)
+  var BK_KEY = "labmeter-demo-bookings-v1";
+  function localBookings() { try { return JSON.parse(localStorage.getItem(BK_KEY) || "[]") || []; } catch (e) { return []; } }
+  function saveLocalBookings(l) { try { localStorage.setItem(BK_KEY, JSON.stringify(l)); } catch (e) { /* ignore */ } }
+  function allBookings() { return D.bookings.concat(localBookings()); }
+  function book(q) {
+    var now = NOW(), today = Math.floor(now / 86400), dset = {};
+    D.bookings.forEach(function (b) { dset[Math.floor(b.start / 86400)] = 1; });
+    dset[today] = 1; dset[today + 1] = 1; dset[today + 2] = 1;
+    var days = Object.keys(dset).map(Number).sort(function (a, b) { return a - b; });
+    var day = parseInt(q.d, 10); if (days.indexOf(day) < 0) day = today;
+    var d0 = day * 86400, lo = 7, hi = 22, mine = localBookings();
+    function x(t) { return 140 + (t - d0 - lo * 3600) / ((hi - lo) * 3600) * 770; }
+    var W = 920, lane = 26, Hh = D.order.length * (lane + 10) + 26;
+    var svg = '<svg viewBox="0 0 ' + W + " " + Hh + '" role="img" aria-label="Bookings and measured runs for ' + esc(fmtDay(d0)) + '">';
+    for (var hr = lo; hr <= hi; hr++) svg += '<line x1="' + x(d0 + hr * 3600) + '" x2="' + x(d0 + hr * 3600) + '" y1="0" y2="' + (Hh - 20) + '" stroke="var(--line)"/>' + (hr % 2 ? "" : '<text x="' + x(d0 + hr * 3600) + '" y="' + (Hh - 5) + '" text-anchor="middle">' + ("0" + hr).slice(-2) + ":00</text>");
+    if (now > d0 && now < d0 + 86400) svg += '<line x1="' + x(now) + '" x2="' + x(now) + '" y1="0" y2="' + (Hh - 20) + '" stroke="var(--danger)" stroke-width="1.5"/>';
+    D.order.forEach(function (id, i) {
+      var y = i * (lane + 10);
+      svg += '<text x="0" y="' + (y + 17) + '" style="fill:var(--text)">' + esc(iname(id)) + '</text><rect x="140" y="' + y + '" width="770" height="' + lane + '" rx="4" fill="var(--surface2)"/>';
+      var clip = function (a, b) { return [Math.max(a, d0 + lo * 3600), Math.min(b, d0 + hi * 3600)]; };
+      allBookings().filter(function (b) { return b.instrument_id === id && b.end > d0 + lo * 3600 && b.start < d0 + hi * 3600; }).forEach(function (b) {
+        var c = clip(b.start, b.end), lc = !!b.local;
+        svg += '<rect x="' + x(c[0]).toFixed(1) + '" y="' + y + '" width="' + Math.max(2, x(c[1]) - x(c[0])).toFixed(1) + '" height="' + lane + '" rx="3" fill="' + (lc ? "var(--accent-bg)" : "var(--book)") + '" fill-opacity="' + (lc ? 1 : 0.35) + '"' + (lc ? ' stroke="var(--accent)" stroke-width="1.5"' : "") + "><title>" + esc((lc ? "Your booking: " : "Booked: ") + uname(b.user_id) + ", " + gname(b.account_id) + " " + hhmm(b.start) + "–" + hhmm(b.end)) + "</title></rect>";
+      });
+      D.tl[id].states.filter(function (s) { return s.state === "run" && s.end > d0 + lo * 3600 && s.start < d0 + hi * 3600; }).forEach(function (s) {
+        var c = clip(s.start, s.end);
+        svg += '<rect x="' + x(c[0]).toFixed(1) + '" y="' + (y + lane - 7) + '" width="' + Math.max(1.5, x(c[1]) - x(c[0])).toFixed(1) + '" height="5" rx="1" fill="var(--run)"><title>Measured run ' + hhmm(s.start) + "–" + hhmm(s.end) + "</title></rect>";
+      });
+    });
+    svg += "</svg>";
+    var canBook = d0 + 86400 > now;
+    $main.innerHTML = pageHead("Book", "In All-in-one setup, this calendar replaces FBS scheduling. A booking is the window that the NFC claim and the measured run are checked against, so overruns and walk-ups are caught the same day instead of at month end.") +
+      '<div class="toolbar"><div class="filters" role="group" aria-label="Day">' + days.map(function (dd) { return '<a class="daychip" href="#/book?d=' + dd + '"' + (dd === day ? ' aria-current="true"' : "") + ">" + esc(fmtDay(dd * 86400)) + (dd === today ? " · now" : "") + "</a>"; }).join("") + "</div></div>" +
+      '<div class="card"><div class="chart">' + svg + '</div><div class="legend"><span><i style="background:var(--book);opacity:.5"></i>Booked</span><span><i style="background:var(--accent-bg);box-shadow:inset 0 0 0 1.5px var(--accent)"></i>Your booking</span><span><i style="background:var(--run)"></i>Measured run</span>' + (now > d0 && now < d0 + 86400 ? '<span><i style="background:var(--danger)"></i>Now</span>' : "") + "</div></div>" +
+      '<h2 class="sec">New booking</h2><div class="card">' + (canBook ? '<form id="bkf" class="bkf">' +
+        '<label><span>Instrument</span><select id="bi">' + D.order.map(function (id) { return '<option value="' + id + '">' + esc(iname(id)) + "</option>"; }).join("") + "</select></label>" +
+        '<label><span>Start (UTC)</span><input type="time" id="bs" step="900" value="' + (day === today ? hhmm(Math.ceil((now + 60) / 900) * 900) : "09:00") + '"></label>' +
+        '<label><span>Length</span><select id="bl"><option value="30">30 min</option><option value="60" selected>1 h</option><option value="90">1.5 h</option><option value="120">2 h</option><option value="180">3 h</option></select></label>' +
+        '<label><span>Researcher</span><select id="bu">' + NAMES.map(function (n, i) { return '<option value="user-' + (i + 1) + '">' + esc(n) + "</option>"; }).join("") + "</select></label>" +
+        '<label><span>Grant</span><select id="bg">' + GRANTS.map(function (g, i) { return '<option value="grant-' + (i + 1) + '">' + esc(g) + "</option>"; }).join("") + "</select></label>" +
+        '<button class="btn primary" type="submit">Book</button></form><p class="small muted tight" id="bkmsg" role="status">Saved in this browser only. Bookings can\'t start in the past or overlap another booking.</p>' : '<p class="empty">This day is over. Pick today or a later day to book.</p>') +
+      (mine.length ? '<p class="small tight">' + mine.length + ' demo booking' + (mine.length > 1 ? "s" : "") + ' saved. <button type="button" class="linkb" id="bkclear">Clear them</button></p>' : "") + "</div>" +
+      '<ol class="flowl topgap"><li><b>Book</b> here</li><li><b>Tap</b> the NFC sticker to claim the time</li><li><b>Run</b> is measured by the clamp sensor</li><li><b>Bill</b>: matched runs go on the PI statement; the rest go to review</li></ol>';
+    var f = document.getElementById("bkf");
+    if (f) f.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var tv = document.getElementById("bs").value.split(":"), st = d0 + (+tv[0]) * 3600 + (+tv[1] || 0) * 60, en = st + (+document.getElementById("bl").value) * 60, id = document.getElementById("bi").value;
+      var msg = document.getElementById("bkmsg");
+      if (!tv[0] || isNaN(st)) { msg.textContent = "Pick a start time."; return; }
+      if (st < now) { msg.textContent = "That start is in the past. Bookings can't start earlier than now."; return; }
+      var clash = allBookings().filter(function (b) { return b.instrument_id === id && b.start < en && b.end > st; })[0];
+      if (clash) { msg.textContent = "Overlaps a booking " + hhmm(clash.start) + "–" + hhmm(clash.end) + " on " + iname(id) + "."; return; }
+      var l = localBookings(); l.push({ id: "local-" + Date.now(), local: true, instrument_id: id, user_id: document.getElementById("bu").value, account_id: document.getElementById("bg").value, start: st, end: en });
+      saveLocalBookings(l); toast("Booked " + iname(id) + " " + hhmm(st) + "–" + hhmm(en) + " UTC."); book(q);
+    });
+    var cl = document.getElementById("bkclear"); if (cl) cl.addEventListener("click", function () { saveLocalBookings([]); book(q); });
+  }
+
   // ---- router
-  var TITLES = { home: "Overview", find: "Find", billing: "Billing", t: "Tap demo", how: "How it works" };
+  var TITLES = { home: "Overview", find: "Find", billing: "Billing", t: "Tap demo", how: "How it works", audit: "Monthly audit", book: "Book" };
   function how() {
-    var steps = [
-      ["Clamp a sensor", "A clip-on BLE current sensor sits on the instrument's power cord. When the current rises past the instrument's run threshold it is running; otherwise it is idle or off."],
+    var steps = SETUP === "fbs" ? [
+      ["Keep FBS", "Scheduling stays in FBS, as university policy requires. Export the month's reservations as you do today."],
+      ["Add actual use", "Add the usage log you already have (Bookitlab or software logins). Clamp sensors can be added to separate instrument time from computer time, so moving data after a run is not billed."],
+      ["Audit in seconds", "Every user's use is compared with their reservations, day by day. Your grace window and penalty rules are applied: overruns past grace, unbooked use, no-shows."],
+      ["Bill and explain", "Download findings and charges to load into FBS. Each line says why it was charged, ready to attach to a PI statement."]
+    ] : [
+      ["Book and measure", "Researchers book in the LabMeter calendar instead of FBS. A clip-on BLE current sensor on the power cord records when the instrument actually runs."],
       ["Tap to claim", "A researcher taps the instrument's NFC sticker and picks a grant. The claim says who is responsible. It does not decide the bill."],
       ["Reconcile", "Bookings, claims and measured runs are compared. Measured run time that matches a claim is verified and rounded to 15-minute increments. Walk-ups, overruns, idle claims, no-shows and sensor gaps go to the review queue."],
-      ["Export and find", "Verified usage exports as CSV for billing. BLE tags on portable gear are heard by room gateways, so a missing pipette set shows the last room it was seen in."]
+      ["Bill and find", "Statements go to each PI from LabMeter, and one ledger export feeds the university journal entry. BLE tags on portable gear are heard by room gateways, so a missing pipette set shows the last room it was seen in."]
     ];
-    $main.innerHTML = pageHead("How it works", "LabMeter bills for time instruments actually ran, and keeps shared gear findable. This demo uses simulated data end to end.") +
+    $main.innerHTML = pageHead("How it works", (SETUP === "fbs" ? "With FBS: LabMeter sits beside FBS and checks reservations against actual use." : "All-in-one: LabMeter books, measures and bills, end to end.") + " Switch setups at the top of the page. This demo uses simulated data.") +
       '<ol class="how">' + steps.map(function (x, i) { return '<li class="card"><span class="hn" aria-hidden="true">' + (i + 1) + "</span><h3>" + x[0] + "</h3><p>" + x[1] + "</p></li>"; }).join("") + "</ol>" +
       '<h2 class="sec">What this demo is</h2><div class="card prose"><p>Seven days of synthetic events from the LabMeter server simulator: 6 instruments, 12 researchers, 5 grants. Review decisions and gear actions are saved only in this browser. Portable-gear locations are room-level, not GPS.</p><p class="tight">The simulator creates one observation window of about 65 minutes per instrument per day, so timelines are sparse. Billing floors each uninterrupted run to 15 minutes, and booked-time billing and iLab or PPMS schemas are not implemented.</p></div>' +
       '<div class="btnrow topgap"><a class="btn primary" href="#/?mode=sim">Watch the live simulation</a><a class="btn" href="#/">Back to overview</a></div>';
@@ -926,7 +1046,9 @@
   function nav(route) {
     CUR = route;
     var n = D ? attention().length : 0;
-    var items = [["#/", "Overview", "home"], ["#/find", "Find", "find"], ["#/billing", "Billing", "billing"], ["#/t", "Tap demo", "t"]];
+    var items = SETUP === "suite"
+      ? [["#/", "Overview", "home"], ["#/book", "Book", "book"], ["#/billing", "Billing", "billing"], ["#/find", "Find", "find"], ["#/t", "Tap demo", "t"]]
+      : [["#/", "Overview", "home"], ["#/audit", "Audit", "audit"], ["#/billing", "Billing", "billing"], ["#/find", "Find", "find"], ["#/t", "Tap demo", "t"]];
     document.getElementById("nav").innerHTML = items.map(function (x) {
       return '<a href="' + x[0] + '"' + (route === x[2] ? ' aria-current="page"' : "") + ">" + x[1] + (x[2] === "find" && n ? '<span class="nb">' + n + '<span class="vh"> items need attention</span></span>' : "") + "</a>";
     }).join("");
@@ -936,8 +1058,9 @@
     teardownSim(); SEL = null; OPENER = null; ONHOME = false;
     var h = parseHash(), p = h.p, q = h.q;
     MODE = modeFromUrl(q) || storedMode();
+    if (q.setup === "suite" || q.setup === "fbs") { SETUP = q.setup; try { localStorage.setItem(SETUP_KEY, SETUP); } catch (e) { /* ignore */ } syncSetup(); }
     var r = p[0] || "home";
-    if (["home", "find", "billing", "t", "i", "how"].indexOf(r) < 0) r = "404";
+    if (["home", "find", "billing", "t", "i", "how", "audit", "book"].indexOf(r) < 0) r = "404";
     T = D ? (D.tSnap || D.tLast) : T;
     nav(r === "i" ? "home" : r);
     $main.innerHTML = "";
@@ -948,6 +1071,8 @@
       if (r === "i") { instrument(p[1]); if (D.inst[p[1]]) document.title = D.inst[p[1]].name + " · LabMeter"; }
       else if (r === "t") { if (!p[1]) tapIndex(); else { var tg = decodeURIComponent(p[1]); if (/^gear-/.test(tg)) tapGear(tg); else tap(tg); if (document.title.indexOf("Not found") !== 0) document.title = "Tap " + tg.replace(/^(tag|gear)-/, "") + " · LabMeter"; } }
       else if (r === "billing") billing();
+      else if (r === "audit") { if (window.LMAudit) window.LMAudit($main, { esc: esc, pageHead: pageHead, strip: strip, fmtMoney: fmtMoney, toast: toast }); else notFound("The audit module did not load."); }
+      else if (r === "book") book(q);
       else if (r === "how") how();
       else if (r === "find") findPage(q);
       else if (r === "404") notFound("There is no page at " + (location.hash || "#/") + ".");
@@ -988,6 +1113,9 @@
   });
   var simsw = document.getElementById("simsw");
   if (simsw) simsw.addEventListener("click", function () { setMode(ONHOME && MODE === "sim" ? "overview" : "sim"); });
+  var setupEl = document.getElementById("setup");
+  if (setupEl) setupEl.addEventListener("click", function (ev) { var b = ev.target.closest("[data-setup]"); if (b && b.getAttribute("data-setup") !== SETUP) setSetup(b.getAttribute("data-setup")); });
+  syncSetup();
   nav("home");
   function boot() {
     load().then(function () { route(null); }).catch(function (e) {

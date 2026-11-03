@@ -18,6 +18,7 @@
   <div class="wrap bar">
     <a class="brand" href="#/"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor"/><path d="M6 21h5l3-10 4 14 3-9h5" fill="none" stroke="var(--on-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>LabMeter</span></a>
     <nav aria-label="Primary" id="nav"></nav>
+    <div class="setup" id="setup" role="group" aria-label="Setup"><button type="button" data-setup="fbs" aria-pressed="true" title="FBS keeps scheduling; LabMeter audits actual use">With FBS</button><button type="button" data-setup="suite" aria-pressed="false" title="LabMeter books, measures and bills end to end">All-in-one</button></div>
     <button type="button" class="simsw" id="simsw" aria-pressed="false"><span class="simsw-t" aria-hidden="true"><i></i></span><span class="simsw-l">Live simulation</span></button>
   </div>
 </header>
@@ -25,6 +26,7 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <footer class="foot"><div class="wrap footin"><span>Simulated data. No real hardware yet. Times are UTC; locations are room-level, not GPS.</span><a href="#/how">How it works</a></div></footer>
 <script src="scene.js"></script>
+<script src="audit.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
