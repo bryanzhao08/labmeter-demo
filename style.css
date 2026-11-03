@@ -420,3 +420,5 @@ svg text{fill:var(--muted);font:11px "Instrument Sans",ui-sans-serif,system-ui,s
   .tbl.stack .adet td{display:block}.tbl.stack .adet td::before{content:none}
   .tbl.stack td[data-l=""]::before{content:none}
 }
+.sku{width:96px!important;margin-left:var(--s2)}
+.arow2 input[type="text"]{width:140px}
