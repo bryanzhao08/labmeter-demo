@@ -233,7 +233,7 @@
   function calcFromSim(T) {
     if (clock < DAYS * DAY || simLeak !== null) return;
     simLeak = T.bookedMin > 0 ? T.unMin / T.bookedMin * 100 : 0;
-    $("c-sim").textContent = "This simulated month: " + simLeak.toFixed(1) + "% of instrument time ran outside any booking (before penalties). Real cores will differ; the 8% default is a conservative estimate.";
+    $("c-sim").textContent = "This simulated month: " + simLeak.toFixed(1) + "% of instrument time ran outside any booking (before penalties). Real cores will differ; the calculator below uses a conservative 8%.";
   }
   function calc() {
     var v = function (id) { return parseFloat($(id).value) || 0; };
@@ -241,7 +241,7 @@
     var billed = n * rate * h, lost = billed * leak, admin = adm * 12 * wage * .8, cost = (250 + 40 * n) * 12;
     $("c-out").innerHTML =
       "<div><span>Billed per year</span><b>" + money(billed) + "</b><small>" + n + " instruments × $" + rate + "/h × " + h.toLocaleString() + " h</small></div>" +
-      "<div><span>Use that's never billed</span><b>" + money(lost) + "</b><small>" + (leak * 100).toFixed(0) + "% leakage</small></div>" +
+      "<div><span>Billed wrong per year</span><b>" + money(lost) + "</b><small>" + (leak * 100).toFixed(0) + "% of billed time, over or under</small></div>" +
       "<div><span>Manager time back</span><b>" + money(admin) + "</b><small>" + Math.round(adm * 12 * .8) + " h/yr at $" + wage + "/h (80% of " + adm + " h/mo)</small></div>" +
       "<div><span>LabMeter costs</span><b>" + money(cost) + "</b><small>$250/mo + $40 per instrument/mo</small></div>" +
       '<div class="roi"><span>Return</span><b>' + (cost ? ((lost + admin) / cost).toFixed(1) : "0") + "×</b><small>" + money(lost + admin - cost) + " a year net</small></div>";

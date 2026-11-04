@@ -73,3 +73,4 @@ aside{position:sticky;top:150px}
 .sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--s3);margin:var(--s3) 0}
 .sliders label{display:grid;grid-template-columns:1fr auto;gap:4px var(--s2);font-size:var(--fs-sm)}.sliders input{grid-column:1/-1}
 @media (max-width:600px){.ctl{top:56px}.clock{margin-left:0;flex-basis:100%}aside{position:static}.kpis{grid-template-columns:1fr}.lrow{grid-template-columns:72px 1fr}}
+.src{margin:var(--s2) 0 0;padding-left:1.1em;display:grid;gap:2px}

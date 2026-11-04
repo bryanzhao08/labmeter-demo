@@ -54,14 +54,15 @@
 
   <section class="calc">
     <h2>Now try your own core</h2>
-    <p class="lede">From first principles: how much use goes unbilled, and how much time the monthly audit takes. Defaults are a mid-size imaging core; change them to match yours.</p>
+    <p class="lede">From first principles: how much use goes unbilled, and how much time the monthly audit takes. Defaults are a typical 15-instrument core; change them to match yours.</p>
+    <ul class="small muted src"><li>Rates: published internal self-service rates run $20–150/h (UMass, Clemson, OHSU, Yale, UNMC). $60 is a mid mix.</li><li>Hours: UChicago's flow core logged 14,295 h on 24 instruments, about 600 h each.</li><li>Billed wrong: when a UNC microscopy core switched to measured time, billable hours went from ~1,000 to ~775 a month with the same number of reservations (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12639534/">Clissold &amp; Itano, BioTechniques 2025</a>). 8% is our conservative estimate; no study measures this nationally.</li><li>Manager cost: median core manager salary $92,147 (ABRF 2022), about $58/h with benefits. Hours on billing are our estimate.</li></ul>
     <div class="cin">
-      <label>Instruments<input id="c-n" type="number" min="1" value="8"></label>
-      <label>Average rate ($/h)<input id="c-rate" type="number" min="1" value="45"></label>
-      <label>Billed hours per instrument per year<input id="c-h" type="number" min="0" value="1200"></label>
-      <label>Unbilled use (%)<input id="c-leak" type="number" min="0" max="100" step="0.5" value="8"></label>
-      <label>Manager hours on billing per month<input id="c-adm" type="number" min="0" value="12"></label>
-      <label>Manager cost ($/h, with benefits)<input id="c-wage" type="number" min="0" value="45"></label>
+      <label>Instruments<input id="c-n" type="number" min="1" value="15"></label>
+      <label>Average rate ($/h)<input id="c-rate" type="number" min="1" value="60"></label>
+      <label>Billed hours per instrument per year<input id="c-h" type="number" min="0" value="600"></label>
+      <label>Time billed wrong (%)<input id="c-leak" type="number" min="0" max="100" step="0.5" value="8"></label>
+      <label>Manager hours on billing per month<input id="c-adm" type="number" min="0" value="10"></label>
+      <label>Manager cost ($/h, with benefits)<input id="c-wage" type="number" min="0" value="58"></label>
     </div>
     <p class="small muted" id="c-sim">Run the month above to see the simulated leakage rate.</p>
     <div id="c-out" class="cout"></div>
