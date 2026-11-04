@@ -1047,8 +1047,8 @@
     CUR = route;
     var n = D ? attention().length : 0;
     var items = SETUP === "suite"
-      ? [["#/", "Overview", "home"], ["#/book", "Book", "book"], ["#/billing", "Billing", "billing"], ["#/find", "Find", "find"], ["#/t", "Tap demo", "t"]]
-      : [["#/", "Overview", "home"], ["#/audit", "Audit", "audit"], ["#/billing", "Billing", "billing"], ["#/find", "Find", "find"], ["#/t", "Tap demo", "t"]];
+      ? [["#/", "Overview", "home"], ["#/book", "Book", "book"], ["#/billing", "Billing", "billing"], ["#/find", "Find", "find"], ["#/t", "Tap demo", "t"], ["lab.html", "Lab simulator", "lab"]]
+      : [["#/", "Overview", "home"], ["#/audit", "Audit", "audit"], ["#/billing", "Billing", "billing"], ["#/find", "Find", "find"], ["#/t", "Tap demo", "t"], ["lab.html", "Lab simulator", "lab"]];
     document.getElementById("nav").innerHTML = items.map(function (x) {
       return '<a href="' + x[0] + '"' + (route === x[2] ? ' aria-current="page"' : "") + ">" + x[1] + (x[2] === "find" && n ? '<span class="nb">' + n + '<span class="vh"> items need attention</span></span>' : "") + "</a>";
     }).join("");
