@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LabMeter Pitch</title>
+<meta name="description" content="LabMeter pitch: one story, slide by slide, with animated builds. Arrow keys or click to advance, N for speaker notes.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e7c6b'/%3E%3Cpath d='M6 21h5l3-10 4 14 3-9h5' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#0a1412;--panel:#12221e;--panel2:#183029;--line:#24392f;--ink:#eef5f2;--mute:#8ea39a;--acc:#2fc4a2;--acc2:#1f8f76;--book:#a3aea9;--login:#6f9dff;--run:#2fc4a2;--bad:#ff6f61;--warn:#f3b64a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#050a09;overflow:hidden;font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+#stage{position:absolute;width:1600px;height:900px;left:50%;top:50%;background:radial-gradient(1200px 700px at 85% -10%,#12302a 0%,transparent 60%),var(--bg);overflow:hidden;cursor:pointer}
+section{position:absolute;inset:0;padding:84px 110px;opacity:0;transform:translateX(70px);transition:opacity .6s ease,transform .8s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+section.cur{opacity:1;transform:none;pointer-events:auto}
+section.past{transform:translateX(-70px)}
+.notes{display:none}
+h2{font-size:66px;line-height:1.05;margin:0 0 54px;font-weight:700;letter-spacing:-.025em;max-width:1300px}
+h2 em{font-style:normal;color:var(--acc)}
+.big{font-size:132px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.f{opacity:0;transform:translateY(26px);transition:opacity .55s ease,transform .75s cubic-bezier(.2,.7,.2,1)}
+.f.on{opacity:1;transform:none}
+.f.pop{transform:scale(.6)}.f.pop.on{transform:none}
+.f.grow{opacity:1;transform:scaleX(0);transform-origin:left center;transition:transform 1.1s cubic-bezier(.3,.7,.2,1)}
+.f.grow.on{transform:scaleX(1)}
+.f.rise{opacity:1;transform:scaleY(0);transform-origin:center bottom;transition:transform 1.1s cubic-bezier(.3,.7,.2,1)}
+.f.rise.on{transform:scaleY(1)}
+svg .f{transform-box:fill-box;transform-origin:center}
+svg .f.draw{opacity:1;transform:none;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.1s ease}
+svg .f.draw.on{stroke-dashoffset:0}
+svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:34px}
+.chip{display:inline-flex;align-items:center;gap:12px;font-size:30px;font-weight:600}
+.chip i{width:22px;height:22px;border-radius:6px;display:inline-block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px 34px}
+.row{display:flex;gap:28px;align-items:stretch}
+.quote{font-size:58px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.quote small{display:block;font-size:28px;color:var(--mute);font-weight:500;margin-top:18px}
+#prog{position:absolute;left:0;bottom:0;height:6px;background:var(--acc);transition:width .5s}
+#num{position:absolute;right:28px;bottom:22px;font-size:20px;color:var(--mute);font-variant-numeric:tabular-nums}
+#hint{position:absolute;left:28px;bottom:22px;font-size:20px;color:var(--mute);transition:opacity 1s}
+#notes{position:fixed;left:0;right:0;bottom:0;max-height:42vh;overflow:auto;background:rgba(5,10,9,.94);border-top:2px solid var(--acc);color:#dfe9e5;font:18px/1.55 'Instrument Sans',system-ui,sans-serif;padding:18px 28px 26px;display:none;z-index:9;cursor:auto}
+#notes.show{display:block}
+#notes b{color:var(--acc)}
+
+/* timeline (slide 3) */
+.tl{display:grid;grid-template-columns:260px 1fr;row-gap:30px;align-items:center}
+.tl .lab{font-size:30px;font-weight:600;display:flex;gap:14px;align-items:center}
+.tl .lab i{width:20px;height:20px;border-radius:6px}
+.track{position:relative;height:62px;background:var(--panel);border-radius:14px}
+.bar{position:absolute;top:0;bottom:0;border-radius:14px}
+.ann{position:absolute;top:-46px;font-size:26px;font-weight:600;white-space:nowrap}
+.axis{position:relative;height:30px;color:var(--mute);font-size:22px}
+.axis span{position:absolute;transform:translateX(-50%)}
+.hatch{background:repeating-linear-gradient(45deg,var(--bad) 0 12px,#c84a3f 12px 24px)!important}
+
+/* comparison bars */
+.cmp{display:grid;grid-template-columns:330px 1fr 260px;row-gap:34px;align-items:center;font-size:32px}
+.cmp .t{position:relative;height:70px}
+.cmp .t .bar{border-radius:14px}
+.cmp b{font-variant-numeric:tabular-nums}
+.tag{font-size:26px;font-weight:600;padding:6px 16px;border-radius:999px;white-space:nowrap}
+.tag.bad{background:rgba(255,111,97,.16);color:var(--bad)}.tag.warn{background:rgba(243,182,74,.16);color:var(--warn)}.tag.ok{background:rgba(47,196,162,.16);color:var(--acc)}
+
+/* math tiles */
+.eq{display:flex;align-items:center;gap:26px;font-size:64px;font-weight:700;color:var(--mute)}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:28px 34px;text-align:center;min-width:240px}
+.tile b{display:block;font-size:76px;color:var(--ink);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.tile>span{display:block;font-size:26px;color:var(--mute);font-weight:500;margin-top:6px}
+.tile.hot{border-color:var(--bad);background:rgba(255,111,97,.08)}.tile.hot b{color:var(--bad)}
+.tile.acc{border-color:var(--acc);background:rgba(47,196,162,.08)}.tile.acc b{color:var(--acc)}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- 1 Title -->
+<section>
+  <div class="center">
+    <svg width="150" height="150" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--acc2)"/><path class="f draw" data-s="0" pathLength="1" d="M6 21h5l3-10 4 14 3-9h5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="big">LabMeter</div>
+    <div class="f" data-s="1" style="font-size:48px;font-weight:600;color:var(--acc)">Every instrument, every hour, accounted for.</div>
+  </div>
+  <aside class="notes">"Hi, I'm Bryan, and this is LabMeter." (Click once to show the slogan, or save it for the close.)</aside>
+</section>
+
+<!-- 2 Meet Maya / what a core is -->
+<section>
+  <h2>One microscope. <em>A whole campus.</em></h2>
+  <svg viewBox="0 0 1380 600" width="1380" height="600">
+    <g class="f" data-s="1">
+      <g transform="translate(70,90)">
+        <rect x="10" y="330" width="230" height="34" rx="10" fill="#2b4239"/>
+        <path d="M170 330 V150 Q170 80 110 80 H80" stroke="#d5e6df" stroke-width="26" fill="none" stroke-linecap="round"/>
+        <rect x="40" y="40" width="58" height="130" rx="12" fill="#d5e6df" transform="rotate(-18 69 105)"/>
+        <rect x="30" y="230" width="170" height="18" rx="7" fill="var(--mute)"/>
+        <circle cx="72" cy="196" r="14" fill="var(--acc)"/>
+      </g>
+      <text x="195" y="520" text-anchor="middle" font-size="58" font-weight="700">$1,000,000</text>
+      <text x="195" y="568" text-anchor="middle" font-size="28" fill="var(--mute)" style="fill:var(--mute)">confocal microscope</text>
+    </g>
+    <g class="f" data-s="2">
+      <path class="f draw" data-s="2" pathLength="1" d="M340 300 H520" stroke="var(--mute)" stroke-width="4" stroke-dasharray="1" fill="none"/>
+      <rect x="520" y="205" width="300" height="190" rx="26" fill="var(--panel2)" stroke="var(--acc)" stroke-width="3"/>
+      <text x="670" y="290" text-anchor="middle" font-size="40" font-weight="700">Core facility</text>
+      <text x="670" y="340" text-anchor="middle" font-size="26" style="fill:var(--mute)">bought once, shared</text>
+    </g>
+    <g class="f" data-s="3">
+      <g stroke="var(--line)" stroke-width="4" fill="none">
+        <path class="f draw" data-s="3" pathLength="1" d="M820 300 C960 300 980 70 1150 70"/>
+        <path class="f draw" data-s="3" pathLength="1" d="M820 300 C960 300 980 165 1150 165"/>
+        <path class="f draw" data-s="3" pathLength="1" d="M820 300 C960 300 980 260 1150 260"/>
+        <path class="f draw" data-s="3" pathLength="1" d="M820 300 C960 300 980 355 1150 355"/>
+        <path class="f draw" data-s="3" pathLength="1" d="M820 300 C960 300 980 450 1150 450"/>
+        <path class="f draw" data-s="3" pathLength="1" d="M820 300 C960 300 980 545 1150 545"/>
+      </g>
+      <g font-size="28" font-weight="600">
+        <circle cx="1180" cy="70" r="30" fill="var(--acc)"/><text x="1228" y="80">Maya's lab</text>
+        <circle cx="1180" cy="165" r="30" fill="var(--login)"/><text x="1228" y="175">Patel lab</text>
+        <circle cx="1180" cy="260" r="30" fill="var(--warn)"/><text x="1228" y="270">Okafor lab</text>
+        <circle cx="1180" cy="355" r="30" fill="#c58cff"/><text x="1228" y="365">Rivera lab</text>
+        <circle cx="1180" cy="450" r="30" fill="var(--bad)"/><text x="1228" y="460">Kim lab</text>
+        <circle cx="1180" cy="545" r="30" fill="var(--book)"/><text x="1228" y="555">Novak lab</text>
+      </g>
+    </g>
+    <g class="f pop" data-s="4">
+      <rect x="555" y="430" width="230" height="74" rx="37" fill="var(--acc)"/>
+      <text x="670" y="480" text-anchor="middle" font-size="36" font-weight="700" style="fill:#062019">$60 / hour</text>
+    </g>
+    <g class="f pop" data-s="5">
+      <rect x="520" y="60" width="300" height="84" rx="20" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+      <text x="670" y="116" text-anchor="middle" font-size="38" font-weight="700">USC: 51 cores</text>
+    </g>
+  </svg>
+  <aside class="notes">
+    <b>1</b> "Meet Maya, a PhD student at USC. Her experiment needs a confocal microscope, about a million dollars."<br>
+    <b>2</b> "No single lab can afford one, so the university buys it once and puts it in a <b>core facility</b>: a shared equipment room…"<br>
+    <b>3</b> "…that any lab on campus can use…"<br>
+    <b>4</b> "…rented by the hour, about sixty dollars an hour."<br>
+    <b>5</b> "USC has fifty-one of these cores. Every research university has dozens."
+  </aside>
+</section>
+
+<!-- 3 Maya's day -->
+<section>
+  <h2>Maya books 9 to 11. <em>Then the day happens.</em></h2>
+  <div class="tl">
+    <div></div>
+    <div class="axis"><span style="left:0">8 am</span><span style="left:16.67%">9</span><span style="left:33.33%">10</span><span style="left:50%">11</span><span style="left:66.67%">12</span><span style="left:83.33%">1 pm</span><span style="left:100%">2</span></div>
+    <div class="lab"><i style="background:var(--book)"></i>Booked</div>
+    <div class="track"><div class="bar f grow" data-s="1" style="left:16.67%;width:33.33%;background:var(--book)"></div></div>
+    <div class="lab"><i style="background:var(--run)"></i>Actually ran</div>
+    <div class="track">
+      <div class="bar f grow" data-s="2" style="left:16.67%;width:33.33%;background:var(--run)"></div>
+      <div class="bar f grow hatch" data-s="3" style="left:50%;width:25%"></div>
+      <div class="ann f" data-s="3" style="left:51%;color:var(--bad)">+1.5 h, not booked</div>
+    </div>
+    <div class="lab"><i style="background:var(--login)"></i>Computer login</div>
+    <div class="track">
+      <div class="bar f grow" data-s="4" style="left:16.67%;width:66.67%;background:var(--login)"></div>
+      <div class="ann f" data-s="4" style="left:70%;top:auto;bottom:-46px;color:var(--login)">+30 min copying files</div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:92px">
+    <div class="card f" data-s="5" style="flex:1"><div style="font-size:34px;font-weight:700">Jordan</div><div style="font-size:28px;color:var(--warn);margin-top:6px">walk-up, no booking</div></div>
+    <div class="card f" data-s="6" style="flex:1"><div style="font-size:34px;font-weight:700">Priya</div><div style="font-size:28px;color:var(--warn);margin-top:6px">booked, never came</div></div>
+    <div class="card f" data-s="7" style="flex:1"><div style="font-size:34px;font-weight:700">Sam's centrifuge</div><div style="font-size:28px;color:var(--bad);margin-top:6px">runs to 10 pm, no computer</div></div>
+  </div>
+  <aside class="notes">
+    (Optional: switch to the live simulator here, labmeter-demo/lab.html, and press Play.)<br>
+    <b>1</b> "So Maya books the microscope from nine to eleven."<br>
+    <b>2–3</b> "Her imaging runs long, until twelve-thirty."<br>
+    <b>4</b> "Then she spends another half hour copying files off the computer."<br>
+    <b>5</b> "Down the hall, Jordan walks up to another microscope with no booking at all."<br>
+    <b>6</b> "Priya booked the flow cytometer and never showed."<br>
+    <b>7</b> "And Sam's centrifuge spins until ten at night. It has no computer, so no system ever records it. At the end of the month, someone has to turn all of that into a bill."
+  </aside>
+</section>
+
+<!-- 4 The manager -->
+<section>
+  <h2>Someone has to turn that <em>into a bill.</em></h2>
+  <svg viewBox="0 0 1380 330" width="1380" height="330">
+    <g class="f" data-s="1">
+      <rect x="20" y="20" width="250" height="130" rx="18" fill="var(--panel)" stroke="var(--book)" stroke-width="3"/>
+      <text x="145" y="78" text-anchor="middle" font-size="32" font-weight="700">Bookings</text>
+      <text x="145" y="118" text-anchor="middle" font-size="24" style="fill:var(--mute)">FBS export</text>
+      <rect x="20" y="180" width="250" height="130" rx="18" fill="var(--panel)" stroke="var(--login)" stroke-width="3"/>
+      <text x="145" y="238" text-anchor="middle" font-size="32" font-weight="700">Logins</text>
+      <text x="145" y="278" text-anchor="middle" font-size="24" style="fill:var(--mute)">second tool</text>
+    </g>
+    <g class="f" data-s="2">
+      <path d="M280 85 C400 85 420 165 520 165 M280 245 C400 245 420 165 520 165" stroke="var(--mute)" stroke-width="4" fill="none"/>
+      <rect x="530" y="85" width="330" height="160" rx="80" fill="var(--panel2)" stroke="var(--mute)" stroke-width="3"/>
+      <text x="695" y="160" text-anchor="middle" font-size="36" font-weight="700">pasted into</text>
+      <text x="695" y="205" text-anchor="middle" font-size="36" font-weight="700">ChatGPT</text>
+    </g>
+    <g class="f" data-s="3">
+      <path d="M870 165 H1010" stroke="var(--mute)" stroke-width="4" fill="none"/>
+      <rect x="1020" y="40" width="230" height="250" rx="18" fill="var(--panel)" stroke="var(--bad)" stroke-width="3"/>
+      <g stroke="var(--line)" stroke-width="10" stroke-linecap="round"><path d="M1060 100H1210M1060 140H1180M1060 180H1200"/></g>
+      <text x="1135" y="262" text-anchor="middle" font-size="64" font-weight="700" style="fill:var(--bad)">?</text>
+    </g>
+  </svg>
+  <div class="quote f" data-s="4" style="margin-top:56px">"It's kind of a pain."<small>USC core manager, every month</small></div>
+  <aside class="notes">
+    <b>1</b> "That someone is the core manager. I sat down with one at USC. Every month, they export the bookings from FBS, USC's required booking system, and the computer logins from a second tool…"<br>
+    <b>2</b> "…and line them up user by user, day by day. <b>They do it by pasting both files into ChatGPT.</b>"<br>
+    <b>3</b> "And the bill still comes out wrong."<br>
+    <b>4</b> "In their words, 'it's kind of a pain.'"
+  </aside>
+</section>
+
+<!-- 5 Wrong both ways -->
+<section>
+  <h2>Maya's bill is wrong <em>either way.</em></h2>
+  <div class="cmp">
+    <div class="f" data-s="1">Bill the booking</div>
+    <div class="t"><div class="bar f grow" data-s="1" style="left:0;width:50%;background:var(--book)"></div><b class="f" data-s="1" style="position:absolute;left:52%;top:14px">2 h · $120</b></div>
+    <div class="f" data-s="1"><span class="tag warn">$90 missed</span></div>
+
+    <div class="f" data-s="2">Bill the login</div>
+    <div class="t"><div class="bar f grow" data-s="2" style="left:0;width:100%;background:var(--login)"></div><b class="f" data-s="2" style="position:absolute;right:18px;top:14px;color:#08152e">4 h · $240</b></div>
+    <div class="f" data-s="2"><span class="tag bad">$30 overcharged</span></div>
+
+    <div class="f" data-s="3">What actually ran</div>
+    <div class="t"><div class="bar f grow" data-s="3" style="left:0;width:87.5%;background:var(--run)"></div><b class="f" data-s="3" style="position:absolute;left:65%;top:14px;color:#062019">3.5 h · $210</b></div>
+    <div class="f" data-s="3"><span class="tag ok">correct</span></div>
+  </div>
+  <div class="card f" data-s="4" style="margin-top:70px;display:flex;align-items:center;gap:30px;font-size:36px;font-weight:600">
+    <span style="font-size:76px;font-weight:700;color:var(--bad)">$0</span> billed for Sam's centrifuge, under either system
+  </div>
+  <aside class="notes">
+    <b>1</b> "If you bill the booking, Maya's extra hour and a half is free…"<br>
+    <b>2</b> "If you bill the computer login, she pays for thirty minutes of copying files."<br>
+    <b>3</b> "Only one number is right: what the instrument actually ran."<br>
+    <b>4</b> "And Sam's centrifuge doesn't exist at all."
+  </aside>
+</section>
+
+<!-- 6 22% -->
+<section>
+  <h2>How big is <em>wrong?</em></h2>
+  <div style="display:flex;align-items:flex-end;gap:90px;height:560px">
+    <div style="display:flex;align-items:flex-end;gap:60px;height:100%">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:16px">
+        <b class="f" data-s="1" style="font-size:46px">~1,000 h</b>
+        <div class="f rise" data-s="1" style="width:190px;height:400px;background:var(--book);border-radius:18px 18px 6px 6px"></div>
+        <span style="font-size:28px;color:var(--mute)">booked time</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:16px">
+        <b class="f" data-s="2" style="font-size:46px;color:var(--acc)">~775 h</b>
+        <div class="f rise" data-s="2" style="width:190px;height:310px;background:var(--run);border-radius:18px 18px 6px 6px"></div>
+        <span style="font-size:28px;color:var(--mute)">measured time</span>
+      </div>
+    </div>
+    <div class="f" data-s="3" style="padding-bottom:70px">
+      <div style="font-size:230px;font-weight:700;letter-spacing:-.05em;line-height:.9;color:var(--warn)"><span data-count="22">22</span>%</div>
+      <div style="font-size:40px;font-weight:600;margin-top:20px">same bookings,<br>different bill</div>
+      <div style="font-size:26px;color:var(--mute);margin-top:22px">UNC microscopy core · BioTechniques 2025</div>
+    </div>
+  </div>
+  <aside class="notes">
+    <b>1</b> "How big is wrong? A microscopy core at UNC switched from paper logs to measured time. Before: about a thousand billable hours a month."<br>
+    <b>2</b> "After: about seven seventy-five. Same number of bookings."<br>
+    <b>3</b> "<b>Billable hours moved by twenty-two percent.</b>" (Source: Clissold &amp; Itano, BioTechniques 2025. If asked: measured came out lower, so we sell <i>correct</i> bills, both directions.)
+  </aside>
+</section>
+
+<!-- 7 The rule -->
+<section>
+  <h2>The rules <em>already require it.</em></h2>
+  <div class="row" style="gap:40px;margin-top:20px">
+    <div class="card f" data-s="1" style="flex:1;padding:50px;border-color:var(--acc)">
+      <svg width="90" height="90" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="var(--acc)"/><path class="f draw" data-s="1" pathLength="1" d="M7 12.5l3.2 3.2L17 9" stroke="#062019" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div style="font-size:52px;font-weight:700;margin-top:30px;line-height:1.1">Federal grants pay for<br><span style="color:var(--acc)">actual usage</span></div>
+    </div>
+    <div class="card f" data-s="2" style="flex:1;padding:50px;border-color:var(--bad)">
+      <svg width="90" height="90" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="var(--bad)"/><path class="f draw" data-s="2" pathLength="1" d="M8 8l8 8M16 8l-8 8" stroke="#2a0905" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>
+      <div style="font-size:52px;font-weight:700;margin-top:30px;line-height:1.1">Cores bill<br><span style="color:var(--bad)">bookings and logins</span></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <b>1</b> "Federal rules say grant money has to be charged on <b>actual usage</b>." (2 CFR 200.468. An HHS audit already flagged FSU for this.)<br>
+    <b>2</b> "Right now, almost nobody measures actual usage. They bill the booking or the login."
+  </aside>
+</section>
+
+<!-- 8 First principles math -->
+<section>
+  <h2>One typical core, <em>from first principles.</em></h2>
+  <div class="eq">
+    <div class="tile f pop" data-s="1"><b>15</b><span>instruments</span></div>×
+    <div class="tile f pop" data-s="2"><b>$60</b><span>per hour</span></div>×
+    <div class="tile f pop" data-s="3"><b>600 h</b><span>per year each</span></div>=
+    <div class="tile acc f pop" data-s="4"><b>$540K</b><span>billed per year</span></div>
+  </div>
+  <div class="eq f" data-s="5" style="margin-top:60px;justify-content:flex-end">
+    <span style="font-size:40px;color:var(--mute);font-weight:600">if just 8% is wrong</span>→
+    <div class="tile hot"><b>$<span data-count="43">43</span>K</b><span>wrong every year, one core</span></div>
+  </div>
+  <aside class="notes">
+    <b>1–4</b> "Take a typical core: fifteen instruments, sixty dollars an hour, about six hundred hours each a year. That's over half a million dollars of billing." (Rates: published $20–150/h; hours: UChicago flow core ~600 h/instrument.)<br>
+    <b>5</b> "If even eight percent is wrong — a third of what UNC saw — that's <b>over forty thousand dollars a year, at one core.</b>" Say 8% is our estimate.
+  </aside>
+</section>
+
+<!-- 9 Insight -->
+<section>
+  <div class="center">
+    <div class="big f" data-s="0" style="font-size:150px">Bill the run,</div>
+    <div class="big f" data-s="1" style="font-size:150px;color:var(--acc)">not the login.</div>
+  </div>
+  <aside class="notes">"Our insight is simple: <b>bill the run, not the login.</b>"</aside>
+</section>
+
+<!-- 10 How it works -->
+<section>
+  <h2>How LabMeter <em>works</em></h2>
+  <svg viewBox="0 0 1380 620" width="1380" height="620">
+    <defs>
+      <path id="p1" d="M250 400 H420"/><path id="p2" d="M600 400 H760"/><path id="p3" d="M900 150 V300"/><path id="p4" d="M1040 400 H1160"/>
+    </defs>
+    <g class="f" data-s="1">
+      <rect x="20" y="300" width="230" height="200" rx="24" fill="var(--panel)" stroke="var(--line)" stroke-width="3"/>
+      <rect x="70" y="340" width="130" height="80" rx="12" fill="#2b4239"/>
+      <path d="M135 420 V470 Q135 520 200 540 H260" stroke="#d5e6df" stroke-width="8" fill="none"/>
+      <ellipse cx="190" cy="530" rx="24" ry="30" fill="none" stroke="var(--acc)" stroke-width="10"/>
+      <text x="135" y="590" text-anchor="middle" font-size="30" font-weight="700">Clip-on sensor</text>
+    </g>
+    <g class="f" data-s="2">
+      <use href="#p1" stroke="var(--line)" stroke-width="5" fill="none"/>
+      <circle r="9" fill="var(--acc)"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#p1"/></animateMotion></circle>
+      <rect x="430" y="330" width="170" height="140" rx="24" fill="var(--panel)" stroke="var(--line)" stroke-width="3"/>
+      <path d="M485 400a30 30 0 0 1 60 0M470 400a45 45 0 0 1 90 0" stroke="var(--acc)" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <circle cx="515" cy="410" r="9" fill="var(--acc)"/>
+      <text x="515" y="520" text-anchor="middle" font-size="30" font-weight="700">Gateway</text>
+    </g>
+    <g class="f" data-s="3">
+      <use href="#p2" stroke="var(--line)" stroke-width="5" fill="none"/>
+      <circle r="9" fill="var(--acc)"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#p2"/></animateMotion></circle>
+      <rect x="770" y="300" width="270" height="200" rx="30" fill="var(--panel2)" stroke="var(--acc)" stroke-width="4"/>
+      <text x="905" y="390" text-anchor="middle" font-size="40" font-weight="700">LabMeter</text>
+      <text x="905" y="440" text-anchor="middle" font-size="26" style="fill:var(--mute)">your core's rules</text>
+    </g>
+    <g class="f" data-s="4">
+      <rect x="720" y="20" width="160" height="110" rx="16" fill="var(--panel)" stroke="var(--book)" stroke-width="3"/>
+      <text x="800" y="85" text-anchor="middle" font-size="28" font-weight="700">Bookings</text>
+      <rect x="920" y="20" width="160" height="110" rx="16" fill="var(--panel)" stroke="var(--login)" stroke-width="3"/>
+      <text x="1000" y="85" text-anchor="middle" font-size="28" font-weight="700">Logins</text>
+      <use href="#p3" stroke="var(--line)" stroke-width="5" fill="none"/>
+      <circle r="9" fill="var(--book)"><animateMotion dur="1.2s" repeatCount="indefinite"><mpath href="#p3"/></animateMotion></circle>
+    </g>
+    <g class="f" data-s="5">
+      <use href="#p4" stroke="var(--line)" stroke-width="5" fill="none"/>
+      <circle r="9" fill="var(--acc)"><animateMotion dur="1.2s" repeatCount="indefinite"><mpath href="#p4"/></animateMotion></circle>
+      <rect x="1170" y="320" width="190" height="160" rx="24" fill="var(--panel)" stroke="var(--line)" stroke-width="3"/>
+      <text x="1265" y="395" text-anchor="middle" font-size="40" font-weight="700">FBS</text>
+      <text x="1265" y="440" text-anchor="middle" font-size="24" style="fill:var(--mute)">one click</text>
+    </g>
+  </svg>
+  <aside class="notes">
+    <b>1</b> "LabMeter is a clip-on sensor on the instrument's power cord. It sees when the machine actually runs, even with no computer attached. Nothing gets opened or rewired."<br>
+    <b>2</b> "It sends that wirelessly to a small gateway in the room…"<br>
+    <b>3</b> "…to our software, which applies the core's own rules: grace windows, penalties, no-shows…"<br>
+    <b>4</b> "…alongside the files the core already has: bookings and logins."<br>
+    <b>5</b> "Every user, every day, gets a charge with a reason. One click sends the corrected charges back to FBS."
+  </aside>
+</section>
+
+<!-- 11 Manager time -->
+<section>
+  <h2>Month-end checking, <em>before and after</em></h2>
+  <div class="cmp" style="grid-template-columns:300px 1fr;margin-top:40px;row-gap:56px">
+    <div class="f" data-s="1" style="font-size:36px">By hand</div>
+    <div class="t" style="height:96px"><div class="bar f grow" data-s="1" style="width:100%;background:var(--bad)"></div><b class="f" data-s="1" style="position:absolute;right:26px;top:18px;font-size:52px;color:#2a0905"><span data-count="30">30</span> h</b></div>
+    <div class="f" data-s="2" style="font-size:36px">With LabMeter</div>
+    <div class="t" style="height:96px"><div class="bar f grow" data-s="2" style="width:10%;background:var(--acc)"></div><b class="f" data-s="2" style="position:absolute;left:12%;top:18px;font-size:52px;color:var(--acc)"><span data-count="3">3</span> h</b></div>
+  </div>
+  <div class="f" data-s="3" style="font-size:44px;font-weight:600;margin-top:90px">Every charge comes <span style="color:var(--acc)">with a reason.</span> <span style="font-size:26px;color:var(--mute);font-weight:500;margin-left:16px">simulated month, 5 instruments</span></div>
+  <aside class="notes">
+    (Optional: show the simulator at month end: lab.html?end)<br>
+    <b>1–2</b> "In this simulated month, the manager's thirty hours of checking become <b>three</b>."<br>
+    <b>3</b> "And every charge has a reason the PI can see." If asked: the 30 h is from our simulation's assumptions; we're asking the USC manager for their real number.
+  </aside>
+</section>
+
+<!-- 12 Pricing -->
+<section>
+  <h2>Who pays? <em>The core.</em></h2>
+  <div class="eq" style="font-size:56px">
+    <div class="tile f pop" data-s="1"><b>$250</b><span>per month · software</span></div>+
+    <div class="tile f pop" data-s="2"><b>$40</b><span>per instrument / month · sensor</span></div>
+  </div>
+  <div class="cmp" style="grid-template-columns:400px 1fr;margin-top:70px;row-gap:34px">
+    <div class="f" data-s="3">LabMeter, 15 instruments</div>
+    <div class="t"><div class="bar f grow" data-s="3" style="width:23.6%;background:var(--acc)"></div><b class="f" data-s="3" style="position:absolute;left:25.5%;top:14px">~$10K / yr</b></div>
+    <div class="f" data-s="4">Billing errors it fixes</div>
+    <div class="t"><div class="bar f grow" data-s="4" style="width:100%;background:var(--bad)"></div><b class="f" data-s="4" style="position:absolute;right:20px;top:14px;color:#2a0905">~$43K / yr</b></div>
+  </div>
+  <div class="f pop" data-s="5" style="position:absolute;right:110px;top:110px;font-size:64px;font-weight:700;color:var(--acc)">4× return</div>
+  <aside class="notes">
+    <b>1–2</b> "A core pays two-fifty a month for the software, plus forty dollars per instrument for sensors."<br>
+    <b>3–4</b> "For that fifteen-instrument core, that's about ten thousand a year…against forty thousand in billing errors."<br>
+    <b>5</b> "Roughly four times its cost, before counting the manager's time." It comes from the operating budget; they already pay for Bookitlab just for audits.
+  </aside>
+</section>
+
+<!-- 13 Market -->
+<section>
+  <h2>How big this <em>gets</em></h2>
+  <svg viewBox="0 0 1380 620" width="1380" height="620">
+    <g class="f pop" data-s="1"><circle cx="300" cy="320" r="290" fill="#14302a" stroke="var(--acc2)" stroke-width="3"/></g>
+    <g class="f pop" data-s="2"><circle cx="300" cy="410" r="200" fill="#1b4239" stroke="var(--acc)" stroke-width="3"/></g>
+    <g class="f pop" data-s="3"><circle cx="300" cy="545" r="65" fill="var(--acc)"/></g>
+    <g class="f" data-s="1">
+      <path d="M470 90 H660" stroke="var(--mute)" stroke-width="2"/>
+      <text x="680" y="76" font-size="28" style="fill:var(--mute)">Total addressable market · 7,000 US cores</text>
+      <text x="680" y="130" font-size="58" font-weight="700">$71M US <tspan font-size="36" style="fill:var(--mute)">· $180M global</tspan></text>
+    </g>
+    <g class="f" data-s="2">
+      <path d="M440 300 H660" stroke="var(--mute)" stroke-width="2"/>
+      <text x="680" y="286" font-size="28" style="fill:var(--mute)">Serviceable addressable market · hourly, self-service</text>
+      <text x="680" y="340" font-size="58" font-weight="700">$43M</text>
+    </g>
+    <g class="f" data-s="3">
+      <path d="M370 520 H660" stroke="var(--mute)" stroke-width="2"/>
+      <text x="680" y="506" font-size="28" style="fill:var(--mute)">Serviceable obtainable market · campus deals</text>
+      <text x="680" y="560" font-size="58" font-weight="700" style="fill:var(--acc)">$1.3M yr 3 <tspan style="fill:var(--ink)">→ $4M yr 5</tspan></text>
+    </g>
+  </svg>
+  <div class="card f pop" data-s="4" style="position:absolute;right:110px;top:90px;font-size:36px;font-weight:700;border-color:var(--acc)">USC alone ≈ $250K / yr</div>
+  <aside class="notes">
+    <b>1</b> "There are about <b>seven thousand</b> instrument cores in the US. That's a <b>seventy-one-million-dollar</b> total addressable market, about one hundred eighty million worldwide." (Our estimate: 187 R1s × ~30 instrument cores + others.)<br>
+    <b>2</b> "Our serviceable addressable market, cores that bill by the hour with self-service users, is about <b>forty-three million</b>."<br>
+    <b>3</b> "Our serviceable obtainable market, three percent in three years through campus-wide deals, is about <b>one point three million a year</b>, growing to around <b>four million</b> by year five." (≈5 USC-sized deals by year 3, 25–30 by year 5.)<br>
+    <b>4</b> "USC alone, as one campus deal, is about a quarter-million dollars a year."
+  </aside>
+</section>
+
+<!-- 14 Where we are -->
+<section>
+  <h2>Where we <em>are</em></h2>
+  <svg viewBox="0 0 1380 560" width="1380" height="560">
+    <path class="f draw" data-s="1" pathLength="1" d="M90 260 H1290" stroke="var(--acc)" stroke-width="6" fill="none"/>
+    <g class="f pop" data-s="1"><circle cx="90" cy="260" r="26" fill="var(--acc)"/>
+      <text x="90" y="200" text-anchor="middle" font-size="30" font-weight="700" style="fill:var(--acc)">NOW</text>
+      <text x="40" y="340" font-size="34" font-weight="700">Software works</text>
+      <text x="40" y="390" font-size="30" style="fill:var(--mute)">USC manager:</text>
+      <text x="40" y="436" font-size="34" font-weight="700" style="fill:var(--acc)">"Oh, absolutely."</text></g>
+    <g class="f pop" data-s="2"><circle cx="490" cy="260" r="22" fill="var(--panel2)" stroke="var(--acc)" stroke-width="5"/>
+      <text x="490" y="200" text-anchor="middle" font-size="30" font-weight="700">DEC</text>
+      <text x="430" y="340" font-size="34" font-weight="700">1 month of</text><text x="430" y="384" font-size="34" font-weight="700">real USC files</text></g>
+    <g class="f pop" data-s="3"><circle cx="890" cy="260" r="22" fill="var(--panel2)" stroke="var(--acc)" stroke-width="5"/>
+      <text x="890" y="200" text-anchor="middle" font-size="30" font-weight="700">JAN</text>
+      <text x="830" y="340" font-size="34" font-weight="700">Paid pilot</text></g>
+    <g class="f pop" data-s="4"><circle cx="1290" cy="260" r="22" fill="var(--panel2)" stroke="var(--acc)" stroke-width="5"/>
+      <text x="1290" y="200" text-anchor="middle" font-size="30" font-weight="700">2027</text>
+      <text x="1330" y="340" text-anchor="end" font-size="34" font-weight="700">USC campus-wide</text></g>
+  </svg>
+  <aside class="notes">
+    <b>1</b> "The software works today. The manager I talked to said <b>'Oh, absolutely'</b> to automating this."<br>
+    <b>2</b> "Next, I run one month of their real files…"<br>
+    <b>3</b> "…then start a paid pilot in January…"<br>
+    <b>4</b> "…then go campus-wide at USC."
+  </aside>
+</section>
+
+<!-- 15 Ask + close -->
+<section>
+  <div class="center">
+    <div class="f" data-s="0" style="font-size:40px;font-weight:600;color:var(--mute)">The ask</div>
+    <div class="f" data-s="0" style="font-size:84px;font-weight:700;letter-spacing:-.03em;line-height:1.05">Intros to core facility<br>managers</div>
+    <div class="f" data-s="1" style="display:flex;align-items:center;gap:26px;margin-top:40px">
+      <svg width="84" height="84" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="var(--acc2)"/><path d="M6 21h5l3-10 4 14 3-9h5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="font-size:50px;font-weight:700;color:var(--acc)">Every instrument, every hour, accounted for.</span>
+    </div>
+  </div>
+  <aside class="notes">
+    "I'm looking for introductions to core facility managers, here and at other universities."<br>
+    <b>1</b> "LabMeter: <b>every instrument, every hour, accounted for.</b> Thank you."
+  </aside>
+</section>
+
+<div id="prog"></div><div id="num"></div><div id="hint">→ / click to advance · N notes · F fullscreen</div>
+</div>
+<div id="notes"></div>
+<script>
+(function(){
+  const stage=document.getElementById('stage'),S=[...stage.querySelectorAll('section')],notes=document.getElementById('notes');
+  let i=0,step=0;
+  const maxStep=s=>Math.max(0,...[...s.querySelectorAll('.f')].map(e=>+e.dataset.s||0));
+  function fit(){const k=Math.min(innerWidth/1600,innerHeight/900);stage.style.transform=`translate(-50%,-50%) scale(${k})`}
+  var count=function(el){if(el._d)return;el._d=1;const to=+el.dataset.count,t0=performance.now();
+    (function f(t){const p=Math.min(1,(t-t0)/1100),e=1-Math.pow(1-p,3);el.textContent=Math.round(to*e);if(p<1)requestAnimationFrame(f)})(t0)};
+  function apply(){const s=S[i];
+    s.querySelectorAll('.f').forEach(e=>{const on=(+e.dataset.s||0)<=step;e.classList.toggle('on',on);
+      if(on)e.querySelectorAll('[data-count]').forEach(count);else e.querySelectorAll('[data-count]').forEach(c=>{c._d=0;c.textContent='0'})});
+    document.getElementById('prog').style.width=((i+(step/(maxStep(s)+1)))/S.length*100)+'%';
+    document.getElementById('num').textContent=(i+1)+' / '+S.length;
+    const n=s.querySelector('.notes');notes.innerHTML='<b>Slide '+(i+1)+'</b> · step '+step+'/'+maxStep(s)+'<br>'+(n?n.innerHTML:'');
+    try{history.replaceState(null,'','#'+(i+1))}catch(e){}}
+  function go(n,st){const prev=S[i];
+    S.forEach((s,k)=>{s.classList.toggle('cur',k===n);s.classList.toggle('past',k<n)});
+    if(prev!==S[n])prev.querySelectorAll('.f.on').forEach(e=>setTimeout(()=>{if(!S[n].contains(e))e.classList.remove('on')},650));
+    i=n;step=-1;apply();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{step=st===undefined?0:st;apply()}))}
+  function next(){if(step<maxStep(S[i])){step++;apply()}else if(i<S.length-1)go(i+1)}
+  function prev(){if(step>0){step--;apply()}else if(i>0)go(i-1,maxStep(S[i-1]))}
+  addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();next()}
+    else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){e.preventDefault();prev()}
+    else if(e.key==='Home')go(0);else if(e.key==='End')go(S.length-1,maxStep(S[S.length-1]));
+    else if(e.key==='n'||e.key==='N')notes.classList.toggle('show');
+    else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}
+  });
+  stage.addEventListener('click',e=>{(e.clientX<innerWidth*0.2)?prev():next()});
+  if(/[?&]static/.test(location.search)){const st=document.createElement('style');st.textContent='*{transition:none!important}';document.head.appendChild(st);count=el=>{el.textContent=el.dataset.count}}
+  addEventListener('resize',fit);fit();
+  setTimeout(()=>{document.getElementById('hint').style.opacity=0},6000);
+  const h=parseInt(location.hash.slice(1));const n0=h>0&&h<=S.length?h-1:0;go(n0,/[?&]all/.test(location.search)?maxStep(S[n0]):undefined);
+})();
+</script>
+</body>
+</html>
