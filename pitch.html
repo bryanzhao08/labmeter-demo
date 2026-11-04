@@ -38,7 +38,7 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px 34px}
 .row{display:flex;gap:28px;align-items:stretch}
 .quote{font-size:58px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
-.quote small{display:block;font-size:28px;color:var(--mute);font-weight:500;margin-top:18px}
+.quote small{display:block;font-size:30px;color:var(--mute);font-weight:500;margin-top:18px}
 #prog{position:absolute;left:0;bottom:0;height:6px;background:var(--acc);transition:width .5s}
 #num{position:absolute;right:28px;bottom:22px;font-size:20px;color:var(--mute);font-variant-numeric:tabular-nums}
 #hint{position:absolute;left:28px;bottom:22px;font-size:20px;color:var(--mute);transition:opacity 1s}
@@ -52,8 +52,8 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
 .tl .lab i{width:20px;height:20px;border-radius:6px}
 .track{position:relative;height:62px;background:var(--panel);border-radius:14px}
 .bar{position:absolute;top:0;bottom:0;border-radius:14px}
-.ann{position:absolute;top:-46px;font-size:26px;font-weight:600;white-space:nowrap}
-.axis{position:relative;height:30px;color:var(--mute);font-size:22px}
+.ann{position:absolute;top:-46px;font-size:30px;font-weight:600;white-space:nowrap}
+.axis{position:relative;height:30px;color:var(--mute);font-size:30px}
 .axis span{position:absolute;transform:translateX(-50%)}
 .hatch{background:repeating-linear-gradient(45deg,var(--bad) 0 12px,#c84a3f 12px 24px)!important}
 
@@ -62,14 +62,14 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
 .cmp .t{position:relative;height:70px}
 .cmp .t .bar{border-radius:14px}
 .cmp b{font-variant-numeric:tabular-nums}
-.tag{font-size:26px;font-weight:600;padding:6px 16px;border-radius:999px;white-space:nowrap}
+.tag{font-size:30px;font-weight:600;padding:6px 16px;border-radius:999px;white-space:nowrap}
 .tag.bad{background:rgba(255,111,97,.16);color:var(--bad)}.tag.warn{background:rgba(243,182,74,.16);color:var(--warn)}.tag.ok{background:rgba(47,196,162,.16);color:var(--acc)}
 
 /* math tiles */
 .eq{display:flex;align-items:center;gap:26px;font-size:64px;font-weight:700;color:var(--mute)}
 .tile{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:28px 34px;text-align:center;min-width:240px}
 .tile b{display:block;font-size:76px;color:var(--ink);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.tile>span{display:block;font-size:26px;color:var(--mute);font-weight:500;margin-top:6px}
+.tile>span{display:block;font-size:30px;color:var(--mute);font-weight:500;margin-top:6px}
 .tile.hot{border-color:var(--bad);background:rgba(255,111,97,.08)}.tile.hot b{color:var(--bad)}
 .tile.acc{border-color:var(--acc);background:rgba(47,196,162,.08)}.tile.acc b{color:var(--acc)}
 </style>
@@ -100,13 +100,13 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
         <circle cx="72" cy="196" r="14" fill="var(--acc)"/>
       </g>
       <text x="195" y="520" text-anchor="middle" font-size="58" font-weight="700">$1,000,000</text>
-      <text x="195" y="568" text-anchor="middle" font-size="28" fill="var(--mute)" style="fill:var(--mute)">confocal microscope</text>
+      <text x="195" y="568" text-anchor="middle" font-size="30" fill="var(--mute)" style="fill:var(--mute)">confocal microscope</text>
     </g>
     <g class="f" data-s="2">
       <path class="f draw" data-s="2" pathLength="1" d="M340 300 H520" stroke="var(--mute)" stroke-width="4" stroke-dasharray="1" fill="none"/>
       <rect x="520" y="205" width="300" height="190" rx="26" fill="var(--panel2)" stroke="var(--acc)" stroke-width="3"/>
       <text x="670" y="290" text-anchor="middle" font-size="40" font-weight="700">Core facility</text>
-      <text x="670" y="340" text-anchor="middle" font-size="26" style="fill:var(--mute)">bought once, shared</text>
+      <text x="670" y="340" text-anchor="middle" font-size="30" style="fill:var(--mute)">bought once, shared</text>
     </g>
     <g class="f" data-s="3">
       <g stroke="var(--line)" stroke-width="4" fill="none">
@@ -117,7 +117,7 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
         <path class="f draw" data-s="3" pathLength="1" d="M820 300 C960 300 980 450 1150 450"/>
         <path class="f draw" data-s="3" pathLength="1" d="M820 300 C960 300 980 545 1150 545"/>
       </g>
-      <g font-size="28" font-weight="600">
+      <g font-size="30" font-weight="600">
         <circle cx="1180" cy="70" r="30" fill="var(--acc)"/><text x="1228" y="80">Maya's lab</text>
         <circle cx="1180" cy="165" r="30" fill="var(--login)"/><text x="1228" y="175">Patel lab</text>
         <circle cx="1180" cy="260" r="30" fill="var(--warn)"/><text x="1228" y="270">Okafor lab</text>
@@ -165,9 +165,9 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
     </div>
   </div>
   <div class="row" style="margin-top:92px">
-    <div class="card f" data-s="5" style="flex:1"><div style="font-size:34px;font-weight:700">Jordan</div><div style="font-size:28px;color:var(--warn);margin-top:6px">walk-up, no booking</div></div>
-    <div class="card f" data-s="6" style="flex:1"><div style="font-size:34px;font-weight:700">Priya</div><div style="font-size:28px;color:var(--warn);margin-top:6px">booked, never came</div></div>
-    <div class="card f" data-s="7" style="flex:1"><div style="font-size:34px;font-weight:700">Sam's centrifuge</div><div style="font-size:28px;color:var(--bad);margin-top:6px">runs to 10 pm, no computer</div></div>
+    <div class="card f" data-s="5" style="flex:1"><div style="font-size:34px;font-weight:700">Jordan</div><div style="font-size:30px;color:var(--warn);margin-top:6px">walk-up, no booking</div></div>
+    <div class="card f" data-s="6" style="flex:1"><div style="font-size:34px;font-weight:700">Priya</div><div style="font-size:30px;color:var(--warn);margin-top:6px">booked, never came</div></div>
+    <div class="card f" data-s="7" style="flex:1"><div style="font-size:34px;font-weight:700">Sam's centrifuge</div><div style="font-size:30px;color:var(--bad);margin-top:6px">runs to 10 pm, no computer</div></div>
   </div>
   <aside class="notes">
     (Optional: switch to the live simulator here, labmeter-demo/lab.html, and press Play.)<br>
@@ -187,10 +187,10 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
     <g class="f" data-s="1">
       <rect x="20" y="20" width="250" height="130" rx="18" fill="var(--panel)" stroke="var(--book)" stroke-width="3"/>
       <text x="145" y="78" text-anchor="middle" font-size="32" font-weight="700">Bookings</text>
-      <text x="145" y="118" text-anchor="middle" font-size="24" style="fill:var(--mute)">FBS export</text>
+      <text x="145" y="118" text-anchor="middle" font-size="30" style="fill:var(--mute)">FBS export</text>
       <rect x="20" y="180" width="250" height="130" rx="18" fill="var(--panel)" stroke="var(--login)" stroke-width="3"/>
       <text x="145" y="238" text-anchor="middle" font-size="32" font-weight="700">Logins</text>
-      <text x="145" y="278" text-anchor="middle" font-size="24" style="fill:var(--mute)">second tool</text>
+      <text x="145" y="278" text-anchor="middle" font-size="30" style="fill:var(--mute)">second tool</text>
     </g>
     <g class="f" data-s="2">
       <path d="M280 85 C400 85 420 165 520 165 M280 245 C400 245 420 165 520 165" stroke="var(--mute)" stroke-width="4" fill="none"/>
@@ -249,18 +249,18 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:16px">
         <b class="f" data-s="1" style="font-size:46px">~1,000 h</b>
         <div class="f rise" data-s="1" style="width:190px;height:400px;background:var(--book);border-radius:18px 18px 6px 6px"></div>
-        <span style="font-size:28px;color:var(--mute)">booked time</span>
+        <span style="font-size:30px;color:var(--mute)">booked time</span>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:16px">
         <b class="f" data-s="2" style="font-size:46px;color:var(--acc)">~775 h</b>
         <div class="f rise" data-s="2" style="width:190px;height:310px;background:var(--run);border-radius:18px 18px 6px 6px"></div>
-        <span style="font-size:28px;color:var(--mute)">measured time</span>
+        <span style="font-size:30px;color:var(--mute)">measured time</span>
       </div>
     </div>
     <div class="f" data-s="3" style="padding-bottom:70px">
       <div style="font-size:230px;font-weight:700;letter-spacing:-.05em;line-height:.9;color:var(--warn)"><span data-count="22">22</span>%</div>
       <div style="font-size:40px;font-weight:600;margin-top:20px">same bookings,<br>different bill</div>
-      <div style="font-size:26px;color:var(--mute);margin-top:22px">UNC microscopy core · BioTechniques 2025</div>
+      <div style="font-size:30px;color:var(--mute);margin-top:22px">UNC microscopy core · BioTechniques 2025</div>
     </div>
   </div>
   <aside class="notes">
@@ -344,13 +344,13 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
       <circle r="9" fill="var(--acc)"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#p2"/></animateMotion></circle>
       <rect x="770" y="300" width="270" height="200" rx="30" fill="var(--panel2)" stroke="var(--acc)" stroke-width="4"/>
       <text x="905" y="390" text-anchor="middle" font-size="40" font-weight="700">LabMeter</text>
-      <text x="905" y="440" text-anchor="middle" font-size="26" style="fill:var(--mute)">your core's rules</text>
+      <text x="905" y="440" text-anchor="middle" font-size="30" style="fill:var(--mute)">your core's rules</text>
     </g>
     <g class="f" data-s="4">
       <rect x="720" y="20" width="160" height="110" rx="16" fill="var(--panel)" stroke="var(--book)" stroke-width="3"/>
-      <text x="800" y="85" text-anchor="middle" font-size="28" font-weight="700">Bookings</text>
+      <text x="800" y="85" text-anchor="middle" font-size="30" font-weight="700">Bookings</text>
       <rect x="920" y="20" width="160" height="110" rx="16" fill="var(--panel)" stroke="var(--login)" stroke-width="3"/>
-      <text x="1000" y="85" text-anchor="middle" font-size="28" font-weight="700">Logins</text>
+      <text x="1000" y="85" text-anchor="middle" font-size="30" font-weight="700">Logins</text>
       <use href="#p3" stroke="var(--line)" stroke-width="5" fill="none"/>
       <circle r="9" fill="var(--book)"><animateMotion dur="1.2s" repeatCount="indefinite"><mpath href="#p3"/></animateMotion></circle>
     </g>
@@ -359,7 +359,7 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
       <circle r="9" fill="var(--acc)"><animateMotion dur="1.2s" repeatCount="indefinite"><mpath href="#p4"/></animateMotion></circle>
       <rect x="1170" y="320" width="190" height="160" rx="24" fill="var(--panel)" stroke="var(--line)" stroke-width="3"/>
       <text x="1265" y="395" text-anchor="middle" font-size="40" font-weight="700">FBS</text>
-      <text x="1265" y="440" text-anchor="middle" font-size="24" style="fill:var(--mute)">one click</text>
+      <text x="1265" y="440" text-anchor="middle" font-size="30" style="fill:var(--mute)">one click</text>
     </g>
   </svg>
   <aside class="notes">
@@ -380,7 +380,7 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
     <div class="f" data-s="2" style="font-size:36px">With LabMeter</div>
     <div class="t" style="height:96px"><div class="bar f grow" data-s="2" style="width:10%;background:var(--acc)"></div><b class="f" data-s="2" style="position:absolute;left:12%;top:18px;font-size:52px;color:var(--acc)"><span data-count="3">3</span> h</b></div>
   </div>
-  <div class="f" data-s="3" style="font-size:44px;font-weight:600;margin-top:90px">Every charge comes <span style="color:var(--acc)">with a reason.</span> <span style="font-size:26px;color:var(--mute);font-weight:500;margin-left:16px">simulated month, 5 instruments</span></div>
+  <div class="f" data-s="3" style="font-size:44px;font-weight:600;margin-top:90px">Every charge comes <span style="color:var(--acc)">with a reason.</span> <span style="font-size:30px;color:var(--mute);font-weight:500;margin-left:16px">simulated month, 5 instruments</span></div>
   <aside class="notes">
     (Optional: show the simulator at month end: lab.html?end)<br>
     <b>1–2</b> "In this simulated month, the manager's thirty hours of checking become <b>three</b>."<br>
@@ -418,17 +418,17 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
     <g class="f pop" data-s="3"><circle cx="300" cy="545" r="65" fill="var(--acc)"/></g>
     <g class="f" data-s="1">
       <path d="M470 90 H660" stroke="var(--mute)" stroke-width="2"/>
-      <text x="680" y="76" font-size="28" style="fill:var(--mute)">Total addressable market · 7,000 US cores</text>
+      <text x="680" y="76" font-size="30" style="fill:var(--mute)">Total addressable market · 7,000 cores</text>
       <text x="680" y="130" font-size="58" font-weight="700">$71M US <tspan font-size="36" style="fill:var(--mute)">· $180M global</tspan></text>
     </g>
     <g class="f" data-s="2">
       <path d="M440 300 H660" stroke="var(--mute)" stroke-width="2"/>
-      <text x="680" y="286" font-size="28" style="fill:var(--mute)">Serviceable addressable market · hourly, self-service</text>
+      <text x="680" y="286" font-size="30" style="fill:var(--mute)">Serviceable addressable market</text>
       <text x="680" y="340" font-size="58" font-weight="700">$43M</text>
     </g>
     <g class="f" data-s="3">
       <path d="M370 520 H660" stroke="var(--mute)" stroke-width="2"/>
-      <text x="680" y="506" font-size="28" style="fill:var(--mute)">Serviceable obtainable market · campus deals</text>
+      <text x="680" y="506" font-size="30" style="fill:var(--mute)">Serviceable obtainable market · campus deals</text>
       <text x="680" y="560" font-size="58" font-weight="700" style="fill:var(--acc)">$1.3M yr 3 <tspan style="fill:var(--ink)">→ $4M yr 5</tspan></text>
     </g>
   </svg>
