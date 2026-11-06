@@ -242,7 +242,15 @@
       '<div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Instrument</th><th class="n">Booked</th><th class="n">' + (S.A.hasRuns ? "Ran" : "Logged in") + '</th><th class="n">Charge</th><th>Why</th></tr></thead><tbody>' +
       rows.map(function (r) { return '<tr><td>' + esc(C.dayLabel(r.day)) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.res) + '</td><td class="n">' + C.hm(r.booked) + '</td><td class="n">' + C.hm(S.A.hasRuns ? r.inst : r.comp) + '</td><td class="n">' + $2(finalCharge(r)) + '</td><td class="small">' + esc(eff(r).why) + '</td></tr>'; }).join("") +
       '</tbody><tfoot><tr><td colspan="5">Total</td><td class="n">' + $2(tot) + '</td><td></td></tr></tfoot></table></div>' +
+      idleNote(pi) +
       '<p class="muted small">Every line has an evidence timeline (booking, login, instrument run). Reply to dispute a line.</p><div class="row noprint"><button class="btn" onclick="window.print()">Print or save as PDF</button></div>');
+  }
+  // Booked-but-unused time: not billed (unless a no-show fee applies) but it blocked the instrument for other labs.
+  function idleNote(pi) {
+    var rows = S.A.rows.filter(function (r) { return r.pi === pi; }), idle = 0, val = 0;
+    rows.forEach(function (r) { var used = S.A.hasRuns ? r.inst : r.comp, gap = Math.max(0, r.booked - used); idle += gap; val += gap / 60 * rate(r.res); });
+    if (idle < 30) return "";
+    return '<div class="callout"><b>Booked but not used: ' + C.hm(idle) + '</b> <span class="muted">(' + $(val) + ' of instrument time at posted rates). Not charged under the core\'s policy, but it kept other labs off the instrument. An idle machine still costs the core money: service contracts and staff don\'t pause.</span></div>';
   }
   function openModal(h) { mbody.innerHTML = h; modal.hidden = false; modal.querySelector(".x").focus(); }
   function closeModal() { modal.hidden = true; }
