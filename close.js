@@ -72,23 +72,18 @@
         '<div class="muted small">' + (f ? f.rows.length + " rows · " + esc(s.hint) : esc(s.hint)) + '</div><input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" data-file="' + k + '" aria-label="Upload ' + esc(s.label) + '"></label>';
     }).join("");
     var bar = function (lbl, v, col, note) { return '<div class="bar"><span>' + lbl + '</span><span class="t"><i style="width:' + (v / mx * 100).toFixed(1) + '%;background:' + col + '"></i></span><span class="num">' + $(v) + '</span></div>' + (note ? '<div class="muted small" style="margin:-4px 0 4px 162px">' + note + '</div>' : ""); };
-    var gap = Math.abs(T.login - T.booked);
-    return '' +
-      '<p class="muted small" style="margin:0 0 6px">' + esc(month()) + ' · one imaging core · 5 instruments · ' + S.A.rows.length + ' user-days</p>' +
-      '<h1>Same month, same core: bookings say ' + $(T.booked) + ', logins say ' + $(T.login) + '.</h1>' +
-      '<p class="lede">That ' + $(gap) + ' gap is what a core manager reconciles by hand every month, line by line, before charges go to the labs. It is money in question, not extra revenue: billing actual run time can lower some charges. LaBro does it in one pass, gives every charge a reason, and leaves only the lines that need a human decision.</p>' +
-      '<div class="card"><div class="bars">' +
-      bar("By booking", T.booked, "var(--book)", "What FBS charges if you bill reserved time.") +
-      bar("By PC login", T.login, "var(--login)", "Includes time spent copying data after the instrument stopped.") +
-      (noRuns ? "" : bar("By actual run", T.actual, "var(--run)", "Instrument-on time from LaBro sensors, inside each user's session.")) +
-      '</div><p class="muted small" style="margin:12px 0 0">Hours: booked ' + h1(T.hrs.booked) + ' h · logged in ' + h1(T.hrs.login) + ' h' + (noRuns ? "" : ' · instrument running ' + h1(T.hrs.run) + ' h') + '. Your rules: overruns within ' + R.grace + ' min billed at actual, past that ' + R.mult + '× · unbooked use ' + R.mult + '× · ' + R.round + '-min increments · no-show fee ' + R.noshow + '%. <a href="overview.html#/audit">Edit rules and rates</a></p></div>' +
-      '<section class="persona card" style="margin:22px 0"><div class="avatar" aria-hidden="true">D</div><div><h3>Dana runs this core</h3>' +
-      '<div class="muted">Today: export reservations from FBS, pull login logs from five instrument PCs, line them up in a spreadsheet, and find overruns, walk-ups and forgotten logouts by eye, then answer PI emails disputing charges. With LaBro: drop the files below, decide ' + T.flagged + ' lines, send. <span class="small">(Dana is a composite persona.)</span></div></div></section>' +
+        return '' +
+      '<h1 class="apph">' + esc(month()) + ' close</h1><p class="muted small" style="margin:0 0 16px">Imaging core · 5 instruments · ' + S.A.rows.length + ' user-days</p>' +
       '<ol class="steps"><li class="done"><b>1</b>Add files</li><li class="' + (T.open ? "" : "done") + '"><b>2</b>Decide ' + T.flagged + ' flagged lines</li><li class="' + (T.open ? "" : "done") + '"><b>3</b>Send charges &amp; PI statements</li></ol>' +
       '<div class="grid g3">' + files + '</div>' +
       (S.note ? '<p class="muted small" style="margin:8px 0 0">' + esc(S.note) + '</p>' : "") +
       mapping() +
       '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-act="sample">Sample month (FBS)</button><button class="btn ghost small" data-act="sample-ilab">Sample month (iLab layout)</button><button class="btn ghost small" data-act="nosensor">' + (noRuns ? "Add sensor runs back" : "Try without sensors") + '</button><span class="muted small">Your files stay in this browser. Exports won\'t parse? <button class="linkb" data-act="tpl">Download blank templates</button></span></div>' +
+      '<div class="card" style="margin-top:22px"><h3 style="margin:0 0 10px">This month\'s totals</h3><div class="bars">' +
+      bar("By booking", T.booked, "var(--book)", "What FBS charges if you bill reserved time.") +
+      bar("By PC login", T.login, "var(--login)", "Includes time spent copying data after the instrument stopped.") +
+      (noRuns ? "" : bar("By actual run", T.actual, "var(--run)", "Instrument-on time from LaBro sensors, inside each user's session.")) +
+      '</div><p class="muted small" style="margin:12px 0 0">Hours: booked ' + h1(T.hrs.booked) + ' h · logged in ' + h1(T.hrs.login) + ' h' + (noRuns ? "" : ' · instrument running ' + h1(T.hrs.run) + ' h') + '. Your rules: overruns within ' + R.grace + ' min billed at actual, past that ' + R.mult + '× · unbooked use ' + R.mult + '× · ' + R.round + '-min increments · no-show fee ' + R.noshow + '%. <a href="overview.html#/audit">Edit rules and rates</a></p></div>' +
       '<div class="grid g4" style="margin-top:22px">' +
       stat(S.A.rows.length - T.flagged, "lines matched automatically") + stat(T.flagged, "lines need a decision") + stat(T.open, "still open", T.open ? "" : "hero") + stat($(T.final), "final charges, incl. " + $(sum(S.A.rows, function (r) { return eff(r).penalty; })) + " penalties", "hero") +
       '</div>' +
@@ -335,8 +330,7 @@
       return { ins: ins, c: c, pool: pool };
     });
     var under = sum(rows, function (x) { return Math.min(0, x.c.measured.recovery); }), over = sum(rows, function (x) { return Math.max(0, x.c.measured.recovery); });
-    return '<h1>Is next year\'s rate built on real hours?</h1>' +
-      '<p class="lede">Federal rules for recharge centers (2 CFR 200.468) say rates must recover cost, not make a profit, and must not charge federal grants more than anyone else. A rate is cost ÷ hours, so if the hours come from bookings, the rate is wrong before the year starts. LaBro rebuilds each rate from measured hours and flags what a reviewer would likely question.</p>' +
+    return '<h1 class="apph">Rates &amp; audit</h1>' +
       '<div class="callout"><b>Rate = (annual cost pool − last year\'s surplus) ÷ billable hours.</b> <span class="muted">Billable hours are the hours you expect to charge next year. If you bill measured run time, project them from measured hours, not bookings. Prior surplus lowers next year\'s rate and a prior deficit raises it, as 2 CFR 200.468 asks. ' + (months < 1.5 ? "<b>Projection:</b> the hours below are one month ×12. Load 12 months of exports for a real rate file." : "Hours below: " + Math.round(months) + " months of files, annualized.") + '</span></div>' +
       '<div class="grid g3">' + stat(findings.filter(function (f) { return f.severity === "high"; }).length, "high-risk findings", "hero") + stat($(-under), "projected under-recovery / yr") + stat($(over), "projected over-recovery / yr") + '</div>' +
       switchPanel(rows) +
@@ -370,8 +364,7 @@
   }
   function viewGrants() {
     var U = usage();
-    return '<h1>Usage evidence for the next instrument grant</h1>' +
-      '<p class="lede">NIH S10 awardees file an Annual Usage Report for four years after the award: users, their NIH grants, and hours, and major NIH-funded users should account for at least 35% of the instrument\'s accessible time. LaBro keeps that record as a side effect of billing: measured hours per lab, per instrument. <a href="https://grants.nih.gov/grants/guide/pa-files/PAR-17-074.html">NIH S10 notice</a></p>' +
+    return '<h1 class="apph">Grant report</h1><p class="muted small" style="margin:0 0 16px">Measured hours per lab and instrument, for the NIH S10 Annual Usage Report (major users ≥35% of accessible time). <a href="https://grants.nih.gov/grants/guide/pa-files/PAR-17-074.html">S10 notice</a></p>' +
       U.map(function (u) {
         var tot = sum(Object.keys(u.pis), function (k) { return u.pis[k]; }) || 1, mx = 0; Object.keys(u.pis).forEach(function (k) { mx = Math.max(mx, u.pis[k]); }); mx = mx || 1;
         var top3 = Object.keys(u.pis).map(function (k) { return u.pis[k]; }).sort(function (a, b) { return b - a; }).slice(0, 3), major = sum(top3, function (v) { return v; }) / (days() / 7 * 50 * 60);
@@ -386,8 +379,7 @@
   function groupBy(rows) { var g = {}; rows.forEach(function (r) { (g[r.res] || (g[r.res] = { res: r.res, rows: [] })).rows.push(r); }); return Object.keys(g).map(function (k) { return g[k]; }); }
   function viewAlerts() {
     var U = usage(), noUserRows = S.A.rows.filter(function (r) { return r.flags.nouser; }), transfer = S.A.rows.filter(function (r) { return r.flags.transfer; });
-    return '<h1>Catch it the same day, not at month end.</h1>' +
-      '<p class="lede">The same sensor that bills the run notices when an instrument runs with nobody booked, and counts real run-hours toward service intervals instead of calendar months.</p>' +
+    return '<h1 class="apph">Alerts</h1>' +
       '<h2>Ran with no one booked · ' + noUserRows.length + '</h2>' +
       (noUserRows.length ? groupBy(noUserRows).map(function (g) { return '<div class="find"><span class="sev high">' + g.rows.length + '×</span><div><b>' + esc(g.res) + '</b> · ' + C.hm(sum(g.rows, function (r) { return r.inst; })) + ' of running with no booking, on ' + g.rows.map(function (r) { return esc(C.dayLabel(r.day)); }).join(", ") + '<div class="muted small">' + (g.rows.every(function (r) { return r.sensorOnly; }) ? "No PC on this instrument, so FBS and login logs never saw these runs. " : "") + 'LaBro would text the core manager once a run passes 15 minutes with no booking.</div></div></div>'; }).join("") : '<p class="muted">None this month.</p>') +
       '<h2>Logins that kept the instrument PC busy after the run · ' + transfer.length + '</h2><p class="muted">Total ' + h1(sum(transfer, function (r) { return r.comp - r.inst; })) + ' h of PC time after acquisition ended. Billing by login would charge it; billing by run does not.</p>' +
@@ -408,8 +400,7 @@
     var all = []; cores.forEach(function (c) { c.items.forEach(function (i) { all.push(i); }); });
     var idle = all.filter(function (i) { return i[1] < .15; }), full = all.filter(function (i) { return i[1] > .85; });
     var color = function (u) { return u < .15 ? "var(--bad)" : u > .85 ? "var(--warn)" : "var(--run)"; };
-    return '<h1>Every shared machine on campus, on one page.</h1>' +
-      '<p class="lede">When every core bills from measured run time, the research office gets something it has never had: real utilization across campus. Which instruments sit idle while their service contracts renew, which ones have a waitlist, and where a purchase request duplicates something already on campus.</p>' +
+    return '<h1 class="apph">Campus</h1>' +
       '<p class="notice-sim">Illustration: only the imaging core comes from your files. The other five cores are simulated to show what a campus rollout would look like.</p>' + '<div class="grid g3">' + stat(all.length, "instruments tracked") + stat(idle.length, "under 15% used: review the service contract", "hero") + stat(full.length, "over 85% used: candidates for a second unit") + '</div>' +
       '<div class="legend" style="margin:18px 0 4px"><span><i class="dot" style="background:var(--bad)"></i>Under 15%</span><span><i class="dot" style="background:var(--run)"></i>Healthy</span><span><i class="dot" style="background:var(--warn)"></i>Over 85%</span><span>Share of 50 staffed hours a week</span></div>' +
       '<div class="heat">' + cores.map(function (c) { return '<div class="hcore">' + esc(c.name) + '</div>' + c.items.map(function (i) { return '<div class="hrow"><span class="nm">' + esc(i[0]) + '</span><span class="t"><i style="width:' + Math.max(2, Math.min(100, i[1] * 100)).toFixed(1) + '%;background:' + color(i[1]) + '"></i></span><span class="num small">' + Math.round(i[1] * 100) + '%</span></div>'; }).join(""); }).join("") + '</div>' +
@@ -535,7 +526,7 @@
   C.loadSample().then(function () { S.loaded = true; render(false); var tm = /[?&]tour(?:=(\d+))?/.exec(location.search); if (tm) tourShow(Math.min(TOUR.length - 1, +(tm[1] || 0))); }).catch(function (e) { app.innerHTML = '<p class="loading">Could not load the sample files (' + esc(e.message) + ').</p>'; });
   // ---------- 60-second guided tour (button in the header, or ?tour)
   var TOUR = [
-    ["close", "h1", "One core, one month. Billing by bookings and billing by PC logins disagree by thousands of dollars. Dana reconciles that gap by hand every month."],
+    ["close", "h1", "One core, one month. Add the FBS export, the PC login log and (optional) sensor runs, or use the sample month."],
     ["close", ".bars", "LaBro lines up three sources per user per day: the FBS booking, the PC login, and the instrument actually running (clip-on sensor)."],
     ["close", "#queue", "Most lines match automatically. The ones LaBro flags for a human decision are listed, each with the reason."],
     ["close", ".qi.pen", "Click any line: booking, login and run on one timeline, plus a reply Dana can paste to the PI who disputes it.", "evidence"],

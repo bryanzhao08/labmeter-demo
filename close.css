@@ -19,6 +19,7 @@ button{font:inherit;cursor:pointer}
 main{max-width:1180px;margin:0 auto;padding:28px 24px 60px}
 .loading{color:var(--mut)}
 h1{font-size:40px;line-height:1.1;margin:0 0 8px;letter-spacing:-.02em}
+h1.apph{font-size:26px;margin:0 0 4px}
 h2{font-size:24px;margin:36px 0 12px}
 h3{font-size:18px;margin:0 0 6px}
 .lede{color:var(--mut);font-size:19px;max-width:780px;margin:0 0 24px}
