@@ -136,3 +136,4 @@ td input[type=number]{width:110px;text-align:right}
 a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,.qi:focus-visible,.drop:focus-within{outline:3px solid var(--acc);outline-offset:2px}
 .chip,.btn.small,select{min-height:36px}
 @media (pointer:coarse){.btn,.chip,.x,.linkb,select{min-height:44px}.x{min-width:44px}.linkb{padding:10px}}
+html.static *{animation:none!important;transition:none!important}

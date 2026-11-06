@@ -526,7 +526,7 @@
   if (STATIC) document.documentElement.classList.add("static");
 
   fetch("data/audit/accounts.csv").then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) { if (t) { S.accts = C.parseCSV(t); if (S.loaded) render(true); } }).catch(function () {});
-  C.loadSample().then(function () { S.loaded = true; render(false); if (/[?&]tour/.test(location.search)) tourShow(0); }).catch(function (e) { app.innerHTML = '<p class="loading">Could not load the sample files (' + esc(e.message) + ').</p>'; });
+  C.loadSample().then(function () { S.loaded = true; render(false); var tm = /[?&]tour(?:=(\d+))?/.exec(location.search); if (tm) tourShow(Math.min(TOUR.length - 1, +(tm[1] || 0))); }).catch(function (e) { app.innerHTML = '<p class="loading">Could not load the sample files (' + esc(e.message) + ').</p>'; });
   // ---------- 60-second guided tour (button in the header, or ?tour)
   var TOUR = [
     ["close", "h1", "One core, one month. Billing by bookings and billing by PC logins disagree by thousands of dollars. Dana reconciles that gap by hand every month."],
