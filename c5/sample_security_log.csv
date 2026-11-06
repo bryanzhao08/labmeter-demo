@@ -1,0 +1,51 @@
+Keywords,Date and Time,Source,Event ID,Task Category,Description
+Audit Success,10/1/2026 8:00:00 AM,Microsoft-Windows-Security-Auditing,4624,Logon,"Subject:
+ Account Name: SYSTEM
+ Logon ID: 0x3e7
+New Logon:
+ Account Name: arjunpat
+ Logon ID: 0x101
+Logon Type: 2
+Workstation Name: FORTESSA-PC"
+Audit Success,10/1/2026 9:00:00 AM,Microsoft-Windows-Security-Auditing,4624,Logon,"New Logon:
+ Account Name: lmoreau
+ Logon ID: 0x102
+Logon Type: 2
+Workstation Name: SP8-WS01"
+Audit Success,10/1/2026 10:00:00 AM,Microsoft-Windows-Security-Auditing,4634,Logoff,"Subject:
+ Account Name: lmoreau
+ Logon ID: 0x102
+Workstation Name: SP8-WS01"
+Audit Success,10/1/2026 11:00:00 AM,Microsoft-Windows-Security-Auditing,4624,Logon,"New Logon:
+ Account Name: htanaka
+ Logon ID: 0x103
+Logon Type: 2
+Workstation Name: FORTESSA-PC"
+Audit Success,10/1/2026 12:00:00 PM,Microsoft-Windows-Security-Auditing,4647,Logoff,"Subject:
+ Account Name: htanaka
+ Logon ID: 0x103
+Workstation Name: FORTESSA-PC"
+Audit Success,10/2/2026 8:00:00 AM,Microsoft-Windows-Security-Auditing,4624,Logon,"New Logon:
+ Account Name: arjunpat
+ Logon ID: 0x104
+Logon Type: 2
+Workstation Name: SP8-WS01"
+Audit Success,10/2/2026 9:00:00 AM,Microsoft-Windows-Security-Auditing,4634,Logoff,"Subject:
+ Account Name: arjunpat
+ Logon ID: 0x104
+Workstation Name: SP8-WS01"
+Audit Success,10/2/2026 9:30:00 AM,Microsoft-Windows-Security-Auditing,4624,Logon,"New Logon:
+ Account Name: lmoreau
+ Logon ID: 0x105
+Logon Type: 3
+Workstation Name: SP8-WS01"
+Audit Success,10/2/2026 10:00:00 AM,Microsoft-Windows-Security-Auditing,4624,Logon,"New Logon:
+ Account Name: DWM-1
+ Logon ID: 0x106
+Logon Type: 2
+Workstation Name: FORTESSA-PC"
+Audit Success,10/2/2026 10:30:00 AM,Microsoft-Windows-Security-Auditing,4624,Logon,"New Logon:
+ Account Name: FORTESSA-PC$
+ Logon ID: 0x107
+Logon Type: 2
+Workstation Name: FORTESSA-PC"
