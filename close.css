@@ -131,3 +131,4 @@ table{font-size:15px}
 .tour p{margin:6px 0 12px;font-size:17px}
 .tour-hl{outline:3px solid var(--acc);outline-offset:6px;border-radius:12px;transition:outline-color .3s}
 @media (max-width:560px){.tour{left:12px;right:12px;bottom:12px;max-width:none}}
+td input[type=number]{width:110px;text-align:right}

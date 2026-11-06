@@ -6,7 +6,7 @@
   var app = document.getElementById("app"), modal = document.getElementById("modal"), mbody = document.getElementById("mbody");
   var DKEY = "labro-close-decisions-v1";
   var STORE = load(DKEY, {}); if (typeof STORE !== "object" || Array.isArray(STORE)) STORE = {};
-  var S = { B: null, A: null, L: null, filter: "action", dec: {}, fp: null, pi: "", loaded: false };
+  var S = { B: null, A: null, L: null, filter: "action", dec: {}, fp: null, pi: "", loaded: false, pool: {}, carry: {} };
   var STATIC = /[?&]static/.test(location.search);
 
   function load(k, d) { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; } }
@@ -76,7 +76,7 @@
     return '' +
       '<p class="muted small" style="margin:0 0 6px">' + esc(month()) + ' · one imaging core · 5 instruments · ' + S.A.rows.length + ' user-days</p>' +
       '<h1>Same month, same core: bookings say ' + $(T.booked) + ', logins say ' + $(T.login) + '.</h1>' +
-      '<p class="lede">That ' + $(gap) + ' gap is what a core manager reconciles by hand every month, line by line, before charges go to the labs. LaBro does it in one pass, gives every charge a reason, and leaves only the lines that need a human decision.</p>' +
+      '<p class="lede">That ' + $(gap) + ' gap is what a core manager reconciles by hand every month, line by line, before charges go to the labs. It is money in question, not extra revenue: billing actual run time can lower some charges. LaBro does it in one pass, gives every charge a reason, and leaves only the lines that need a human decision.</p>' +
       '<div class="card"><div class="bars">' +
       bar("By booking", T.booked, "var(--book)", "What FBS charges if you bill reserved time.") +
       bar("By PC login", T.login, "var(--login)", "Includes time spent copying data after the instrument stopped.") +
@@ -285,7 +285,8 @@
         loginHours: u.sensorOnly ? null : Math.round(RT.annualize(u.login / 60, months)),
         measuredHours: Math.round(RT.annualize((S.A.hasRuns ? u.run : u.login) / 60, months)) };
       var k = { "BD LSRFortessa Analyzer": 0.9, "Nikon Ti2 Widefield": 0.97 }[u.res] || 1;
-      ins.pool = Math.max(500, Math.round(billed * ins.bookedHours * k / 500) * 500);
+      ins.pool = S.pool[u.res] != null ? S.pool[u.res] : Math.max(500, Math.round(billed * ins.bookedHours * k / 500) * 500);
+      ins.carry = S.carry[u.res] || 0;
       if (smp && smp.items) ins.items = [{ label: "Allowable operating costs", amount: ins.pool, kind: "other" }].concat(smp.items.filter(function (it) { return RT.costPool([it]).unallowable > 0; }));
       core.instruments.push(ins);
       var sch = sample.rateSchedule.filter(function (r) { return r.instrument === u.res; });
@@ -317,16 +318,16 @@
     });
     var under = sum(rows, function (x) { return Math.min(0, x.c.measured.recovery); }), over = sum(rows, function (x) { return Math.max(0, x.c.measured.recovery); });
     return '<h1>Is next year\'s rate built on real hours?</h1>' +
-      '<p class="lede">Federal rules for recharge centers (2 CFR 200.468) say rates must recover cost, not make a profit, and must not charge federal grants more than anyone else. A rate is cost ÷ hours, so if the hours come from bookings, the rate is wrong before the year starts. LaBro rebuilds each rate from measured hours and flags what an auditor would.</p>' +
-      '<div class="callout"><b>Rate = (annual cost pool − last year\'s surplus) ÷ billable hours.</b> <span class="muted">If you bill measured run time, billable hours are measured hours, not bookings. Hours below are ' + (months < 1.5 ? "one month of files ×12: load a full year for the real rate file." : Math.round(months) + " months of files, annualized.") + '</span></div>' +
+      '<p class="lede">Federal rules for recharge centers (2 CFR 200.468) say rates must recover cost, not make a profit, and must not charge federal grants more than anyone else. A rate is cost ÷ hours, so if the hours come from bookings, the rate is wrong before the year starts. LaBro rebuilds each rate from measured hours and flags what a reviewer would likely question.</p>' +
+      '<div class="callout"><b>Rate = (annual cost pool − last year\'s surplus) ÷ billable hours.</b> <span class="muted">Billable hours are the hours you expect to charge next year. If you bill measured run time, project them from measured hours, not bookings. Prior surplus lowers next year\'s rate and a prior deficit raises it, as 2 CFR 200.468 asks. ' + (months < 1.5 ? "<b>Projection:</b> the hours below are one month ×12. Load 12 months of exports for a real rate file." : "Hours below: " + Math.round(months) + " months of files, annualized.") + '</span></div>' +
       '<div class="grid g3">' + stat(findings.filter(function (f) { return f.severity === "high"; }).length, "high-risk findings", "hero") + stat($(-under), "projected under-recovery / yr") + stat($(over), "projected over-recovery / yr") + '</div>' +
-      '<h2>Rate by where the hours come from</h2><div class="tw"><table><thead><tr><th>Instrument</th><th class="n">Cost pool / yr</th><th class="n">Booked h</th><th class="n">Measured h</th><th class="n">Rate if booked</th><th class="n">Rate if measured</th><th class="n">Billed now</th><th class="n">Surplus / deficit</th></tr></thead><tbody>' +
+      '<h2>Rate by where the hours come from</h2><div class="tw"><table><thead><tr><th>Instrument</th><th class="n">Cost pool / yr</th><th class="n">Prior surplus (−deficit)</th><th class="n">Booked h</th><th class="n">Measured h</th><th class="n">Rate on booked h</th><th class="n">Rate on measured h</th><th class="n">Billed now</th><th class="n">Surplus / deficit</th></tr></thead><tbody>' +
       rows.map(function (x) {
         var c = x.c, i = x.ins, rc = c.measured.recovery;
-        return '<tr><td>' + esc(i.name) + '</td><td class="n">' + $(i.pool - (i.carry || 0)) + '</td><td class="n">' + (i.bookedHours || 0).toLocaleString() + '</td><td class="n">' + (i.measuredHours || 0).toLocaleString() + '</td><td class="n">' + (c.booked.rate == null ? "—" : $2(c.booked.rate)) + '</td><td class="n"><b>' + (c.measured.rate == null ? "—" : $2(c.measured.rate)) + '</b></td><td class="n">' + $2(i.billedRate) + '</td><td class="n" style="color:' + (rc < 0 ? "var(--bad)" : "var(--acc)") + '">' + (rc < 0 ? "−" : "+") + $(Math.abs(rc)) + '</td></tr>';
+        return '<tr><td>' + esc(i.name) + '</td><td class="n"><input type="number" step="500" min="0" data-pool="' + esc(i.name) + '" value="' + i.pool + '" aria-label="Cost pool for ' + esc(i.name) + '"></td><td class="n"><input type="number" step="500" data-carry="' + esc(i.name) + '" value="' + (i.carry || 0) + '" aria-label="Prior surplus for ' + esc(i.name) + '"></td><td class="n">' + (i.bookedHours || 0).toLocaleString() + '</td><td class="n">' + (i.measuredHours || 0).toLocaleString() + '</td><td class="n">' + (c.booked.rate == null ? "—" : $2(c.booked.rate)) + '</td><td class="n"><b>' + (c.measured.rate == null ? "—" : $2(c.measured.rate)) + '</b></td><td class="n">' + $2(i.billedRate) + '</td><td class="n" style="color:' + (rc < 0 ? "var(--bad)" : "var(--acc)") + '">' + (rc < 0 ? "−" : "+") + $(Math.abs(rc)) + '</td></tr>';
       }).join("") + '</tbody></table></div>' +
-      '<p class="muted small">Hours are this month\'s files annualized. Cost pools, carry-forwards and the rate schedule are a synthetic sample core. Surplus / deficit = billed rate × measured hours − cost pool.</p>' +
-      '<h2>What an auditor would flag</h2>' + findings.map(function (f) { return '<div class="find"><span class="sev ' + f.severity + '">' + f.severity + '</span><div><b>' + esc(f.instrument || "Core") + '</b> · ' + esc(f.finding) + (f.cite ? ' <span class="cite">' + esc(f.cite) + '</span>' : "") + '</div></div>'; }).join("") +
+      '<p class="muted small">Hours are this month\'s files annualized. Cost pools and carry-forwards start as synthetic examples: type your own. The sample assumes this year\'s rate was set as cost ÷ booked hours. Surplus / deficit = billed rate × measured hours − (cost pool − prior surplus).</p>' +
+      '<h2>What a reviewer would likely question</h2><p class="muted small" style="margin-top:-4px">Checks: unallowable costs in the pool, federal users charged more than internal users, a surplus or deficit over 5% of cost, and rates that measured hours don\'t support. External and commercial rate tiers can legitimately differ and aren\'t flagged.</p>' + findings.map(function (f) { return '<div class="find"><span class="sev ' + f.severity + '">' + f.severity + '</span><div><b>' + esc(f.instrument || "Core") + '</b> · ' + esc(f.finding) + (f.cite ? ' <span class="cite">' + esc(f.cite) + '</span>' : "") + '</div></div>'; }).join("") +
       '<h2>Fill the rate forms your finance office already uses</h2><div class="card"><p class="muted" style="margin-top:0">USC\'s Office of Financial Analysis publishes a Recharge Center Rate Analysis workbook and a Statement of Activities form. Both ask for <b>volume per service</b>: hours by user type for next year, and actual yearly usage. LaBro fills those rows from measured hours instead of bookings.</p>' +
       '<div class="row"><button class="btn" data-act="uscvol">Volume tab rows (CSV)</button><button class="btn ghost" data-act="uscsoa">Statement of Activities: rate × yearly usage (CSV)</button></div>' +
       '<p class="muted small" style="margin-bottom:0">Columns follow the public templates at <a href="https://fbs.usc.edu/financial-analysis/recharge/recharge-center-forms/">fbs.usc.edu › Recharge Center Forms</a>. Every sample user is internal; with real data, the user type comes from the FBS account.</p></div>' +
@@ -419,6 +420,8 @@
     var t = e.target;
     if (t.dataset.dec != null) { if (t.value) S.dec[t.dataset.dec] = t.value; else delete S.dec[t.dataset.dec]; saveDec(); render(true); }
     if (t.dataset.pi != null) S.pi = t.value;
+    if (t.dataset.pool != null) { S.pool[t.dataset.pool] = Math.max(0, parseFloat(t.value) || 0); render(true); }
+    if (t.dataset.carry != null) { S.carry[t.dataset.carry] = parseFloat(t.value) || 0; render(true); }
     if (t.dataset.map) { C.state.files[t.dataset.map].map[t.dataset.field] = +t.value; C.state.amap.use = {}; C.state.amap.run = {}; render(true); }
     if (t.dataset.amap) { C.state.amap[t.dataset.amap][t.dataset.name] = t.value; render(true); }
     if (t.dataset.file) readFile(t.dataset.file, t.files[0]);
