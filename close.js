@@ -69,7 +69,7 @@
       var f = C.state.files[k], s = C.SRC[k];
       return '<label class="drop" data-drop="' + k + '"><div class="k">' + esc(s.label) + (s.optional ? " · optional" : "") + '</div>' +
         '<div class="n">' + (f ? '<span class="ok">✓</span> ' + esc(f.name) : "Drop a CSV here") + '</div>' +
-        '<div class="muted small">' + (f ? f.rows.length + " rows · " + esc(s.hint) : esc(s.hint)) + '</div><input type="file" accept=".csv,.tsv,.txt" data-file="' + k + '" aria-label="Upload ' + esc(s.label) + '"></label>';
+        '<div class="muted small">' + (f ? f.rows.length + " rows · " + esc(s.hint) : esc(s.hint)) + '</div><input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" data-file="' + k + '" aria-label="Upload ' + esc(s.label) + '"></label>';
     }).join("");
     var bar = function (lbl, v, col, note) { return '<div class="bar"><span>' + lbl + '</span><span class="t"><i style="width:' + (v / mx * 100).toFixed(1) + '%;background:' + col + '"></i></span><span class="num">' + $(v) + '</span></div>' + (note ? '<div class="muted small" style="margin:-4px 0 4px 162px">' + note + '</div>' : ""); };
     var gap = Math.abs(T.login - T.booked);
@@ -140,7 +140,7 @@
   function accountsSection() {
     var M = acctInfo(), WIN = 30;
     var head = '<h2>Accounts to check before you send</h2>';
-    var up = '<label class="btn ghost small" style="position:relative;overflow:hidden">Upload account end dates<input type="file" accept=".csv,.tsv,.txt" data-accts style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>';
+    var up = '<label class="btn ghost small" style="position:relative;overflow:hidden">Upload account end dates<input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" data-accts style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>';
     if (!M) return head + '<div class="card"><p class="muted" style="margin-top:0">Add a list of accounts with end dates (any CSV with an account column and an end-date column) and LaBro flags charges to grants that have ended or end within ' + WIN + ' days.</p>' + up + '</div>';
     var last = Math.max.apply(null, S.A.rows.map(function (r) { return r.day; })), by = {};
     S.A.rows.forEach(function (r) {
@@ -449,12 +449,27 @@
     if (t.dataset.map) { C.state.files[t.dataset.map].map[t.dataset.field] = +t.value; C.state.amap.use = {}; C.state.amap.run = {}; render(true); }
     if (t.dataset.amap) { C.state.amap[t.dataset.amap][t.dataset.name] = t.value; render(true); }
     if (t.dataset.file) readFile(t.dataset.file, t.files[0]);
-    if (t.dataset.accts != null && t.files[0]) { var rd = new FileReader(); rd.onload = function () { S.accts = C.parseCSV(rd.result); render(true); }; rd.readAsText(t.files[0]); }
+    if (t.dataset.accts != null && t.files[0]) { readText(t.files[0]).then(function (txt) { S.accts = C.parseCSV(txt); render(true); }).catch(function (e) { alertBox(e.message); }); }
   });
   app.addEventListener("dragover", function (e) { var d = e.target.closest("[data-drop]"); if (d) { e.preventDefault(); d.classList.add("over"); } });
   app.addEventListener("dragleave", function (e) { var d = e.target.closest("[data-drop]"); if (d) d.classList.remove("over"); });
   app.addEventListener("drop", function (e) { var d = e.target.closest("[data-drop]"); if (d) { e.preventDefault(); readFile(d.dataset.drop, e.dataTransfer.files[0]); } });
-  function readFile(k, f) { if (!f) return; var rd = new FileReader(); rd.onload = function () { S.saved = null; C.setFile(k, f.name, rd.result); render(false); }; rd.readAsText(f); }
+  // Spreadsheets: FBS/iLab/PPMS often export Excel. SheetJS loads from cdnjs only when an .xlsx/.xls is added,
+  // converts the first sheet to CSV in the browser, and the file still never leaves the computer.
+  var xlsxLoading = null;
+  function loadXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return xlsxLoading || (xlsxLoading = new Promise(function (res, rej) {
+      var sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+      sc.onload = function () { res(window.XLSX); }; sc.onerror = function () { xlsxLoading = null; rej(new Error("Could not load the spreadsheet reader")); }; document.head.appendChild(sc);
+    }));
+  }
+  function readText(f) {
+    if (!/\.xlsx?$/i.test(f.name)) return new Promise(function (res) { var rd = new FileReader(); rd.onload = function () { res(rd.result); }; rd.readAsText(f); });
+    return loadXlsx().then(function (X) { return new Promise(function (res) { var rd = new FileReader(); rd.onload = function () { var wb = X.read(new Uint8Array(rd.result), { type: "array", cellDates: false }); res(X.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]], { rawNumbers: false })); }; rd.readAsArrayBuffer(f); }); });
+  }
+  function readFile(k, f) { if (!f) return; readText(f).then(function (t) { S.saved = null; C.setFile(k, f.name, t); render(false); }).catch(function (e) { alertBox(e.message); }); }
+  function alertBox(m) { var d = document.createElement("p"); d.className = "notice-sim"; d.setAttribute("role", "alert"); d.textContent = m; app.insertBefore(d, app.firstChild); }
   // CSV writer: quotes cells and neutralizes text that a spreadsheet would run as a formula (=, +, -, @).
   function cell(v) {
     if (typeof v === "number") return String(v);

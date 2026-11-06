@@ -26,6 +26,10 @@ async function go(){var out=[],fail=0;function ok(c,m){out.push((c?"PASS ":"FAIL
  ok(!/All flagged lines decided/.test(app()),"decisions reset for new file");
  d.querySelector('[data-act=acceptall]').click();await sleep(100);d.querySelector('[data-act=csv]').click();await sleep(50);
  t=await blobs[blobs.length-1].text();ok(t.indexOf(",'=HYPERLINK")>0||t.indexOf("\"'=HYPERLINK")>=0,"formula neutralized");
+ // Excel import through the real file input (SheetJS from cdnjs)
+ var buf=await (await fetch('fbs_reservations_sample.xlsx')).arrayBuffer();var dt=new w.DataTransfer();dt.items.add(new w.File([buf],'fbs.xlsx'));
+ var inp=d.querySelector('input[data-file=res]');inp.files=dt.files;inp.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(4000);
+ ok(/fbs\.xlsx/.test(app())&&/bookings say \$27,455/.test(app()),"xlsx import");
  for(const tab of ["rates","grants","alerts","campus"]){w.location.hash="#"+tab;await sleep(250);ok(app().length>300&&!/NaN|undefined/.test(app()),"tab "+tab)}
  w.location.hash="#rates";await sleep(200);d.querySelector('[data-act=uscvol]').click();d.querySelector('[data-act=uscsoa]').click();await sleep(50);
  t=await blobs[blobs.length-1].text();ok(/^Rate Description/.test(t),"usc forms csv");
