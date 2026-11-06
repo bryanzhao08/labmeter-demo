@@ -215,6 +215,17 @@
         findings.push({ severity: "medium", instrument: ins.name, finding: "Rate of " + $2(ins.billedRate) + "/h matches booked hours; measured hours need " + $2(c.measured.rate) + "/h to break even", cite: "2 CFR 200.468(a)" });
       if (c.flags.indexOf("under_recovery") >= 0) findings.push({ severity: "low", instrument: ins.name, finding: "Projected deficit of " + $(-c.measured.recovery) + " this year: the institution covers it or next year's rate rises", cite: "" });
     });
+    findings.forEach(function (f) {
+      if (f.finding === "Pool contains unallowable costs") {
+        var ins = core.instruments.filter(function (i) { return i.name === f.instrument; })[0], ex = ins && ins.items ? RT.costPool(ins.items).excluded : [];
+        if (ex.length) f.finding = "Cost pool includes " + ex.map(function (x) { return x.label.toLowerCase() + " (" + $(x.amount) + ")"; }).join(", ") + ". " + ex[0].reason;
+      }
+      if (f.finding === "Federal users charged more than internal users") {
+        var fr = core.rateSchedule.filter(function (r) { return r.instrument === f.instrument; });
+        var fed = fr.filter(function (r) { return r.userType === "federal"; })[0], int = fr.filter(function (r) { return r.userType === "internal"; })[0];
+        if (fed && int) f.finding = "Rate schedule charges federally funded users " + $2(fed.rate) + "/h but internal users " + $2(int.rate) + "/h. Rates can't discriminate between federal and other users.";
+      }
+    });
     var sevOrder = { high: 0, medium: 1, low: 2 }; findings.sort(function (a, b) { return sevOrder[a.severity] - sevOrder[b.severity]; });
     var rows = core.instruments.map(function (ins) {
       var c = RT.compare(ins), pool = RT.costPool(ins.items || []).allowable || ins.pool;
