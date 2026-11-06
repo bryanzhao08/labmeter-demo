@@ -1,5 +1,5 @@
 "use strict";
-/* LabMeter monthly audit: reservations export vs usage log (vs optional sensor runs), per user per day,
+/* LaBro monthly audit: reservations export vs usage log (vs optional sensor runs), per user per day,
    with the core's own grace and penalty rules. Everything runs in the browser; files are never uploaded. */
 (function () {
   var RULES_KEY = "labmeter-audit-rules-v1";
@@ -10,13 +10,13 @@
       fields: [
         ["resource", "Instrument / resource", [/resource|instrument|equipment|system/i], true],
         ["user", "User email or username", [/e-?mail/i, /user ?name|netid|login/i, /user/i], true],
-        ["name", "User name", [/reserved by|full name|^name$|^user$/i], false],
-        ["account", "Account / grant", [/account|fund|grant|chart|cost/i], false],
-        ["pi", "PI / lab", [/^pi$|principal|^lab$|^group$/i], false],
+        ["name", "User name", [/reserved by|full name|customer name|user name$|^name$|^user$/i], false],
+        ["account", "Account / grant", [/account|fund|grant|chart|cost|payment|speedtype|^po\b/i], false],
+        ["pi", "PI / lab", [/^pi\b|pi name|principal|^lab$|^group$/i], false],
         ["start", "Start date (or date and time)", [/start ?date/i, /^date$/i, /^start|begin|^from/i], true],
-        ["startTime", "Start time", [/start ?time/i], false],
-        ["end", "End date (or date and time)", [/end ?date/i, /^end|finish|^to$/i], false],
-        ["endTime", "End time", [/end ?time/i], false],
+        ["startTime", "Start time", [/start ?time/i, /^from$/i], false],
+        ["end", "End date (or date and time)", [/end ?date/i, /^end$|^end[ _]|finish/i], false],
+        ["endTime", "End time", [/end ?time/i, /^to$/i], false],
         ["status", "Status", [/status|state/i], false]
       ]
     },
@@ -30,7 +30,7 @@
       ]
     },
     run: {
-      label: "Instrument runs", hint: "LabMeter sensor (optional)", sample: "data/audit/instrument_runs.csv", sampleName: "instrument_runs.csv", optional: true,
+      label: "Instrument runs", hint: "LaBro sensor (optional)", sample: "data/audit/instrument_runs.csv", sampleName: "instrument_runs.csv", optional: true,
       fields: [
         ["instrument", "Sensor / instrument", [/sensor|instrument|device|resource/i], true],
         ["start", "Run start", [/start|begin/i], true],

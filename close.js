@@ -49,7 +49,7 @@
 
   // ---------- views
   function viewClose() {
-    var T = totals(), mx = Math.max(T.booked, T.login, T.actual);
+    var T = totals(), mx = Math.max(T.booked, T.login, T.actual), noRuns = !C.state.files.run, R = C.rules();
     var files = ["res", "use", "run"].map(function (k) {
       var f = C.state.files[k], s = C.SRC[k];
       return '<label class="drop" data-drop="' + k + '"><div class="k">' + esc(s.label) + (s.optional ? " · optional" : "") + '</div>' +
@@ -57,29 +57,42 @@
         '<div class="muted small">' + (f ? f.rows.length + " rows · " + esc(s.hint) : esc(s.hint)) + '</div><input type="file" accept=".csv,.tsv,.txt" data-file="' + k + '" aria-label="Upload ' + esc(s.label) + '"></label>';
     }).join("");
     var bar = function (lbl, v, col, note) { return '<div class="bar"><span>' + lbl + '</span><span class="t"><i style="width:' + (v / mx * 100).toFixed(1) + '%;background:' + col + '"></i></span><span class="num">' + $(v) + '</span></div>' + (note ? '<div class="muted small" style="margin:-4px 0 4px 162px">' + note + '</div>' : ""); };
+    var gap = Math.abs(T.login - T.booked);
     return '' +
-      '<section class="persona card" style="margin-bottom:22px"><div class="avatar" aria-hidden="true">D</div><div><h3>Meet Dana, who runs a 5-instrument imaging core</h3>' +
-      '<div class="muted">Every month Dana exports reservations from FBS, pulls login logs from each instrument PC, and lines them up in a spreadsheet before charges go to 30 labs. Overruns, walk-ups and forgotten logouts are found by eye. A PI who disputes a charge gets an email thread, not evidence. <span class="small">(Dana is a composite persona.)</span></div></div></section>' +
-      '<h1>Close ' + esc(month()) + ' in minutes, with a reason for every charge.</h1>' +
-      '<p class="lede">Drop in this month\'s FBS reservations, the instrument-PC login log and, if you have them, LaBro sensor runs. LaBro lines them up per user per day, applies your core\'s rules, and shows only the lines that need a decision.</p>' +
-      '<ol class="steps"><li class="done"><b>1</b>Add files</li><li class="' + (T.open ? "" : "done") + '"><b>2</b>Decide ' + T.flagged + ' flagged lines</li><li><b>3</b>Send charges &amp; PI statements</li></ol>' +
-      '<div class="grid g3">' + files + '</div>' +
-      '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-act="sample">Reload the sample month</button><span class="muted small">Your files stay in this browser.</span></div>' +
-      '<h2>Same month, three bills</h2>' +
+      '<p class="muted small" style="margin:0 0 6px">' + esc(month()) + ' · one imaging core · 5 instruments · ' + S.A.rows.length + ' user-days</p>' +
+      '<h1>Same month, same core: bookings say ' + $(T.booked) + ', logins say ' + $(T.login) + '.</h1>' +
+      '<p class="lede">That ' + $(gap) + ' gap is what a core manager reconciles by hand every month, line by line, before charges go to the labs. LaBro does it in one pass, gives every charge a reason, and leaves only the lines that need a human decision.</p>' +
       '<div class="card"><div class="bars">' +
       bar("By booking", T.booked, "var(--book)", "What FBS charges if you bill reserved time.") +
       bar("By PC login", T.login, "var(--login)", "Includes time spent copying data after the instrument stopped.") +
-      bar("By actual run", T.actual, "var(--run)", "Instrument-on time from sensors, inside each user's session.") +
-      '</div><p class="muted small" style="margin:12px 0 0">Hours this month: booked ' + h1(T.hrs.booked) + ' h · logged in ' + h1(T.hrs.login) + ' h · instrument running ' + h1(T.hrs.run) + ' h. Penalties under your rules: ' + $(T.penalties) + '. Rates and rules are editable on the full simulator\'s Audit page.</p></div>' +
-      '<div class="grid g4" style="margin-top:16px">' +
-      stat(S.A.rows.length - T.flagged, "lines matched automatically") + stat(T.flagged, "lines needed a decision") + stat(T.open, "still open", T.open ? "" : "hero") + stat($(T.final), "final charges to send, incl. " + $(sum(S.A.rows, function (r) { return S.dec[r.key] === "waive" ? 0 : r.penalty; })) + " penalties", "hero") +
+      (noRuns ? "" : bar("By actual run", T.actual, "var(--run)", "Instrument-on time from LaBro sensors, inside each user's session.")) +
+      '</div><p class="muted small" style="margin:12px 0 0">Hours: booked ' + h1(T.hrs.booked) + ' h · logged in ' + h1(T.hrs.login) + ' h' + (noRuns ? "" : ' · instrument running ' + h1(T.hrs.run) + ' h') + '. Your rules: overruns within ' + R.grace + ' min billed at actual, past that ' + R.mult + '× · unbooked use ' + R.mult + '× · ' + R.round + '-min increments · no-show fee ' + R.noshow + '%. <a href="index.html#/audit">Edit rules and rates</a></p></div>' +
+      '<section class="persona card" style="margin:22px 0"><div class="avatar" aria-hidden="true">D</div><div><h3>Dana runs this core</h3>' +
+      '<div class="muted">Today: export reservations from FBS, pull login logs from five instrument PCs, line them up in a spreadsheet, and find overruns, walk-ups and forgotten logouts by eye, then answer PI emails disputing charges. With LaBro: drop the files below, decide ' + T.flagged + ' lines, send. <span class="small">(Dana is a composite persona.)</span></div></div></section>' +
+      '<ol class="steps"><li class="done"><b>1</b>Add files</li><li class="' + (T.open ? "" : "done") + '"><b>2</b>Decide ' + T.flagged + ' flagged lines</li><li class="' + (T.open ? "" : "done") + '"><b>3</b>Send charges &amp; PI statements</li></ol>' +
+      '<div class="grid g3">' + files + '</div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-act="sample">Sample month (FBS)</button><button class="btn ghost small" data-act="sample-ilab">Sample month (iLab layout)</button><button class="btn ghost small" data-act="nosensor">' + (noRuns ? "Add sensor runs back" : "Try without sensors") + '</button><span class="muted small">Your files stay in this browser.</span></div>' +
+      '<div class="grid g4" style="margin-top:22px">' +
+      stat(S.A.rows.length - T.flagged, "lines matched automatically") + stat(T.flagged, "lines need a decision") + stat(T.open, "still open", T.open ? "" : "hero") + stat($(T.final), "final charges, incl. " + $(sum(S.A.rows, function (r) { return S.dec[r.key] === "waive" ? 0 : r.penalty; })) + " penalties", "hero") +
       '</div>' +
-      '<h2 id="queue">Decide the flagged lines</h2>' + queue() +
-      '<h2>Send</h2><div class="grid g3">' +
-      '<div class="card"><h3>Charges file for FBS</h3><p class="muted small">One line per user, instrument and day with hours, rate, charge and the reason. Matches the columns you map in FBS (mock layout).</p><button class="btn" data-act="csv"' + (T.open ? " disabled" : "") + '>Download charges CSV</button>' + (T.open ? '<p class="small muted">Decide the ' + T.open + ' open lines first, or <button class="btn ghost small" data-act="acceptall">accept LaBro\'s suggestion for all</button></p>' : "") + '</div>' +
+      '<h2 id="queue">Decide the flagged lines</h2>' +
+      (T.open ? '<div class="row" style="margin-bottom:8px"><button class="btn" data-act="acceptall">Apply your rules to all ' + T.open + ' open lines</button><span class="muted small">Penalties as your policy says, no-show fees as set, runs with no one to bill set aside. Change any line after.</span></div>' : '<p class="ok" style="margin:0 0 8px">All flagged lines decided.</p>') +
+      queue() +
+      '<h2>Send</h2>' + preview(T) +
+      '<div class="grid g3" style="margin-top:14px">' +
+      '<div class="card"><h3>Charges file for FBS</h3><p class="muted small">One line per user, instrument and day: hours, rate, charge and the reason. Map its columns once to your FBS import or journal template.</p><button class="btn" data-act="csv"' + (T.open ? " disabled" : "") + '>Download charges CSV</button>' + (T.open ? '<p class="small muted">Decide the open lines first.</p>' : "") + '</div>' +
       '<div class="card"><h3>PI statements</h3><p class="muted small">A printable statement per lab: every charge with booked, login and run time, and why.</p><select data-pi aria-label="Choose a PI">' + piOptions() + '</select> <button class="btn ghost" data-act="stmt">Open</button></div>' +
-      '<div class="card"><h3>Evidence for a dispute</h3><p class="muted small">Click any line above to see its timeline: booking, login and instrument run on one strip, ready to send to the PI.</p></div>' +
+      '<div class="card"><h3>Evidence for a dispute</h3><p class="muted small">Click any line above: booking, login and instrument run on one strip, plus a reply you can paste to the PI.</p></div>' +
       '</div>';
+  }
+  function preview(T) {
+    var rows = S.A.rows.filter(function (r) { return finalCharge(r) > 0.004; });
+    var byPi = {}; rows.forEach(function (r) { var k = r.pi || "?"; byPi[k] = (byPi[k] || 0) + finalCharge(r); });
+    var pis = Object.keys(byPi).sort(function (a, b) { return byPi[b] - byPi[a]; });
+    return '<div class="grid g3"><div class="card" style="grid-column:span 2"><h3>What goes back to FBS</h3><div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Instrument</th><th class="n">Billed</th><th class="n">Charge</th><th>Reason</th></tr></thead><tbody>' +
+      rows.slice(0, 6).map(function (r) { return '<tr><td>' + esc(C.isoDay(r.day)) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.res.split(" ").slice(0, 2).join(" ")) + '</td><td class="n">' + h1(r.billed) + ' h</td><td class="n">' + $2(finalCharge(r)) + '</td><td class="small muted">' + esc((r.notes[0] || "As booked").slice(0, 46)) + '</td></tr>'; }).join("") +
+      '</tbody></table></div><p class="muted small" style="margin:8px 0 0">' + rows.length + ' lines · ' + $2(sum(rows, finalCharge)) + '</p></div>' +
+      '<div class="card"><h3>By lab</h3>' + pis.map(function (p) { return '<div class="row" style="justify-content:space-between"><span>' + esc(p) + ' lab</span><b>' + $(byPi[p]) + '</b></div>'; }).join("") + '</div></div>';
   }
   function stat(v, l, cls) { return '<div class="card stat ' + (cls || "") + '"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>'; }
   function piOptions() {
@@ -96,7 +109,7 @@
     var counts = {}; S.A.rows.forEach(function (r) { counts[r.status] = (counts[r.status] || 0) + 1; });
     var chips = [["action", "Needs a decision", S.A.rows.filter(C.needsAction).length]].concat(Object.keys(C.STATUS).filter(function (k) { return counts[k]; }).map(function (k) { return [k, C.STATUS[k][0], counts[k]]; })).concat([["all", "All lines", S.A.rows.length]]);
     var html = '<div class="filters" role="group" aria-label="Filter lines">' + chips.map(function (c) { return '<button class="chip" data-filter="' + c[0] + '" aria-pressed="' + (S.filter === c[0]) + '">' + esc(c[1]) + ' · ' + c[2] + '</button>'; }).join("") + '</div>';
-    var shown = rows.slice(0, 60);
+    var shown = rows.slice(0, S.more ? 400 : 15);
     html += '<div class="q">' + shown.map(function (r) {
       var st = C.STATUS[r.status], d = S.dec[r.key], act = C.needsAction(r);
       var opts = act ? '<select data-dec="' + esc(r.key) + '" aria-label="Decision">' +
@@ -109,7 +122,7 @@
         '<div class="amt">' + $2(finalCharge(r)) + (r.penalty ? '<div class="small muted">incl. ' + $2(r.penalty) + ' penalty</div>' : "") + '</div>' +
         '<div class="noclick">' + opts + '</div></div>';
     }).join("") + '</div>';
-    if (rows.length > shown.length) html += '<p class="muted small">Showing 60 of ' + rows.length + ' lines. The CSV has all of them.</p>';
+    if (rows.length > shown.length) html += '<div class="row" style="margin-top:8px"><button class="btn ghost small" data-act="more">Show all ' + rows.length + ' lines</button><span class="muted small">The CSV has all of them.</span></div>';
     return html;
   }
 
@@ -138,7 +151,11 @@
       '<div class="tw" style="margin-top:14px"><table><tr><th>PI / account</th><th class="n">Booked</th><th class="n">Logged in</th><th class="n">Ran</th><th class="n">Billed</th><th class="n">Rate</th><th class="n">Charge</th></tr>' +
       '<tr><td>' + esc(r.pi) + ' · ' + esc(r.acct) + '</td><td class="n">' + C.hm(r.booked) + '</td><td class="n">' + C.hm(r.comp) + '</td><td class="n">' + C.hm(r.inst) + '</td><td class="n">' + C.hm(r.billed) + '</td><td class="n">' + $2(rate(r.res)) + '/h</td><td class="n">' + $2(finalCharge(r)) + '</td></tr></table></div>' +
       '<p class="muted small">Sources: FBS reservation export, instrument-PC login log, LaBro current sensor on the instrument. Sensor data in this demo is simulated.</p>' +
-      '<div class="row noprint"><button class="btn" onclick="window.print()">Print or save as PDF</button></div>');
+      '<h3>Reply to the PI</h3><textarea id="reply" rows="5" style="width:100%;font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px">' + esc(reply(r)) + '</textarea>' +
+      '<div class="row noprint" style="margin-top:10px"><button class="btn" data-copy>Copy reply</button><button class="btn ghost" onclick="window.print()">Print or save as PDF</button></div>');
+  }
+  function reply(r) {
+    return "Hi " + (r.pi ? "Dr. " + r.pi : "") + ",\n\nOn " + C.dayLabel(r.day) + ", " + r.name + " booked the " + r.res + " for " + C.hm(r.booked) + ". The instrument log shows it running " + C.hm(r.inst || r.billed) + (r.comp ? " during a " + C.hm(r.comp) + " login session" : "") + ". " + (r.notes[0] ? r.notes[0] + ". " : "") + "The charge of " + $2(finalCharge(r)) + " follows the core's posted policy. The timeline is attached; happy to go through it.\n\nThanks,\nDana";
   }
   function statement(pi) {
     var rows = S.A.rows.filter(function (r) { return r.pi === pi && finalCharge(r) > 0.004; });
@@ -206,11 +223,12 @@
     var under = sum(rows, function (x) { return Math.min(0, x.c.measured.recovery); }), over = sum(rows, function (x) { return Math.max(0, x.c.measured.recovery); });
     return '<h1>Is next year\'s rate built on real hours?</h1>' +
       '<p class="lede">Federal rules for recharge centers (2 CFR 200.468) say rates must recover cost, not make a profit, and must not charge federal grants more than anyone else. A rate is cost ÷ hours, so if the hours come from bookings, the rate is wrong before the year starts. LaBro rebuilds each rate from measured hours and flags what an auditor would.</p>' +
+      '<div class="callout"><b>Rate = (annual cost pool − last year\'s surplus) ÷ billable hours.</b> <span class="muted">If you bill measured run time, billable hours are measured hours, not bookings. Hours below are ' + (months < 1.5 ? "one month of files ×12: load a full year for the real rate file." : Math.round(months) + " months of files, annualized.") + '</span></div>' +
       '<div class="grid g3">' + stat(findings.filter(function (f) { return f.severity === "high"; }).length, "high-risk findings", "hero") + stat($(-under), "projected under-recovery / yr") + stat($(over), "projected over-recovery / yr") + '</div>' +
-      '<h2>Rate by where the hours come from</h2><div class="tw"><table><thead><tr><th>Instrument</th><th class="n">Annual cost pool</th><th class="n">Hours: booked</th><th class="n">login</th><th class="n">measured</th><th class="n">Rate from bookings</th><th class="n">Rate from measured</th><th class="n">Rate billed now</th><th class="n">Surplus / deficit</th></tr></thead><tbody>' +
+      '<h2>Rate by where the hours come from</h2><div class="tw"><table><thead><tr><th>Instrument</th><th class="n">Cost pool / yr</th><th class="n">Booked h</th><th class="n">Measured h</th><th class="n">Rate if booked</th><th class="n">Rate if measured</th><th class="n">Billed now</th><th class="n">Surplus / deficit</th></tr></thead><tbody>' +
       rows.map(function (x) {
         var c = x.c, i = x.ins, rc = c.measured.recovery;
-        return '<tr><td>' + esc(i.name) + '</td><td class="n">' + $(i.pool - (i.carry || 0)) + '</td><td class="n">' + (i.bookedHours || 0).toLocaleString() + '</td><td class="n">' + (i.loginHours == null ? '<span class="muted">no PC</span>' : i.loginHours.toLocaleString()) + '</td><td class="n">' + (i.measuredHours || 0).toLocaleString() + '</td><td class="n">' + (c.booked.rate == null ? "—" : $2(c.booked.rate)) + '</td><td class="n"><b>' + (c.measured.rate == null ? "—" : $2(c.measured.rate)) + '</b></td><td class="n">' + $2(i.billedRate) + '</td><td class="n" style="color:' + (rc < 0 ? "var(--bad)" : "var(--acc)") + '">' + (rc < 0 ? "−" : "+") + $(Math.abs(rc)) + '</td></tr>';
+        return '<tr><td>' + esc(i.name) + '</td><td class="n">' + $(i.pool - (i.carry || 0)) + '</td><td class="n">' + (i.bookedHours || 0).toLocaleString() + '</td><td class="n">' + (i.measuredHours || 0).toLocaleString() + '</td><td class="n">' + (c.booked.rate == null ? "—" : $2(c.booked.rate)) + '</td><td class="n"><b>' + (c.measured.rate == null ? "—" : $2(c.measured.rate)) + '</b></td><td class="n">' + $2(i.billedRate) + '</td><td class="n" style="color:' + (rc < 0 ? "var(--bad)" : "var(--acc)") + '">' + (rc < 0 ? "−" : "+") + $(Math.abs(rc)) + '</td></tr>';
       }).join("") + '</tbody></table></div>' +
       '<p class="muted small">Hours are this month\'s files annualized. Cost pools, carry-forwards and the rate schedule are a synthetic sample core. Surplus / deficit = billed rate × measured hours − cost pool.</p>' +
       '<h2>What an auditor would flag</h2>' + findings.map(function (f) { return '<div class="find"><span class="sev ' + f.severity + '">' + f.severity + '</span><div><b>' + esc(f.instrument || "Core") + '</b> · ' + esc(f.finding) + (f.cite ? ' <span class="cite">' + esc(f.cite) + '</span>' : "") + '</div></div>'; }).join("") +
@@ -232,12 +250,13 @@
 
   // Service intervals by run-hours are illustrative defaults (lamp / laser / rotor), not vendor specs.
   var SERVICE = { "Zeiss LSM 880 Confocal": ["Laser service check", 2000, 1710], "BD LSRFortessa Analyzer": ["Fluidics preventive maintenance", 1500, 1380], "Leica SP8 Lightning": ["Laser service check", 2000, 640], "Nikon Ti2 Widefield": ["LED / lamp check", 1000, 905], "Beckman Optima XPN Ultracentrifuge": ["Rotor run-hour log review", 1000, 760] };
+  function groupBy(rows) { var g = {}; rows.forEach(function (r) { (g[r.res] || (g[r.res] = { res: r.res, rows: [] })).rows.push(r); }); return Object.keys(g).map(function (k) { return g[k]; }); }
   function viewAlerts() {
     var U = usage(), noUserRows = S.A.rows.filter(function (r) { return r.flags.nouser; }), transfer = S.A.rows.filter(function (r) { return r.flags.transfer; });
     return '<h1>Catch it the same day, not at month end.</h1>' +
       '<p class="lede">The same sensor that bills the run notices when an instrument runs with nobody booked, and counts real run-hours toward service intervals instead of calendar months.</p>' +
       '<h2>Ran with no one booked · ' + noUserRows.length + '</h2>' +
-      (noUserRows.length ? noUserRows.slice(0, 12).map(function (r) { return '<div class="find"><span class="sev high">now</span><div><b>' + esc(r.res) + '</b> · ' + esc(C.dayLabel(r.day)) + ' · ' + esc(r.notes.join(" · ")) + '<div class="muted small">Would have texted the core manager when the run passed 15 minutes.</div></div></div>'; }).join("") : '<p class="muted">None this month.</p>') +
+      (noUserRows.length ? groupBy(noUserRows).map(function (g) { return '<div class="find"><span class="sev high">' + g.rows.length + '×</span><div><b>' + esc(g.res) + '</b> · ' + C.hm(sum(g.rows, function (r) { return r.inst; })) + ' of running with no booking, on ' + g.rows.map(function (r) { return esc(C.dayLabel(r.day)); }).join(", ") + '<div class="muted small">' + (g.rows.every(function (r) { return r.sensorOnly; }) ? "No PC on this instrument, so FBS and login logs never saw these runs. " : "") + 'LaBro would text the core manager once a run passes 15 minutes with no booking.</div></div></div>'; }).join("") : '<p class="muted">None this month.</p>') +
       '<h2>Logins that kept the instrument PC busy after the run · ' + transfer.length + '</h2><p class="muted">Total ' + h1(sum(transfer, function (r) { return r.comp - r.inst; })) + ' h of PC time after acquisition ended. Billing by login would charge it; billing by run does not.</p>' +
       '<h2>Service by run-hours</h2><div class="heat">' + U.map(function (u) {
         var s = SERVICE[u.res]; if (!s) return "";
@@ -258,7 +277,7 @@
     var color = function (u) { return u < .15 ? "var(--bad)" : u > .85 ? "var(--warn)" : "var(--run)"; };
     return '<h1>Every shared machine on campus, on one page.</h1>' +
       '<p class="lede">When every core bills from measured run time, the research office gets something it has never had: real utilization across campus. Which instruments sit idle while their service contracts renew, which ones have a waitlist, and where a purchase request duplicates something already on campus.</p>' +
-      '<div class="grid g3">' + stat(all.length, "instruments tracked") + stat(idle.length, "under 15% used: review the service contract", "hero") + stat(full.length, "over 85% used: candidates for a second unit") + '</div>' +
+      '<p class="notice-sim">Illustration: only the imaging core comes from your files. The other five cores are simulated to show what a campus rollout would look like.</p>' + '<div class="grid g3">' + stat(all.length, "instruments tracked") + stat(idle.length, "under 15% used: review the service contract", "hero") + stat(full.length, "over 85% used: candidates for a second unit") + '</div>' +
       '<div class="legend" style="margin:18px 0 4px"><span><i class="dot" style="background:var(--bad)"></i>Under 15%</span><span><i class="dot" style="background:var(--run)"></i>Healthy</span><span><i class="dot" style="background:var(--warn)"></i>Over 85%</span><span>Share of 50 staffed hours a week</span></div>' +
       '<div class="heat">' + cores.map(function (c) { return '<div class="hcore">' + esc(c.name) + '</div>' + c.items.map(function (i) { return '<div class="hrow"><span class="nm">' + esc(i[0]) + '</span><span class="t"><i style="width:' + Math.max(2, Math.min(100, i[1] * 100)).toFixed(1) + '%;background:' + color(i[1]) + '"></i></span><span class="num small">' + Math.round(i[1] * 100) + '%</span></div>'; }).join(""); }).join("") + '</div>' +
       '<p class="muted small">Only the imaging core comes from the loaded files. The other cores are simulated to show the campus view.</p>';
@@ -282,11 +301,14 @@
     if (b && b.dataset.filter) { S.filter = b.dataset.filter; render(true); return; }
     if (b) {
       var a = b.dataset.act;
-      if (a === "sample") { S.dec = {}; save(DKEY, S.dec); C.loadSample().then(function () { render(false); }); }
+      if (a === "sample") { S.dec = {}; save(DKEY, S.dec); C.loadSample().then(function () { render(true); }); }
+      if (a === "sample-ilab") { S.dec = {}; save(DKEY, S.dec); C.loadSample().then(function () { return fetch("data/audit/ilab_reservations.csv").then(function (r) { return r.text(); }); }).then(function (t) { C.setFile("res", "ilab_reservations.csv", t); render(true); }); }
+      if (a === "nosensor") { if (C.state.files.run) { S.saved = C.state.files.run; delete C.state.files.run; C.state.amap.run = {}; } else if (S.saved) { C.state.files.run = S.saved; } S.dec = {}; save(DKEY, S.dec); render(true); }
       if (a === "csv") csv();
       if (a === "stmt") statement(app.querySelector("[data-pi]").value);
       if (a === "acceptall") { S.A.rows.filter(C.needsAction).forEach(function (r) { if (!S.dec[r.key]) S.dec[r.key] = SUGGEST[r.status] || "measured"; }); save(DKEY, S.dec); render(true); }
       if (a === "grantcsv") grantCsv();
+      if (a === "more") { S.more = true; render(true); }
       return;
     }
     if (e.target.closest(".noclick")) return;
@@ -309,7 +331,8 @@
     var blob = new Blob([lines.map(function (l) { return l.join(","); }).join("\n") + "\n"], { type: "text/csv" });
     var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "labro-instrument-usage.csv"; document.body.appendChild(a); a.click(); a.remove();
   }
-  modal.addEventListener("click", function (e) { if (e.target === modal || e.target.closest("[data-close]")) closeModal(); });
+  modal.addEventListener("click", function (e) {
+    if (e.target.closest("[data-copy]")) { var t = document.getElementById("reply"); t.select(); try { navigator.clipboard.writeText(t.value); } catch (x) { document.execCommand("copy"); } e.target.textContent = "Copied"; return; } if (e.target === modal || e.target.closest("[data-close]")) closeModal(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) closeModal(); });
   if (STATIC) document.documentElement.classList.add("static");
 

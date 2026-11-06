@@ -296,7 +296,7 @@
 
   // ---- mode: overview (default, static 2D) or live simulation (3D, auto-playing)
   var MODE = "overview", MSTORE = "labmeter-demo-mode-v1";
-  // ---- setup: "fbs" = LabMeter complements FBS (audit + verified usage), "suite" = LabMeter runs the whole workflow
+  // ---- setup: "fbs" = LaBro complements FBS (audit + verified usage), "suite" = LaBro runs the whole workflow
   var SETUP_KEY = "labmeter-demo-setup-v1";
   var SETUP = (function () { try { return localStorage.getItem(SETUP_KEY) === "suite" ? "suite" : "fbs"; } catch (e) { return "fbs"; } })();
   function syncSetup() { $$("#setup [data-setup]").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-setup") === SETUP ? "true" : "false"); }); }
@@ -307,7 +307,7 @@
     var r = parseHash().p[0] || "home";
     if ((r === "audit" && SETUP === "suite") || (r === "book" && SETUP === "fbs")) location.hash = SETUP === "suite" ? "#/book" : "#/audit";
     else route(null);
-    toast(SETUP === "suite" ? "All-in-one: LabMeter handles booking, claims, measured use and PI statements." : "With FBS: FBS keeps scheduling; LabMeter audits actual use against it.");
+    toast(SETUP === "suite" ? "All-in-one: LaBro handles booking, claims, measured use and PI statements." : "With FBS: FBS keeps scheduling; LaBro audits actual use against it.");
   }
   function storedMode() { try { return localStorage.getItem(MSTORE) === "sim" ? "sim" : "overview"; } catch (e) { return "overview"; } }
   function saveMode(m) { try { localStorage.setItem(MSTORE, m); } catch (e) { /* storage unavailable */ } }
@@ -925,7 +925,7 @@
     draw();
   }
 
-  function notFound(msg) { document.title = "Not found · LabMeter"; $main.innerHTML = "<h1>Page not found</h1><p>" + esc(msg || "That page does not exist.") + '</p><div class="btnrow"><a class="btn primary" href="#/">Back to overview</a><a class="btn" href="#/find">Find an item</a></div>'; }
+  function notFound(msg) { document.title = "Not found · LaBro"; $main.innerHTML = "<h1>Page not found</h1><p>" + esc(msg || "That page does not exist.") + '</p><div class="btnrow"><a class="btn primary" href="#/">Back to overview</a><a class="btn" href="#/find">Find an item</a></div>'; }
 
   // ---- All-in-one: PI statements
   function acctRows() {
@@ -1028,14 +1028,14 @@
       ["Audit in seconds", "Every user's use is compared with their reservations, day by day. Your grace window and penalty rules are applied: overruns past grace, unbooked use, no-shows."],
       ["Bill and explain", "Download findings and charges to load into FBS. Each line says why it was charged, ready to attach to a PI statement."]
     ] : [
-      ["Book and measure", "Researchers book in the LabMeter calendar instead of FBS. A clip-on BLE current sensor on the power cord records when the instrument actually runs."],
+      ["Book and measure", "Researchers book in the LaBro calendar instead of FBS. A clip-on BLE current sensor on the power cord records when the instrument actually runs."],
       ["Tap to claim", "A researcher taps the instrument's NFC sticker and picks a grant. The claim says who is responsible. It does not decide the bill."],
       ["Reconcile", "Bookings, claims and measured runs are compared. Measured run time that matches a claim is verified and rounded to 15-minute increments. Walk-ups, overruns, idle claims, no-shows and sensor gaps go to the review queue."],
-      ["Bill and find", "Statements go to each PI from LabMeter, and one ledger export feeds the university journal entry. BLE tags on portable gear are heard by room gateways, so a missing pipette set shows the last room it was seen in."]
+      ["Bill and find", "Statements go to each PI from LaBro, and one ledger export feeds the university journal entry. BLE tags on portable gear are heard by room gateways, so a missing pipette set shows the last room it was seen in."]
     ];
-    $main.innerHTML = pageHead("How it works", (SETUP === "fbs" ? "With FBS: LabMeter sits beside FBS and checks reservations against actual use." : "All-in-one: LabMeter books, measures and bills, end to end.") + " Switch setups at the top of the page. This demo uses simulated data.") +
+    $main.innerHTML = pageHead("How it works", (SETUP === "fbs" ? "With FBS: LaBro sits beside FBS and checks reservations against actual use." : "All-in-one: LaBro books, measures and bills, end to end.") + " Switch setups at the top of the page. This demo uses simulated data.") +
       '<ol class="how">' + steps.map(function (x, i) { return '<li class="card"><span class="hn" aria-hidden="true">' + (i + 1) + "</span><h3>" + x[0] + "</h3><p>" + x[1] + "</p></li>"; }).join("") + "</ol>" +
-      '<h2 class="sec">What this demo is</h2><div class="card prose"><p>Seven days of synthetic events from the LabMeter server simulator: 6 instruments, 12 researchers, 5 grants. Review decisions and gear actions are saved only in this browser. Portable-gear locations are room-level, not GPS.</p><p class="tight">The simulator creates one observation window of about 65 minutes per instrument per day, so timelines are sparse. Billing floors each uninterrupted run to 15 minutes, and booked-time billing and iLab or PPMS schemas are not implemented.</p></div>' +
+      '<h2 class="sec">What this demo is</h2><div class="card prose"><p>Seven days of synthetic events from the LaBro server simulator: 6 instruments, 12 researchers, 5 grants. Review decisions and gear actions are saved only in this browser. Portable-gear locations are room-level, not GPS.</p><p class="tight">The simulator creates one observation window of about 65 minutes per instrument per day, so timelines are sparse. Billing floors each uninterrupted run to 15 minutes, and booked-time billing and iLab or PPMS schemas are not implemented.</p></div>' +
       '<div class="btnrow topgap"><a class="btn primary" href="#/?mode=sim">Watch the live simulation</a><a class="btn" href="#/">Back to overview</a></div>';
   }
   function parseHash() {
@@ -1064,12 +1064,12 @@
     T = D ? (D.tSnap || D.tLast) : T;
     nav(r === "i" ? "home" : r);
     $main.innerHTML = "";
-    document.title = (TITLES[r === "i" ? "home" : r] || "Not found") + " · LabMeter";
+    document.title = (TITLES[r === "i" ? "home" : r] || "Not found") + " · LaBro";
     if (!D) { syncSwitch(); return; }
     $main.removeAttribute("aria-busy");
     try {
-      if (r === "i") { instrument(p[1]); if (D.inst[p[1]]) document.title = D.inst[p[1]].name + " · LabMeter"; }
-      else if (r === "t") { if (!p[1]) tapIndex(); else { var tg = decodeURIComponent(p[1]); if (/^gear-/.test(tg)) tapGear(tg); else tap(tg); if (document.title.indexOf("Not found") !== 0) document.title = "Tap " + tg.replace(/^(tag|gear)-/, "") + " · LabMeter"; } }
+      if (r === "i") { instrument(p[1]); if (D.inst[p[1]]) document.title = D.inst[p[1]].name + " · LaBro"; }
+      else if (r === "t") { if (!p[1]) tapIndex(); else { var tg = decodeURIComponent(p[1]); if (/^gear-/.test(tg)) tapGear(tg); else tap(tg); if (document.title.indexOf("Not found") !== 0) document.title = "Tap " + tg.replace(/^(tag|gear)-/, "") + " · LaBro"; } }
       else if (r === "billing") billing();
       else if (r === "audit") { if (window.LMAudit) window.LMAudit($main, { esc: esc, pageHead: pageHead, strip: strip, fmtMoney: fmtMoney, toast: toast }); else notFound("The audit module did not load."); }
       else if (r === "book") book(q);

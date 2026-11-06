@@ -1,5 +1,5 @@
 "use strict";
-/* LabMeter 3D facility scene (quiet version). Needs window.THREE (three.js r128).
+/* LaBro 3D facility scene (quiet version). Needs window.THREE (three.js r128).
    Exposes window.LabScene.create(host, model, cb) -> { setTime, select, destroy }.
    model: { vb:[w,h], rooms:[{id,name,x,y,w,h,kind}], pins:{id:{room,x,y}}, instruments:[{id,name}],
             assets:[{id,name,history:[{t,room}]}], stateAt(id,t)->run|idle|off|gap, stateText(s),

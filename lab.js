@@ -1,9 +1,9 @@
-/* LabMeter lab simulator: one simulated month in a five-instrument shared core.
+/* LaBro lab simulator: one simulated month in a five-instrument shared core.
    Every session has three records: the booking (FBS), the computer login (SoftLock/Bookitlab)
    and the real instrument run (what a clamp sensor sees). Three billing methods are compared live:
      Today:    bill the booking (overruns and walk-ups are missed unless found by hand)
      Logins:   bill the computer login (data transfer and forgotten logouts get charged; no-PC instruments invisible)
-     LabMeter: bill the actual run with the core's rules (grace, penalties)
+     LaBro: bill the actual run with the core's rules (grace, penalties)
    All data is simulated. Assumptions are listed on the page. */
 (function () {
   "use strict";
@@ -90,7 +90,7 @@
     // Logins: bill the computer session; no-PC instruments fall back to the booking.
     s.login = s.ins.pc ? login * r : booked * r;
     if (s.ins.pc && s.rs === null) s.login = booked * r;
-    // LabMeter: bill what ran, apply the rules.
+    // LaBro: bill what ran, apply the rules.
     var over = s.bs !== null && s.re !== null ? s.re - s.be : 0, pen = 0, kind = "ok";
     if (s.bs === null) { kind = "unbooked"; pen = ran * r * (P.mult - 1); }
     else if (s.rs === null) kind = "noshow";
@@ -124,7 +124,7 @@
     T.missed = Math.max(0, T.lm - T.today);
     T.overLogin = Math.max(0, T.login - T.lm + 0);
     // Manager time (assumption, shown on page): 2 min per session to compare by hand + 10 min per exception;
-    // with LabMeter: 1.5 min per flagged exception to approve.
+    // with LaBro: 1.5 min per flagged exception to approve.
     T.handMin = T.sessions * 2 + T.flagged * 10; T.lmMin = T.flagged * 1.5;
     return T;
   }
@@ -160,7 +160,7 @@
     $("meters").innerHTML =
       bar("Bill the booking (today)", T.today, "b", "What the core charges if nobody checks. Misses overruns and walk-ups.") +
       bar("Bill the computer login", T.login, "l", "Charges data transfer and forgotten logouts. Can't see the ultracentrifuge.") +
-      bar("Bill what actually ran (LabMeter)", T.lm, "r", "Actual run time plus the core's own penalties.");
+      bar("Bill what actually ran (LaBro)", T.lm, "r", "Actual run time plus the core's own penalties.");
     $("kpis").innerHTML = [
       [money(T.unUsd) + " · " + hrs(T.unMin), "of instrument use never billed", "plus " + money(T.pens) + " in penalties the core's own rules call for"],
       [money(T.xfer), "of data transfer billed as instrument time", T.forgot + " forgotten logouts this month"],
@@ -168,7 +168,7 @@
       [hrs(T.handMin) + " → " + hrs(T.lmMin), "manager time to audit", T.flagged + " of " + T.sessions + " sessions need a decision"]
     ].map(function (k) { return '<div class="kpi"><b>' + k[0] + "</b><span>" + k[1] + '</span><small class="muted">' + k[2] + "</small></div>"; }).join("");
     var labs = Object.keys(T.labs).sort();
-    $("labs").innerHTML = labs.length ? '<table><thead><tr><th>Lab</th><th class="n">Hours run</th><th class="n">Billed today</th><th class="n">Login billing</th><th class="n">LabMeter</th><th class="n">Today vs fair</th></tr></thead><tbody>' +
+    $("labs").innerHTML = labs.length ? '<table><thead><tr><th>Lab</th><th class="n">Hours run</th><th class="n">Billed today</th><th class="n">Login billing</th><th class="n">LaBro</th><th class="n">Today vs fair</th></tr></thead><tbody>' +
       labs.map(function (k) { var L = T.labs[k], d = L.today - L.lm; return "<tr><td>" + k + " Lab</td><td class=n>" + L.hours.toFixed(1) + "</td><td class=n>" + money(L.today) + "</td><td class=n>" + money(L.login) + "</td><td class=n>" + money(L.lm) + '</td><td class="n ' + (d > 0 ? "over" : d < 0 ? "under" : "") + '">' + (d > 0 ? "overcharged " + money(d) : d < 0 ? "undercharged " + money(-d) : "—") + "</td></tr>"; }).join("") + "</tbody></table>" : '<p class="muted">Statements fill in as sessions finish.</p>';
   }
   var fed = {};
@@ -179,7 +179,7 @@
       var t = "Day " + (s.day + 1) + " " + hhmm(s.end), who = "<b>" + esc(s.user) + "</b> (" + esc(s.pi) + " Lab)", ins = esc(s.ins.short), m = null, cls = "";
       if (s.kind === "unbooked") { m = who + " used the " + ins + " for " + hrs(s.ran) + " with no booking. Billed today: $0."; cls = "bad"; }
       else if (s.kind === "noshow") { m = who + " booked the " + ins + " and never came. The slot sat empty."; cls = "warn"; }
-      else if (s.kind === "pastgrace") { m = who + " ran " + hrs(s.re - s.be) + " past the booking on the " + ins + ". Today that's missed; LabMeter bills it plus the penalty."; cls = "bad"; }
+      else if (s.kind === "pastgrace") { m = who + " ran " + hrs(s.re - s.be) + " past the booking on the " + ins + ". Today that's missed; LaBro bills it plus the penalty."; cls = "bad"; }
       else if (!s.ins.pc && s.re > s.be) { m = who + "'s ultracentrifuge spin ran " + hrs(s.re - s.be) + " past the slot. No login system saw it."; cls = "bad"; }
       else if (s.forgot) { m = who + " forgot to log out of the " + ins + ". Login billing charges " + hrs(s.xfer) + " of an idle machine."; cls = "warn"; }
       if (m) { fed[i] = 1; lines.push('<li class="' + cls + '"><time>' + t + "</time>" + m + "</li>"); }
@@ -226,7 +226,7 @@
   function pause() { playing = false; cancelAnimationFrame(raf); $("play").textContent = "Play"; }
   function reset() { pause(); S = gen(); clock = 7 * 60; fed = {}; tourShown = {}; $("feed").innerHTML = ""; $("cap").hidden = !tourOn; $("cap").innerHTML = "Press <b>Play</b> to follow one day in the core, then the whole month."; $("capnext").hidden = true; draw(); }
   function skip() { tourOn = false; clock = DAYS * DAY; draw(); pause(); endCap(); $("play").textContent = "Replay month"; }
-  function endCap() { var T = totals(clock); $("cap").hidden = false; $("capnext").hidden = true; $("cap").innerHTML = "<b>One month, one core.</b> " + money(T.unUsd) + " of instrument use was never billed, logins overcharged labs " + money(T.xfer) + " for data transfer, and the manager would spend " + hrs(T.handMin) + " checking it by hand. LabMeter: " + hrs(T.lmMin) + "."; }
+  function endCap() { var T = totals(clock); $("cap").hidden = false; $("capnext").hidden = true; $("cap").innerHTML = "<b>One month, one core.</b> " + money(T.unUsd) + " of instrument use was never billed, logins overcharged labs " + money(T.xfer) + " for data transfer, and the manager would spend " + hrs(T.handMin) + " checking it by hand. LaBro: " + hrs(T.lmMin) + "."; }
 
   // ---------- first-principles calculator ----------
   var simLeak = null;
@@ -243,7 +243,7 @@
       "<div><span>Billed per year</span><b>" + money(billed) + "</b><small>" + n + " instruments × $" + rate + "/h × " + h.toLocaleString() + " h</small></div>" +
       "<div><span>Billed wrong per year</span><b>" + money(lost) + "</b><small>" + (leak * 100).toFixed(0) + "% of billed time, over or under</small></div>" +
       "<div><span>Manager time back</span><b>" + money(admin) + "</b><small>" + Math.round(adm * 12 * .8) + " h/yr at $" + wage + "/h (80% of " + adm + " h/mo)</small></div>" +
-      "<div><span>LabMeter costs</span><b>" + money(cost) + "</b><small>$250/mo + $40 per instrument/mo</small></div>" +
+      "<div><span>LaBro costs</span><b>" + money(cost) + "</b><small>$250/mo + $40 per instrument/mo</small></div>" +
       '<div class="roi"><span>Return</span><b>' + (cost ? ((lost + admin) / cost).toFixed(1) : "0") + "×</b><small>" + money(lost + admin - cost) + " a year net</small></div>";
   }
 

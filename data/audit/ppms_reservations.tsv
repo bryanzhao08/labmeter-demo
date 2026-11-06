@@ -1,0 +1,321 @@
+Booking ref	System	User login	User full name	Group	Account	Date	From	To	State
+R40112	Beckman Optima XPN Ultracentrifuge	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/01/2026	8:45 AM	12:45 PM	Confirmed
+R40103	BD LSRFortessa Analyzer	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/01/2026	9:00 AM	11:00 AM	Confirmed
+R40106	Leica SP8 Lightning	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/01/2026	9:00 AM	11:00 AM	Confirmed
+R40109	Nikon Ti2 Widefield	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/01/2026	9:00 AM	11:00 AM	Confirmed
+R40101	Zeiss LSM 880 Confocal	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/01/2026	9:00 AM	1:00 PM	Confirmed
+R40110	Nikon Ti2 Widefield	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/01/2026	11:00 AM	1:00 PM	Confirmed
+R40104	BD LSRFortessa Analyzer	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/01/2026	12:00 PM	2:00 PM	Confirmed
+R40107	Leica SP8 Lightning	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/01/2026	12:30 PM	2:30 PM	Confirmed
+R40102	Zeiss LSM 880 Confocal	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/01/2026	1:15 PM	2:45 PM	Confirmed
+R40113	Beckman Optima XPN Ultracentrifuge	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/01/2026	2:00 PM	5:00 PM	Confirmed
+R40111	Nikon Ti2 Widefield	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/01/2026	2:30 PM	6:30 PM	Confirmed
+R40105	BD LSRFortessa Analyzer	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/01/2026	2:45 PM	4:45 PM	Confirmed
+R40108	Leica SP8 Lightning	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/01/2026	3:00 PM	4:30 PM	Confirmed
+R40117	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/02/2026	8:15 AM	10:15 AM	Confirmed
+R40126	Beckman Optima XPN Ultracentrifuge	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/02/2026	8:15 AM	10:15 AM	Confirmed
+R40120	Leica SP8 Lightning	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/02/2026	8:15 AM	12:15 PM	Confirmed
+R40114	Zeiss LSM 880 Confocal	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/02/2026	8:30 AM	10:30 AM	Confirmed
+R40122	Nikon Ti2 Widefield	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/02/2026	9:00 AM	11:00 AM	Confirmed
+R40127	Beckman Optima XPN Ultracentrifuge	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/02/2026	10:15 AM	12:15 PM	Confirmed
+R40118	BD LSRFortessa Analyzer	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/02/2026	11:00 AM	12:00 PM	Confirmed
+R40115	Zeiss LSM 880 Confocal	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/02/2026	11:45 AM	1:45 PM	Confirmed
+R40119	BD LSRFortessa Analyzer	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/02/2026	12:00 PM	3:00 PM	Confirmed
+R40123	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/02/2026	12:00 PM	1:00 PM	Confirmed
+R40121	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/02/2026	1:30 PM	5:30 PM	Confirmed
+R40124	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/02/2026	2:30 PM	4:00 PM	Confirmed
+R40116	Zeiss LSM 880 Confocal	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/02/2026	2:45 PM	4:15 PM	Confirmed
+R40125	Nikon Ti2 Widefield	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/02/2026	4:00 PM	5:30 PM	Cancelled
+R40128	Leica SP8 Lightning	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/03/2026	9:00 AM	11:00 AM	Confirmed
+R40129	Nikon Ti2 Widefield	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/04/2026	9:00 AM	1:00 PM	Confirmed
+R40130	Zeiss LSM 880 Confocal	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/05/2026	8:00 AM	11:00 AM	Confirmed
+R40134	BD LSRFortessa Analyzer	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/05/2026	8:30 AM	10:00 AM	Confirmed
+R40142	Beckman Optima XPN Ultracentrifuge	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/05/2026	8:30 AM	10:30 AM	Confirmed
+R40139	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/05/2026	8:30 AM	11:30 AM	Confirmed
+R40136	Leica SP8 Lightning	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/05/2026	8:45 AM	12:45 PM	Confirmed
+R40143	Beckman Optima XPN Ultracentrifuge	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/05/2026	10:30 AM	1:30 PM	Confirmed
+R40131	Zeiss LSM 880 Confocal	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/05/2026	11:00 AM	12:30 PM	Confirmed
+R40135	BD LSRFortessa Analyzer	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/05/2026	11:15 AM	3:15 PM	Confirmed
+R40140	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/05/2026	11:30 AM	1:00 PM	Confirmed
+R40132	Zeiss LSM 880 Confocal	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/05/2026	1:15 PM	4:15 PM	Confirmed
+R40144	Beckman Optima XPN Ultracentrifuge	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/05/2026	1:30 PM	3:00 PM	Confirmed
+R40137	Leica SP8 Lightning	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/05/2026	1:30 PM	3:30 PM	Confirmed
+R40141	Nikon Ti2 Widefield	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/05/2026	2:15 PM	3:15 PM	Confirmed
+R40138	Leica SP8 Lightning	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/05/2026	4:30 PM	6:30 PM	Cancelled
+R40133	Zeiss LSM 880 Confocal	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/05/2026	4:45 PM	6:15 PM	Confirmed
+R40155	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/06/2026	8:00 AM	12:00 PM	Confirmed
+R40153	Nikon Ti2 Widefield	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/06/2026	8:30 AM	9:30 AM	Confirmed
+R40147	BD LSRFortessa Analyzer	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/06/2026	8:45 AM	10:45 AM	Confirmed
+R40151	Leica SP8 Lightning	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/06/2026	8:45 AM	9:45 AM	Confirmed
+R40145	Zeiss LSM 880 Confocal	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/06/2026	9:00 AM	11:00 AM	Confirmed
+R40154	Nikon Ti2 Widefield	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/06/2026	10:30 AM	1:30 PM	Cancelled
+R40148	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/06/2026	10:45 AM	12:45 PM	Confirmed
+R40152	Leica SP8 Lightning	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/06/2026	10:45 AM	2:45 PM	Confirmed
+R40146	Zeiss LSM 880 Confocal	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/06/2026	11:30 AM	1:00 PM	Confirmed
+R40156	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/06/2026	12:00 PM	2:00 PM	Confirmed
+R40149	BD LSRFortessa Analyzer	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/06/2026	1:00 PM	2:30 PM	Confirmed
+R40150	BD LSRFortessa Analyzer	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/06/2026	2:45 PM	4:45 PM	Confirmed
+R40157	Beckman Optima XPN Ultracentrifuge	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/06/2026	3:15 PM	5:15 PM	Confirmed
+R40161	BD LSRFortessa Analyzer	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/07/2026	8:00 AM	11:00 AM	Confirmed
+R40163	Leica SP8 Lightning	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/07/2026	8:15 AM	9:45 AM	Confirmed
+R40165	Nikon Ti2 Widefield	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/07/2026	8:30 AM	10:00 AM	Confirmed
+R40167	Beckman Optima XPN Ultracentrifuge	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/07/2026	9:00 AM	10:00 AM	Confirmed
+R40158	Zeiss LSM 880 Confocal	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/07/2026	9:00 AM	10:30 AM	Confirmed
+R40166	Nikon Ti2 Widefield	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/07/2026	10:15 AM	2:15 PM	Confirmed
+R40168	Beckman Optima XPN Ultracentrifuge	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/07/2026	10:45 AM	2:45 PM	Confirmed
+R40164	Leica SP8 Lightning	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/07/2026	11:00 AM	3:00 PM	Confirmed
+R40159	Zeiss LSM 880 Confocal	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/07/2026	11:15 AM	1:15 PM	Confirmed
+R40162	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/07/2026	12:00 PM	1:30 PM	Confirmed
+R40160	Zeiss LSM 880 Confocal	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/07/2026	2:15 PM	4:15 PM	Confirmed
+R40169	Beckman Optima XPN Ultracentrifuge	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/07/2026	4:00 PM	5:00 PM	Confirmed
+R40172	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/08/2026	8:15 AM	9:45 AM	Confirmed
+R40176	Leica SP8 Lightning	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/08/2026	8:30 AM	12:30 PM	Confirmed
+R40178	Nikon Ti2 Widefield	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/08/2026	8:30 AM	10:00 AM	Confirmed
+R40182	Beckman Optima XPN Ultracentrifuge	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/08/2026	9:00 AM	10:00 AM	Confirmed
+R40170	Zeiss LSM 880 Confocal	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/08/2026	9:00 AM	11:00 AM	Confirmed
+R40179	Nikon Ti2 Widefield	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/08/2026	10:15 AM	11:15 AM	Confirmed
+R40173	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/08/2026	10:45 AM	2:45 PM	Confirmed
+R40180	Nikon Ti2 Widefield	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/08/2026	11:15 AM	12:45 PM	Confirmed
+R40183	Beckman Optima XPN Ultracentrifuge	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/08/2026	11:30 AM	2:30 PM	Confirmed
+R40171	Zeiss LSM 880 Confocal	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/08/2026	12:00 PM	1:30 PM	Confirmed
+R40181	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/08/2026	12:45 PM	4:45 PM	Confirmed
+R40177	Leica SP8 Lightning	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/08/2026	1:45 PM	3:45 PM	Confirmed
+R40174	BD LSRFortessa Analyzer	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/08/2026	3:15 PM	4:15 PM	Cancelled
+R40175	BD LSRFortessa Analyzer	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/08/2026	4:45 PM	6:45 PM	Confirmed
+R40184	Zeiss LSM 880 Confocal	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/09/2026	8:00 AM	10:00 AM	Confirmed
+R40186	BD LSRFortessa Analyzer	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/09/2026	8:15 AM	12:15 PM	Confirmed
+R40194	Beckman Optima XPN Ultracentrifuge	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/09/2026	8:30 AM	10:30 AM	Confirmed
+R40191	Nikon Ti2 Widefield	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/09/2026	8:30 AM	10:30 AM	Confirmed
+R40189	Leica SP8 Lightning	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/09/2026	8:45 AM	12:45 PM	Confirmed
+R40185	Zeiss LSM 880 Confocal	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/09/2026	10:30 AM	2:30 PM	Confirmed
+R40195	Beckman Optima XPN Ultracentrifuge	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/09/2026	11:45 AM	12:45 PM	Confirmed
+R40192	Nikon Ti2 Widefield	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/09/2026	12:00 PM	4:00 PM	Confirmed
+R40190	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/09/2026	12:45 PM	3:45 PM	Confirmed
+R40187	BD LSRFortessa Analyzer	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/09/2026	1:45 PM	3:45 PM	Confirmed
+R40196	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/09/2026	1:45 PM	3:15 PM	Confirmed
+R40197	Beckman Optima XPN Ultracentrifuge	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/09/2026	3:30 PM	5:30 PM	Confirmed
+R40188	BD LSRFortessa Analyzer	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/09/2026	4:45 PM	5:45 PM	Cancelled
+R40193	Nikon Ti2 Widefield	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/09/2026	5:30 PM	6:30 PM	Confirmed
+R40198	Leica SP8 Lightning	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/10/2026	8:45 AM	10:45 AM	Confirmed
+R40199	Beckman Optima XPN Ultracentrifuge	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/10/2026	9:00 AM	10:00 AM	Confirmed
+R40201	Leica SP8 Lightning	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/11/2026	8:30 AM	10:30 AM	Confirmed
+R40200	Zeiss LSM 880 Confocal	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/11/2026	8:30 AM	10:30 AM	Confirmed
+R40205	BD LSRFortessa Analyzer	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/12/2026	8:00 AM	12:00 PM	Cancelled
+R40208	Leica SP8 Lightning	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/12/2026	8:30 AM	10:00 AM	Confirmed
+R40214	Beckman Optima XPN Ultracentrifuge	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/12/2026	8:45 AM	10:15 AM	Confirmed
+R40210	Nikon Ti2 Widefield	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/12/2026	8:45 AM	9:45 AM	Confirmed
+R40202	Zeiss LSM 880 Confocal	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/12/2026	9:00 AM	11:00 AM	Confirmed
+R40215	Beckman Optima XPN Ultracentrifuge	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/12/2026	10:45 AM	11:45 AM	Confirmed
+R40211	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/12/2026	10:45 AM	11:45 AM	Confirmed
+R40203	Zeiss LSM 880 Confocal	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/12/2026	11:00 AM	3:00 PM	Confirmed
+R40209	Leica SP8 Lightning	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/12/2026	11:30 AM	1:30 PM	Confirmed
+R40212	Nikon Ti2 Widefield	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/12/2026	12:00 PM	1:30 PM	Confirmed
+R40206	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/12/2026	12:15 PM	1:45 PM	Confirmed
+R40207	BD LSRFortessa Analyzer	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/12/2026	1:45 PM	3:15 PM	Confirmed
+R40213	Nikon Ti2 Widefield	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/12/2026	2:45 PM	4:15 PM	Confirmed
+R40204	Zeiss LSM 880 Confocal	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/12/2026	3:15 PM	4:45 PM	Confirmed
+R40216	Zeiss LSM 880 Confocal	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/13/2026	8:00 AM	10:00 AM	Confirmed
+R40226	Beckman Optima XPN Ultracentrifuge	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/13/2026	8:15 AM	10:15 AM	Confirmed
+R40223	Nikon Ti2 Widefield	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/13/2026	8:15 AM	9:15 AM	Confirmed
+R40220	Leica SP8 Lightning	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/13/2026	8:30 AM	10:30 AM	Cancelled
+R40218	BD LSRFortessa Analyzer	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/13/2026	8:45 AM	12:45 PM	Confirmed
+R40224	Nikon Ti2 Widefield	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/13/2026	10:15 AM	12:15 PM	Confirmed
+R40227	Beckman Optima XPN Ultracentrifuge	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/13/2026	10:45 AM	12:45 PM	Confirmed
+R40221	Leica SP8 Lightning	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/13/2026	11:00 AM	12:00 PM	Confirmed
+R40217	Zeiss LSM 880 Confocal	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/13/2026	11:00 AM	1:00 PM	Confirmed
+R40222	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/13/2026	12:30 PM	1:30 PM	Confirmed
+R40219	BD LSRFortessa Analyzer	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/13/2026	12:45 PM	4:45 PM	Confirmed
+R40228	Beckman Optima XPN Ultracentrifuge	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/13/2026	1:00 PM	3:00 PM	Confirmed
+R40225	Nikon Ti2 Widefield	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/13/2026	1:15 PM	3:15 PM	Confirmed
+R40229	Beckman Optima XPN Ultracentrifuge	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/13/2026	3:30 PM	5:30 PM	Confirmed
+R40235	Leica SP8 Lightning	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/14/2026	8:00 AM	10:00 AM	Confirmed
+R40237	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/14/2026	8:00 AM	9:30 AM	Confirmed
+R40230	Zeiss LSM 880 Confocal	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/14/2026	8:00 AM	10:00 AM	Confirmed
+R40232	BD LSRFortessa Analyzer	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/14/2026	8:30 AM	10:30 AM	Confirmed
+R40239	Beckman Optima XPN Ultracentrifuge	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/14/2026	8:30 AM	12:30 PM	Confirmed
+R40238	Nikon Ti2 Widefield	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/14/2026	9:30 AM	12:30 PM	Confirmed
+R40236	Leica SP8 Lightning	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/14/2026	10:15 AM	2:15 PM	Confirmed
+R40231	Zeiss LSM 880 Confocal	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/14/2026	10:30 AM	12:00 PM	Confirmed
+R40233	BD LSRFortessa Analyzer	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/14/2026	12:00 PM	1:00 PM	Confirmed
+R40240	Beckman Optima XPN Ultracentrifuge	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/14/2026	1:15 PM	2:45 PM	Confirmed
+R40234	BD LSRFortessa Analyzer	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/14/2026	2:30 PM	4:00 PM	Confirmed
+R40241	Beckman Optima XPN Ultracentrifuge	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/14/2026	2:45 PM	3:45 PM	Confirmed
+R40247	Leica SP8 Lightning	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/15/2026	8:00 AM	9:30 AM	Confirmed
+R40244	BD LSRFortessa Analyzer	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/15/2026	8:30 AM	12:30 PM	Confirmed
+R40251	Beckman Optima XPN Ultracentrifuge	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/15/2026	9:00 AM	1:00 PM	Confirmed
+R40249	Nikon Ti2 Widefield	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/15/2026	9:00 AM	11:00 AM	Confirmed
+R40242	Zeiss LSM 880 Confocal	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/15/2026	9:00 AM	10:00 AM	Confirmed
+R40248	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/15/2026	9:45 AM	11:15 AM	Confirmed
+R40243	Zeiss LSM 880 Confocal	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/15/2026	10:30 AM	12:30 PM	Confirmed
+R40250	Nikon Ti2 Widefield	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/15/2026	12:30 PM	2:30 PM	Confirmed
+R40245	BD LSRFortessa Analyzer	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/15/2026	1:00 PM	3:00 PM	Confirmed
+R40252	Beckman Optima XPN Ultracentrifuge	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/15/2026	2:30 PM	3:30 PM	Confirmed
+R40246	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/15/2026	3:30 PM	5:30 PM	Confirmed
+R40253	Beckman Optima XPN Ultracentrifuge	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/15/2026	5:00 PM	6:00 PM	Confirmed
+R40259	Leica SP8 Lightning	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/16/2026	8:15 AM	9:15 AM	Confirmed
+R40254	Zeiss LSM 880 Confocal	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/16/2026	8:30 AM	9:30 AM	Confirmed
+R40256	BD LSRFortessa Analyzer	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/16/2026	8:45 AM	9:45 AM	Confirmed
+R40265	Beckman Optima XPN Ultracentrifuge	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/16/2026	9:00 AM	1:00 PM	Confirmed
+R40261	Nikon Ti2 Widefield	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/16/2026	9:00 AM	10:30 AM	Confirmed
+R40255	Zeiss LSM 880 Confocal	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/16/2026	9:45 AM	11:45 AM	Confirmed
+R40257	BD LSRFortessa Analyzer	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/16/2026	10:00 AM	12:00 PM	Confirmed
+R40260	Leica SP8 Lightning	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/16/2026	10:30 AM	12:00 PM	Confirmed
+R40262	Nikon Ti2 Widefield	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/16/2026	10:45 AM	12:15 PM	Confirmed
+R40263	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/16/2026	1:00 PM	3:00 PM	Confirmed
+R40258	BD LSRFortessa Analyzer	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/16/2026	1:15 PM	3:15 PM	Confirmed
+R40266	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/16/2026	1:45 PM	3:15 PM	Confirmed
+R40264	Nikon Ti2 Widefield	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/16/2026	3:30 PM	5:30 PM	Confirmed
+R40268	Leica SP8 Lightning	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/17/2026	8:30 AM	9:30 AM	Confirmed
+R40269	Nikon Ti2 Widefield	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/17/2026	8:45 AM	9:45 AM	Confirmed
+R40267	Zeiss LSM 880 Confocal	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/17/2026	8:45 AM	12:45 PM	Confirmed
+R40270	Leica SP8 Lightning	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/18/2026	8:30 AM	10:30 AM	Confirmed
+R40271	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/18/2026	9:00 AM	12:00 PM	Confirmed
+R40279	Leica SP8 Lightning	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/19/2026	8:00 AM	12:00 PM	Confirmed
+R40283	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/19/2026	8:30 AM	10:30 AM	Confirmed
+R40275	BD LSRFortessa Analyzer	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/19/2026	9:00 AM	10:00 AM	Confirmed
+R40281	Nikon Ti2 Widefield	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/19/2026	9:00 AM	12:00 PM	Confirmed
+R40272	Zeiss LSM 880 Confocal	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/19/2026	9:00 AM	10:30 AM	Confirmed
+R40276	BD LSRFortessa Analyzer	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/19/2026	10:30 AM	12:30 PM	Confirmed
+R40273	Zeiss LSM 880 Confocal	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/19/2026	11:15 AM	1:15 PM	Confirmed
+R40284	Beckman Optima XPN Ultracentrifuge	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/19/2026	11:30 AM	3:30 PM	Confirmed
+R40277	BD LSRFortessa Analyzer	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/19/2026	12:30 PM	2:00 PM	Confirmed
+R40280	Leica SP8 Lightning	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/19/2026	1:00 PM	3:00 PM	Confirmed
+R40282	Nikon Ti2 Widefield	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/19/2026	1:15 PM	2:45 PM	Confirmed
+R40274	Zeiss LSM 880 Confocal	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/19/2026	2:30 PM	4:00 PM	Confirmed
+R40278	BD LSRFortessa Analyzer	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/19/2026	3:00 PM	4:00 PM	Confirmed
+R40297	Beckman Optima XPN Ultracentrifuge	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/20/2026	8:00 AM	10:00 AM	Confirmed
+R40295	Nikon Ti2 Widefield	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/20/2026	8:45 AM	11:45 AM	Confirmed
+R40288	BD LSRFortessa Analyzer	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/20/2026	9:00 AM	11:00 AM	Confirmed
+R40292	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/20/2026	9:00 AM	11:00 AM	Confirmed
+R40285	Zeiss LSM 880 Confocal	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/20/2026	9:00 AM	11:00 AM	Cancelled
+R40298	Beckman Optima XPN Ultracentrifuge	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/20/2026	10:30 AM	1:30 PM	Confirmed
+R40293	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/20/2026	11:00 AM	1:00 PM	Confirmed
+R40286	Zeiss LSM 880 Confocal	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/20/2026	11:30 AM	2:30 PM	Confirmed
+R40289	BD LSRFortessa Analyzer	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/20/2026	12:30 PM	1:30 PM	Cancelled
+R40296	Nikon Ti2 Widefield	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/20/2026	12:45 PM	2:45 PM	Confirmed
+R40294	Leica SP8 Lightning	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/20/2026	1:45 PM	5:45 PM	Confirmed
+R40299	Beckman Optima XPN Ultracentrifuge	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/20/2026	2:00 PM	6:00 PM	Cancelled
+R40290	BD LSRFortessa Analyzer	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/20/2026	2:30 PM	3:30 PM	Confirmed
+R40287	Zeiss LSM 880 Confocal	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/20/2026	3:30 PM	5:00 PM	Confirmed
+R40291	BD LSRFortessa Analyzer	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/20/2026	4:45 PM	6:15 PM	Cancelled
+R40300	Zeiss LSM 880 Confocal	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/21/2026	8:15 AM	9:45 AM	Confirmed
+R40308	Nikon Ti2 Widefield	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/21/2026	8:30 AM	11:30 AM	Confirmed
+R40311	Beckman Optima XPN Ultracentrifuge	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/21/2026	8:45 AM	12:45 PM	Confirmed
+R40302	BD LSRFortessa Analyzer	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/21/2026	9:00 AM	12:00 PM	Confirmed
+R40304	Leica SP8 Lightning	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/21/2026	9:00 AM	10:00 AM	Confirmed
+R40301	Zeiss LSM 880 Confocal	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/21/2026	11:00 AM	12:30 PM	Confirmed
+R40305	Leica SP8 Lightning	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/21/2026	11:30 AM	1:00 PM	Confirmed
+R40309	Nikon Ti2 Widefield	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/21/2026	12:00 PM	1:00 PM	Confirmed
+R40303	BD LSRFortessa Analyzer	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/21/2026	12:45 PM	2:15 PM	Confirmed
+R40312	Beckman Optima XPN Ultracentrifuge	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/21/2026	12:45 PM	3:45 PM	Confirmed
+R40310	Nikon Ti2 Widefield	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/21/2026	1:30 PM	3:30 PM	Cancelled
+R40306	Leica SP8 Lightning	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/21/2026	2:00 PM	4:00 PM	Confirmed
+R40307	Leica SP8 Lightning	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/21/2026	4:00 PM	6:00 PM	Confirmed
+R40316	BD LSRFortessa Analyzer	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/22/2026	8:15 AM	9:45 AM	Confirmed
+R40322	Beckman Optima XPN Ultracentrifuge	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/22/2026	8:15 AM	9:15 AM	Confirmed
+R40318	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/22/2026	8:15 AM	10:15 AM	Confirmed
+R40313	Zeiss LSM 880 Confocal	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/22/2026	8:45 AM	11:45 AM	Confirmed
+R40320	Nikon Ti2 Widefield	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/22/2026	9:00 AM	11:00 AM	Confirmed
+R40323	Beckman Optima XPN Ultracentrifuge	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/22/2026	10:00 AM	2:00 PM	Confirmed
+R40319	Leica SP8 Lightning	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/22/2026	10:45 AM	12:15 PM	Confirmed
+R40317	BD LSRFortessa Analyzer	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/22/2026	11:15 AM	3:15 PM	Confirmed
+R40321	Nikon Ti2 Widefield	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/22/2026	12:15 PM	1:15 PM	Confirmed
+R40314	Zeiss LSM 880 Confocal	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/22/2026	1:15 PM	2:45 PM	Confirmed
+R40324	Beckman Optima XPN Ultracentrifuge	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/22/2026	2:00 PM	3:30 PM	Confirmed
+R40315	Zeiss LSM 880 Confocal	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/22/2026	3:15 PM	4:15 PM	Confirmed
+R40325	Beckman Optima XPN Ultracentrifuge	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/22/2026	4:15 PM	6:15 PM	Confirmed
+R40331	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/23/2026	8:00 AM	9:00 AM	Confirmed
+R40326	Zeiss LSM 880 Confocal	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/23/2026	8:00 AM	9:30 AM	Cancelled
+R40328	BD LSRFortessa Analyzer	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/23/2026	8:30 AM	9:30 AM	Confirmed
+R40337	Beckman Optima XPN Ultracentrifuge	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/23/2026	8:45 AM	9:45 AM	Confirmed
+R40333	Nikon Ti2 Widefield	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/23/2026	8:45 AM	11:45 AM	Confirmed
+R40329	BD LSRFortessa Analyzer	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/23/2026	9:45 AM	1:45 PM	Confirmed
+R40332	Leica SP8 Lightning	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/23/2026	10:15 AM	11:15 AM	Confirmed
+R40338	Beckman Optima XPN Ultracentrifuge	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/23/2026	11:00 AM	12:30 PM	Confirmed
+R40327	Zeiss LSM 880 Confocal	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/23/2026	11:00 AM	12:00 PM	Confirmed
+R40334	Nikon Ti2 Widefield	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/23/2026	1:00 PM	3:00 PM	Confirmed
+R40330	BD LSRFortessa Analyzer	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/23/2026	2:45 PM	4:45 PM	Confirmed
+R40335	Nikon Ti2 Widefield	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/23/2026	3:15 PM	4:15 PM	Confirmed
+R40336	Nikon Ti2 Widefield	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/23/2026	5:00 PM	6:30 PM	Confirmed
+R40341	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/24/2026	8:00 AM	12:00 PM	Confirmed
+R40340	Nikon Ti2 Widefield	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/24/2026	8:00 AM	11:00 AM	Cancelled
+R40339	Leica SP8 Lightning	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/24/2026	8:30 AM	10:30 AM	Confirmed
+R40345	Beckman Optima XPN Ultracentrifuge	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/25/2026	8:15 AM	11:15 AM	Confirmed
+R40342	BD LSRFortessa Analyzer	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/25/2026	8:45 AM	12:45 PM	Confirmed
+R40343	Leica SP8 Lightning	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/25/2026	9:00 AM	11:00 AM	Confirmed
+R40344	Nikon Ti2 Widefield	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/25/2026	9:00 AM	11:00 AM	Confirmed
+R40351	Leica SP8 Lightning	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/26/2026	8:00 AM	10:00 AM	Confirmed
+R40348	BD LSRFortessa Analyzer	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/26/2026	8:15 AM	10:15 AM	Confirmed
+R40346	Zeiss LSM 880 Confocal	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/26/2026	8:30 AM	12:30 PM	Confirmed
+R40356	Beckman Optima XPN Ultracentrifuge	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/26/2026	9:00 AM	11:00 AM	Confirmed
+R40354	Nikon Ti2 Widefield	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/26/2026	9:00 AM	10:30 AM	Confirmed
+R40352	Leica SP8 Lightning	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/26/2026	10:00 AM	11:00 AM	Confirmed
+R40349	BD LSRFortessa Analyzer	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/26/2026	10:45 AM	12:15 PM	Confirmed
+R40353	Leica SP8 Lightning	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/26/2026	11:30 AM	1:30 PM	Confirmed
+R40355	Nikon Ti2 Widefield	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/26/2026	11:30 AM	2:30 PM	Confirmed
+R40357	Beckman Optima XPN Ultracentrifuge	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/26/2026	12:00 PM	4:00 PM	Confirmed
+R40350	BD LSRFortessa Analyzer	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/26/2026	1:00 PM	5:00 PM	Confirmed
+R40347	Zeiss LSM 880 Confocal	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/26/2026	1:15 PM	4:15 PM	Confirmed
+R40368	Nikon Ti2 Widefield	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/27/2026	8:00 AM	9:00 AM	Confirmed
+R40371	Beckman Optima XPN Ultracentrifuge	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/27/2026	8:30 AM	12:30 PM	Confirmed
+R40365	Leica SP8 Lightning	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/27/2026	8:30 AM	10:30 AM	Confirmed
+R40358	Zeiss LSM 880 Confocal	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/27/2026	8:30 AM	10:00 AM	Confirmed
+R40361	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/27/2026	9:00 AM	11:00 AM	Confirmed
+R40369	Nikon Ti2 Widefield	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/27/2026	9:30 AM	12:30 PM	Confirmed
+R40359	Zeiss LSM 880 Confocal	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/27/2026	10:30 AM	12:00 PM	Confirmed
+R40366	Leica SP8 Lightning	pkowalsk@usc.edu	Pia Kowalski	Feldman	1-3305-1182	10/27/2026	10:45 AM	1:45 PM	Confirmed
+R40362	BD LSRFortessa Analyzer	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/27/2026	11:30 AM	1:30 PM	Confirmed
+R40360	Zeiss LSM 880 Confocal	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/27/2026	12:30 PM	1:30 PM	Confirmed
+R40372	Beckman Optima XPN Ultracentrifuge	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/27/2026	1:15 PM	4:15 PM	Confirmed
+R40370	Nikon Ti2 Widefield	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/27/2026	1:45 PM	3:45 PM	Confirmed
+R40363	BD LSRFortessa Analyzer	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/27/2026	2:00 PM	3:00 PM	Confirmed
+R40367	Leica SP8 Lightning	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/27/2026	3:00 PM	5:00 PM	Confirmed
+R40364	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/27/2026	3:30 PM	6:30 PM	Confirmed
+R40373	Zeiss LSM 880 Confocal	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/28/2026	8:30 AM	10:00 AM	Confirmed
+R40377	BD LSRFortessa Analyzer	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/28/2026	8:45 AM	10:45 AM	Confirmed
+R40380	Leica SP8 Lightning	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/28/2026	8:45 AM	12:45 PM	Confirmed
+R40385	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/28/2026	9:00 AM	10:30 AM	Confirmed
+R40382	Nikon Ti2 Widefield	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/28/2026	9:00 AM	11:00 AM	Confirmed
+R40374	Zeiss LSM 880 Confocal	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/28/2026	10:15 AM	12:15 PM	Confirmed
+R40386	Beckman Optima XPN Ultracentrifuge	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/28/2026	10:45 AM	12:45 PM	Confirmed
+R40378	BD LSRFortessa Analyzer	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/28/2026	11:45 AM	1:15 PM	Confirmed
+R40383	Nikon Ti2 Widefield	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/28/2026	12:30 PM	2:30 PM	Confirmed
+R40375	Zeiss LSM 880 Confocal	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/28/2026	12:30 PM	1:30 PM	Confirmed
+R40379	BD LSRFortessa Analyzer	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/28/2026	1:30 PM	3:30 PM	Confirmed
+R40387	Beckman Optima XPN Ultracentrifuge	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/28/2026	1:45 PM	4:45 PM	Confirmed
+R40381	Leica SP8 Lightning	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/28/2026	2:00 PM	6:00 PM	Confirmed
+R40376	Zeiss LSM 880 Confocal	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/28/2026	2:45 PM	5:45 PM	Confirmed
+R40384	Nikon Ti2 Widefield	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/28/2026	3:45 PM	5:45 PM	Confirmed
+R40391	BD LSRFortessa Analyzer	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/29/2026	8:00 AM	10:00 AM	Confirmed
+R40398	Beckman Optima XPN Ultracentrifuge	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/29/2026	8:00 AM	9:00 AM	Confirmed
+R40396	Nikon Ti2 Widefield	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/29/2026	8:00 AM	12:00 PM	Confirmed
+R40394	Leica SP8 Lightning	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/29/2026	8:30 AM	10:30 AM	Confirmed
+R40388	Zeiss LSM 880 Confocal	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/29/2026	8:45 AM	10:45 AM	Cancelled
+R40399	Beckman Optima XPN Ultracentrifuge	htanaka@usc.edu	Hana Tanaka	Feldman	1-3305-1182	10/29/2026	9:00 AM	10:00 AM	Confirmed
+R40400	Beckman Optima XPN Ultracentrifuge	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/29/2026	10:00 AM	2:00 PM	Confirmed
+R40395	Leica SP8 Lightning	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/29/2026	10:30 AM	12:00 PM	Confirmed
+R40392	BD LSRFortessa Analyzer	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/29/2026	11:00 AM	1:00 PM	Confirmed
+R40389	Zeiss LSM 880 Confocal	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/29/2026	11:30 AM	2:30 PM	Confirmed
+R40397	Nikon Ti2 Widefield	mchen@usc.edu	Maya Chen	Ruiz	1-2210-4471	10/29/2026	12:30 PM	3:30 PM	Confirmed
+R40393	BD LSRFortessa Analyzer	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/29/2026	2:00 PM	4:00 PM	Confirmed
+R40390	Zeiss LSM 880 Confocal	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/29/2026	2:45 PM	6:45 PM	Confirmed
+R40401	Beckman Optima XPN Ultracentrifuge	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/29/2026	3:15 PM	4:45 PM	Confirmed
+R40410	Leica SP8 Lightning	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/30/2026	8:00 AM	11:00 AM	Confirmed
+R40412	Nikon Ti2 Widefield	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/30/2026	8:00 AM	10:00 AM	Cancelled
+R40402	Zeiss LSM 880 Confocal	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/30/2026	8:00 AM	9:00 AM	Confirmed
+R40406	BD LSRFortessa Analyzer	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/30/2026	8:30 AM	9:30 AM	Confirmed
+R40415	Beckman Optima XPN Ultracentrifuge	tbrooks@usc.edu	Tom Brooks	Harlow	1-4410-0927	10/30/2026	8:45 AM	12:45 PM	Confirmed
+R40407	BD LSRFortessa Analyzer	ehaddad@usc.edu	Elias Haddad	Harlow	1-4410-0927	10/30/2026	9:45 AM	11:45 AM	Confirmed
+R40403	Zeiss LSM 880 Confocal	kito@usc.edu	Kenji Ito	Harlow	1-4410-0927	10/30/2026	10:15 AM	11:45 AM	Confirmed
+R40413	Nikon Ti2 Widefield	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/30/2026	10:30 AM	12:30 PM	Confirmed
+R40404	Zeiss LSM 880 Confocal	jokafor@usc.edu	James Okafor	Okonkwo	1-2210-5530	10/30/2026	11:45 AM	12:45 PM	Confirmed
+R40411	Leica SP8 Lightning	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/30/2026	12:30 PM	4:30 PM	Confirmed
+R40408	BD LSRFortessa Analyzer	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/30/2026	1:00 PM	2:30 PM	Confirmed
+R40405	Zeiss LSM 880 Confocal	dalvarez@usc.edu	Diego Alvarez	Feldman	1-3305-1182	10/30/2026	1:00 PM	2:00 PM	Confirmed
+R40416	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/30/2026	1:15 PM	3:15 PM	Confirmed
+R40414	Nikon Ti2 Widefield	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/30/2026	2:00 PM	6:00 PM	Confirmed
+R40409	BD LSRFortessa Analyzer	rnair@usc.edu	Ravi Nair	Okonkwo	1-2210-5530	10/30/2026	2:45 PM	4:45 PM	Confirmed
+R40417	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/30/2026	4:45 PM	5:45 PM	Confirmed
+R40420	Beckman Optima XPN Ultracentrifuge	lmoreau@usc.edu	Lena Moreau	Ruiz	1-2210-4471	10/31/2026	8:15 AM	11:15 AM	Confirmed
+R40418	Leica SP8 Lightning	arjunpat@usc.edu	Arjun Patel	Ruiz	1-2210-4471	10/31/2026	8:15 AM	12:15 PM	Confirmed
+R40419	Nikon Ti2 Widefield	slindgre@usc.edu	Sofia Lindgren	Okonkwo	1-2210-5530	10/31/2026	9:00 AM	12:00 PM	Confirmed
