@@ -186,7 +186,7 @@
       var opts = act ? '<select data-dec="' + esc(r.key) + '" aria-label="Decision">' +
         [["", "Decide…"], ["measured", "Bill as measured" + (r.penalty ? " + penalty" : "")], ["waive", "Waive penalty"], ["booked", "Bill booked time"], ["zero", "Don't bill"]]
           .map(function (o) { return '<option value="' + o[0] + '"' + ((d || "") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select>' : '<span class="muted small">auto</span>';
-      return '<div class="qi' + (d ? " decided" : "") + '" data-row="' + esc(r.key) + '" tabindex="0" role="button" aria-label="Open evidence for ' + esc(r.name) + '">' +
+      return '<div class="qi' + (d ? " decided" : "") + (r.flags.penalty ? " pen" : "") + '" data-row="' + esc(r.key) + '" tabindex="0" role="button" aria-label="Open evidence for ' + esc(r.name) + '">' +
         '<div class="small muted">' + esc(C.dayLabel(r.day)) + '</div>' +
         '<div><div class="who">' + esc(r.name) + '</div><div class="small muted">' + esc(r.res) + '</div></div>' +
         '<div><span class="tag ' + st[1] + '">' + esc(st[0]) + '</span><div class="why">' + esc(r.notes.join(" · ") || "Booking, login and run agree") + '</div></div>' +
@@ -469,7 +469,7 @@
     ["close", "h1", "One core, one month. Billing by bookings and billing by PC logins disagree by thousands of dollars. Dana reconciles that gap by hand every month."],
     ["close", ".bars", "LaBro lines up three sources per user per day: the FBS booking, the PC login, and the instrument actually running (clip-on sensor)."],
     ["close", "#queue", "Most lines match automatically. Only the ones that need a human decision are listed, each with the reason."],
-    ["close", "[data-row]", "Click any line: booking, login and run on one timeline, plus a reply Dana can paste to the PI who disputes it.", "evidence"],
+    ["close", ".qi.pen", "Click any line: booking, login and run on one timeline, plus a reply Dana can paste to the PI who disputes it.", "evidence"],
     ["close", ".find", "Before sending: charges to grants that already ended get flagged, so they don't come back as late cost transfers."],
     ["close", ".tw", "Out goes a charges file for FBS and a statement per lab. Every number traces back to a booking, a login or a run."],
     ["rates", "h1", "The bigger stake: next year's rate is cost ÷ hours. Built on bookings, it's wrong all year. Federal rules (2 CFR 200.468) want actual usage."],
