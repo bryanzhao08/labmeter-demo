@@ -71,6 +71,7 @@
       '<div class="muted">Today: export reservations from FBS, pull login logs from five instrument PCs, line them up in a spreadsheet, and find overruns, walk-ups and forgotten logouts by eye, then answer PI emails disputing charges. With LaBro: drop the files below, decide ' + T.flagged + ' lines, send. <span class="small">(Dana is a composite persona.)</span></div></div></section>' +
       '<ol class="steps"><li class="done"><b>1</b>Add files</li><li class="' + (T.open ? "" : "done") + '"><b>2</b>Decide ' + T.flagged + ' flagged lines</li><li class="' + (T.open ? "" : "done") + '"><b>3</b>Send charges &amp; PI statements</li></ol>' +
       '<div class="grid g3">' + files + '</div>' +
+      mapping() +
       '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-act="sample">Sample month (FBS)</button><button class="btn ghost small" data-act="sample-ilab">Sample month (iLab layout)</button><button class="btn ghost small" data-act="nosensor">' + (noRuns ? "Add sensor runs back" : "Try without sensors") + '</button><span class="muted small">Your files stay in this browser.</span></div>' +
       '<div class="grid g4" style="margin-top:22px">' +
       stat(S.A.rows.length - T.flagged, "lines matched automatically") + stat(T.flagged, "lines need a decision") + stat(T.open, "still open", T.open ? "" : "hero") + stat($(T.final), "final charges, incl. " + $(sum(S.A.rows, function (r) { return S.dec[r.key] === "waive" ? 0 : r.penalty; })) + " penalties", "hero") +
@@ -84,6 +85,32 @@
       '<div class="card"><h3>PI statements</h3><p class="muted small">A printable statement per lab: every charge with booked, login and run time, and why.</p><select data-pi aria-label="Choose a PI">' + piOptions() + '</select> <button class="btn ghost" data-act="stmt">Open</button></div>' +
       '<div class="card"><h3>Evidence for a dispute</h3><p class="muted small">Click any line above: booking, login and instrument run on one strip, plus a reply you can paste to the PI.</p></div>' +
       '</div>';
+  }
+  // Column check: show what LaBro read from each file and let the user fix any guess.
+  function mapping() {
+    var B = S.B, bad = [], html = "";
+    ["res", "use", "run"].forEach(function (k) {
+      var f = C.state.files[k]; if (!f) return;
+      var miss = C.SRC[k].fields.filter(function (fd) { return fd[3] && f.map[fd[0]] < 0; });
+      var rowsBad = B.bad[k];
+      if (miss.length || rowsBad || S.showMap) bad.push(k);
+    });
+    var um = (B.unmapped.use || []).concat(B.unmapped.run || []);
+    if (!bad.length && !um.length) return '<p class="muted small" style="margin:8px 0 0">✓ Columns recognized in every file. <button class="linkb" data-act="showmap">Check the column mapping</button></p>';
+    html += '<div class="card" style="margin-top:12px;border-color:var(--warn)"><h3>Check how LaBro read your files</h3>';
+    bad.forEach(function (k) {
+      var f = C.state.files[k];
+      html += '<p class="small" style="margin:10px 0 4px"><b>' + esc(C.SRC[k].label) + '</b>' + (B.bad[k] ? ' · <span style="color:var(--warn)">' + B.bad[k] + ' rows could not be read</span>' : "") + '</p><div class="row">';
+      C.SRC[k].fields.forEach(function (fd) {
+        html += '<label class="small">' + esc(fd[1]) + (fd[3] ? " *" : "") + ' <select data-map="' + k + '" data-field="' + fd[0] + '"><option value="-1">—</option>' + f.head.map(function (h, i) { return '<option value="' + i + '"' + (f.map[fd[0]] === i ? " selected" : "") + '>' + esc(h) + '</option>'; }).join("") + '</select></label>';
+      });
+      html += '</div>';
+    });
+    if (um.length) html += '<p class="small" style="margin:12px 0 4px"><b>Computers or sensors not matched to an instrument</b></p><div class="row">' + um.map(function (n) {
+      var k = (B.unmapped.use || []).indexOf(n) >= 0 ? "use" : "run";
+      return '<label class="small">' + esc(n) + ' → <select data-amap="' + k + '" data-name="' + esc(n) + '"><option value="">skip</option>' + B.resources.map(function (r) { return '<option>' + esc(r) + '</option>'; }).join("") + '</select></label>';
+    }).join("") + '</div>';
+    return html + '</div>';
   }
   function preview(T) {
     var rows = S.A.rows.filter(function (r) { return finalCharge(r) > 0.004; });
@@ -330,6 +357,7 @@
       if (a === "grantcsv") grantCsv();
       if (a === "uscvol" || a === "uscsoa") uscForms(a);
       if (a === "more") { S.more = true; render(true); }
+      if (a === "showmap") { S.showMap = true; render(true); }
       return;
     }
     if (e.target.closest(".noclick")) return;
@@ -340,6 +368,8 @@
     var t = e.target;
     if (t.dataset.dec != null) { if (t.value) S.dec[t.dataset.dec] = t.value; else delete S.dec[t.dataset.dec]; save(DKEY, S.dec); render(true); }
     if (t.dataset.pi != null) S.pi = t.value;
+    if (t.dataset.map) { C.state.files[t.dataset.map].map[t.dataset.field] = +t.value; C.state.amap.use = {}; C.state.amap.run = {}; S.dec = {}; render(true); }
+    if (t.dataset.amap) { C.state.amap[t.dataset.amap][t.dataset.name] = t.value; render(true); }
     if (t.dataset.file) readFile(t.dataset.file, t.files[0]);
   });
   app.addEventListener("dragover", function (e) { var d = e.target.closest("[data-drop]"); if (d) { e.preventDefault(); d.classList.add("over"); } });

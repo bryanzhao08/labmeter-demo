@@ -126,3 +126,4 @@ tfoot td{font-weight:700;background:var(--bg2)}
 }
 .notice-sim{border:1px dashed rgba(243,182,74,.5);color:var(--warn);border-radius:12px;padding:10px 14px;margin:0 0 16px}
 table{font-size:15px}
+.linkb{background:none;border:0;color:var(--acc);padding:0;text-decoration:underline;font:inherit;cursor:pointer}
