@@ -321,6 +321,7 @@
       '<p class="lede">Federal rules for recharge centers (2 CFR 200.468) say rates must recover cost, not make a profit, and must not charge federal grants more than anyone else. A rate is cost ÷ hours, so if the hours come from bookings, the rate is wrong before the year starts. LaBro rebuilds each rate from measured hours and flags what a reviewer would likely question.</p>' +
       '<div class="callout"><b>Rate = (annual cost pool − last year\'s surplus) ÷ billable hours.</b> <span class="muted">Billable hours are the hours you expect to charge next year. If you bill measured run time, project them from measured hours, not bookings. Prior surplus lowers next year\'s rate and a prior deficit raises it, as 2 CFR 200.468 asks. ' + (months < 1.5 ? "<b>Projection:</b> the hours below are one month ×12. Load 12 months of exports for a real rate file." : "Hours below: " + Math.round(months) + " months of files, annualized.") + '</span></div>' +
       '<div class="grid g3">' + stat(findings.filter(function (f) { return f.severity === "high"; }).length, "high-risk findings", "hero") + stat($(-under), "projected under-recovery / yr") + stat($(over), "projected over-recovery / yr") + '</div>' +
+      switchPanel(rows) +
       '<h2>Rate by where the hours come from</h2><div class="tw"><table><thead><tr><th>Instrument</th><th class="n">Cost pool / yr</th><th class="n">Prior surplus (−deficit)</th><th class="n">Booked h</th><th class="n">Measured h</th><th class="n">Rate on booked h</th><th class="n">Rate on measured h</th><th class="n">Billed now</th><th class="n">Surplus / deficit</th></tr></thead><tbody>' +
       rows.map(function (x) {
         var c = x.c, i = x.ins, rc = c.measured.recovery;
@@ -334,6 +335,21 @@
       '<div class="callout muted">Why it matters: the rule asks for rates based on actual usage, adjusted at least every two years, with last period\'s surplus or deficit carried in (<a href="https://www.law.cornell.edu/cfr/text/2/200.468">2 CFR 200.468</a>). Auditors still question these charges: NSF OIG\'s 2025 audit of the University of Nebraska–Lincoln questioned $92,865 of inadequately supported internal service-center expenses, and its 2020 Yale audit questioned $12,855 billed without a formal rate schedule. Most cores build rates in a spreadsheet.</div>';
   }
 
+  // What happens to revenue if the core switches from billing bookings to billing measured time.
+  function switchPanel(rows) {
+    var cost = sum(rows, function (x) { return x.ins.pool - (x.ins.carry || 0); });
+    var revBooked = sum(rows, function (x) { return x.ins.billedRate * x.ins.bookedHours; });
+    var revMeasNow = sum(rows, function (x) { return x.ins.billedRate * x.ins.measuredHours; });
+    var revMeasNew = sum(rows, function (x) { return x.c.measured.rate == null ? 0 : x.c.measured.rate * x.ins.measuredHours; });
+    var mx = Math.max(cost, revBooked, revMeasNow, revMeasNew) || 1, pct = revBooked ? (revMeasNow - revBooked) / revBooked * 100 : 0;
+    var bar = function (l, v, col, note) { return '<div class="bar"><span>' + l + '</span><span class="t"><i style="width:' + (v / mx * 100).toFixed(1) + '%;background:' + col + '"></i></span><span class="num">' + $(v) + '</span></div><div class="muted small" style="margin:-4px 0 4px 162px">' + note + '</div>'; };
+    return '<h2>Switching from bookings to measured time</h2><div class="card"><div class="bars">' +
+      bar("Cost to recover", cost, "var(--book)", "Cost pools minus prior surplus, per year.") +
+      bar("Bill bookings", revBooked, "var(--login)", "Today's rates × booked hours.") +
+      bar("Bill measured, same rates", revMeasNow, revMeasNow < cost ? "var(--bad)" : "var(--warn)", "Revenue " + (pct < 0 ? "drops " : "rises ") + Math.abs(pct).toFixed(0) + "%. A UNC core saw billable hours fall about 22% after it started measuring (BioTechniques, 2025).") +
+      bar("Bill measured, rebuilt rates", revMeasNew, "var(--run)", "Rates from measured hours recover the cost, and each lab pays for what it used.") +
+      '</div></div>';
+  }
   function viewGrants() {
     var U = usage();
     return '<h1>Usage evidence for the next instrument grant</h1>' +
