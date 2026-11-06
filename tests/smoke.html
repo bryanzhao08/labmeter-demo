@@ -28,7 +28,7 @@ async function go(){var out=[],fail=0;function ok(c,m){out.push((c?"PASS ":"FAIL
  t=await blobs[blobs.length-1].text();ok(t.indexOf(",'=HYPERLINK")>0||t.indexOf("\"'=HYPERLINK")>=0,"formula neutralized");
  // Excel import through the real file input (SheetJS from cdnjs)
  var buf=await (await fetch('fbs_reservations_sample.xlsx')).arrayBuffer();var dt=new w.DataTransfer();dt.items.add(new w.File([buf],'fbs.xlsx'));
- var inp=d.querySelector('input[data-file=res]');inp.files=dt.files;inp.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(4000);
+ var inp=d.querySelector('input[data-file=res]');inp.files=dt.files;inp.dispatchEvent(new w.Event('change',{bubbles:true}));for(var k=0;k<40&&!/fbs\.xlsx/.test(app());k++)await sleep(250);
  ok(/fbs\.xlsx/.test(app())&&/bookings say \$27,455/.test(app()),"xlsx import");
  var wl=await (await fetch('../data/audit/windows_security_sample.csv')).text();var dt2=new w.DataTransfer();dt2.items.add(new w.File([wl],'security.csv'));
  var inp2=d.querySelector('input[data-file=use]');inp2.files=dt2.files;inp2.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(500);

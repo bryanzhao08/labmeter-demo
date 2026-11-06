@@ -184,9 +184,9 @@
     var shown = rows.slice(0, S.more ? 400 : 15);
     html += '<div class="q">' + shown.map(function (r) {
       var st = C.STATUS[r.status], d = S.dec[r.key], act = C.needsAction(r);
-      var opts = act ? '<select data-dec="' + esc(r.key) + '" aria-label="Decision">' +
+      var opts = act ? '<select data-dec="' + esc(r.key) + '" aria-label="Decision for ' + esc(r.name + ', ' + r.res + ', ' + C.dayLabel(r.day)) + '">' +
         [["", "Decide…"], ["measured", "Bill as measured" + (r.penalty ? " + penalty" : "")], ["waive", "Waive penalty"], ["booked", "Bill booked time"], ["zero", "Don't bill"]]
-          .map(function (o) { return '<option value="' + o[0] + '"' + ((d || "") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select>' : '<span class="muted small">auto</span>';
+          .map(function (o) { return '<option value="' + o[0] + '"' + ((d || "") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select>' + (d ? '<span class="saved">Decision saved</span>' : "") : '<span class="muted small">auto</span>';
       return '<div class="qi' + (d ? " decided" : "") + (r.flags.penalty ? " pen" : "") + '" data-row="' + esc(r.key) + '" tabindex="0" role="button" aria-label="Open evidence for ' + esc(r.name) + '">' +
         '<div class="small muted">' + esc(C.dayLabel(r.day)) + '</div>' +
         '<div><div class="who">' + esc(r.name) + '</div><div class="small muted">' + esc(r.res) + '</div></div>' +
@@ -253,8 +253,17 @@
     if (idle < 30) return "";
     return '<div class="callout"><b>Booked but not used: ' + C.hm(idle) + '</b> <span class="muted">(' + $(val) + ' of instrument time at posted rates). Not charged under the core\'s policy, but it kept other labs off the instrument. An idle machine still costs the core money: service contracts and staff don\'t pause.</span></div>';
   }
-  function openModal(h) { mbody.innerHTML = h; modal.hidden = false; modal.querySelector(".x").focus(); }
-  function closeModal() { modal.hidden = true; }
+  var lastFocus = null;
+  function openModal(h) { if (modal.hidden) lastFocus = document.activeElement; mbody.innerHTML = h; modal.hidden = false; modal.querySelector(".x").focus(); }
+  function closeModal() { if (modal.hidden) return; modal.hidden = true; if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
+  // Keep Tab inside the open dialog.
+  modal.addEventListener("keydown", function (e) {
+    if (e.key !== "Tab") return;
+    var f = modal.querySelectorAll("button, a[href], textarea, select, input"); if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 
   function csv() {
     var head = ["Date", "Instrument", "User", "Email", "PI", "Account", "Booked h", "Logged-in h", "Ran h", "Billed h", "Rate", "Charge", "Penalty", "Decision", "Reason"];
@@ -415,7 +424,7 @@
     if (!S.loaded) return;
     compute();
     var t = tab();
-    document.querySelectorAll("[data-tab]").forEach(function (a) { a.setAttribute("aria-selected", a.getAttribute("data-tab") === t); });
+    document.querySelectorAll("[data-tab]").forEach(function (a) { if (a.getAttribute("data-tab") === t) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     app.innerHTML = VIEWS[t]();
     if (keepScroll) window.scrollTo(0, y);
   }
@@ -522,12 +531,12 @@
   var TOUR = [
     ["close", "h1", "One core, one month. Billing by bookings and billing by PC logins disagree by thousands of dollars. Dana reconciles that gap by hand every month."],
     ["close", ".bars", "LaBro lines up three sources per user per day: the FBS booking, the PC login, and the instrument actually running (clip-on sensor)."],
-    ["close", "#queue", "Most lines match automatically. Only the ones that need a human decision are listed, each with the reason."],
+    ["close", "#queue", "Most lines match automatically. The ones LaBro flags for a human decision are listed, each with the reason."],
     ["close", ".qi.pen", "Click any line: booking, login and run on one timeline, plus a reply Dana can paste to the PI who disputes it.", "evidence"],
     ["close", ".find", "Before sending: charges to grants that already ended get flagged, so they don't come back as late cost transfers."],
     ["close", ".tw", "Out goes a charges file for FBS and a statement per lab. Every number traces back to a booking, a login or a run."],
     ["rates", "h1", "The bigger stake: next year's rate is cost ÷ hours. Built on bookings, it's wrong all year. Federal rules (2 CFR 200.468) want actual usage."],
-    ["rates", ".find", "LaBro flags what an auditor would, and fills the volume rows of the finance office's own rate template."],
+    ["rates", ".find", "LaBro flags what a reviewer would likely question, and fills the volume rows of the finance office's own rate template."],
     ["grants", "h1", "The same hours become NIH S10 usage evidence: hours by lab, and the major users' share of accessible time."],
     ["campus", "h1", "Across campus: which instruments sit idle while their service contracts renew, and which need a second unit. That's the university plan."]
   ];

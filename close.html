@@ -12,17 +12,17 @@
 <body>
 <header class="top">
   <a class="brand" href="close.html"><span class="mark" aria-hidden="true"></span>LaBro <span class="sub">Close</span></a>
-  <nav class="tabs" role="tablist" aria-label="Sections">
-    <a role="tab" href="#close" data-tab="close">Close the month</a>
-    <a role="tab" href="#rates" data-tab="rates">Rates &amp; audit</a>
-    <a role="tab" href="#grants" data-tab="grants">Grant report</a>
-    <a role="tab" href="#alerts" data-tab="alerts">Alerts</a>
-    <a role="tab" href="#campus" data-tab="campus">Campus</a>
+  <nav class="tabs" aria-label="Sections">
+    <a href="#close" data-tab="close">Close the month</a>
+    <a href="#rates" data-tab="rates">Rates &amp; audit</a>
+    <a href="#grants" data-tab="grants">Grant report</a>
+    <a href="#alerts" data-tab="alerts">Alerts</a>
+    <a href="#campus" data-tab="campus">Campus</a>
   </nav>
   <button class="btn small" id="tourbtn" type="button" style="margin-left:auto">60-second tour</button>
   <span class="demo-pill" style="margin-left:0" title="All people, accounts, rates and usage on this page are invented.">Demo · synthetic data</span>
 </header>
-<main id="app" aria-live="polite"><p class="loading">Loading the sample month…</p></main>
+<main id="app"><p class="loading">Loading the sample month…</p></main>
 <div id="modal" class="modal" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mtitle"><button class="x" type="button" data-close aria-label="Close">×</button><div id="mbody"></div></div></div>
 <footer class="foot">LaBro runs in your browser: files you add are read here and never uploaded. Sample data is synthetic and its column layouts are mock-ups of an FBS export and a login log. <a href="overview.html">Full simulator</a> · <a href="pitch.html">Pitch</a></footer>
 <script src="audit.js"></script>
