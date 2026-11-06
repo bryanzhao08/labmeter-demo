@@ -330,7 +330,7 @@
       '<h2>Fill the rate forms your finance office already uses</h2><div class="card"><p class="muted" style="margin-top:0">USC\'s Office of Financial Analysis publishes a Recharge Center Rate Analysis workbook and a Statement of Activities form. Both ask for <b>volume per service</b>: hours by user type for next year, and actual yearly usage. LaBro fills those rows from measured hours instead of bookings.</p>' +
       '<div class="row"><button class="btn" data-act="uscvol">Volume tab rows (CSV)</button><button class="btn ghost" data-act="uscsoa">Statement of Activities: rate × yearly usage (CSV)</button></div>' +
       '<p class="muted small" style="margin-bottom:0">Columns follow the public templates at <a href="https://fbs.usc.edu/financial-analysis/recharge/recharge-center-forms/">fbs.usc.edu › Recharge Center Forms</a>. Every sample user is internal; with real data, the user type comes from the FBS account.</p></div>' +
-      '<div class="callout muted">Why it matters: the rule asks for rates based on actual usage, adjusted at least every two years, with last period\'s surplus or deficit carried in (<a href="https://www.law.cornell.edu/cfr/text/2/200.468">2 CFR 200.468</a>). Auditors still question service-center charges, e.g. NSF OIG\'s 2025 audit of the University of Nebraska–Lincoln questioned $92,865 of inadequately supported service-center expenses. Most cores build rates in a spreadsheet.</div>';
+      '<div class="callout muted">Why it matters: the rule asks for rates based on actual usage, adjusted at least every two years, with last period\'s surplus or deficit carried in (<a href="https://www.law.cornell.edu/cfr/text/2/200.468">2 CFR 200.468</a>). Auditors still question these charges: NSF OIG\'s 2025 audit of the University of Nebraska–Lincoln questioned $92,865 of inadequately supported internal service-center expenses, and its 2020 Yale audit questioned $12,855 billed without a formal rate schedule. Most cores build rates in a spreadsheet.</div>';
   }
 
   function viewGrants() {
@@ -463,6 +463,39 @@
   if (STATIC) document.documentElement.classList.add("static");
 
   fetch("data/audit/accounts.csv").then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) { if (t) { S.accts = C.parseCSV(t); if (S.loaded) render(true); } }).catch(function () {});
-  C.loadSample().then(function () { S.loaded = true; render(false); }).catch(function (e) { app.innerHTML = '<p class="loading">Could not load the sample files (' + esc(e.message) + ').</p>'; });
-  window.LBClose = { S: S, totals: totals, render: render };
+  C.loadSample().then(function () { S.loaded = true; render(false); if (/[?&]tour/.test(location.search)) tourShow(0); }).catch(function (e) { app.innerHTML = '<p class="loading">Could not load the sample files (' + esc(e.message) + ').</p>'; });
+  // ---------- 60-second guided tour (button in the header, or ?tour)
+  var TOUR = [
+    ["close", "h1", "One core, one month. Billing by bookings and billing by PC logins disagree by thousands of dollars. Dana reconciles that gap by hand every month."],
+    ["close", ".bars", "LaBro lines up three sources per user per day: the FBS booking, the PC login, and the instrument actually running (clip-on sensor)."],
+    ["close", "#queue", "Most lines match automatically. Only the ones that need a human decision are listed, each with the reason."],
+    ["close", "[data-row]", "Click any line: booking, login and run on one timeline, plus a reply Dana can paste to the PI who disputes it.", "evidence"],
+    ["close", ".find", "Before sending: charges to grants that already ended get flagged, so they don't come back as late cost transfers."],
+    ["close", ".tw", "Out goes a charges file for FBS and a statement per lab. Every number traces back to a booking, a login or a run."],
+    ["rates", "h1", "The bigger stake: next year's rate is cost ÷ hours. Built on bookings, it's wrong all year. Federal rules (2 CFR 200.468) want actual usage."],
+    ["rates", ".find", "LaBro flags what an auditor would, and fills the volume rows of the finance office's own rate template."],
+    ["grants", "h1", "The same hours become NIH S10 usage evidence: hours by lab, and the major users' share of accessible time."],
+    ["campus", "h1", "Across campus: which instruments sit idle while their service contracts renew, and which need a second unit. That's the university plan."]
+  ];
+  var tourI = -1, tourEl = document.createElement("div");
+  tourEl.className = "tour"; tourEl.hidden = true; tourEl.setAttribute("role", "dialog"); tourEl.setAttribute("aria-live", "polite"); document.body.appendChild(tourEl);
+  function tourShow(i) {
+    document.querySelectorAll(".tour-hl").forEach(function (e) { e.classList.remove("tour-hl"); });
+    if (i < 0 || i >= TOUR.length) { tourI = -1; tourEl.hidden = true; closeModal(); return; }
+    tourI = i; var st = TOUR[i];
+    if (tab() !== st[0]) { location.hash = "#" + st[0]; }
+    setTimeout(function () {
+      closeModal();
+      var el = app.querySelector(st[1]);
+      if (el) { el.classList.add("tour-hl"); el.scrollIntoView({ behavior: STATIC ? "auto" : "smooth", block: "center" }); }
+      if (st[3] === "evidence" && el) setTimeout(function () { evidence(el.dataset.row); }, STATIC ? 0 : 700);
+      tourEl.innerHTML = '<div class="small muted">' + (i + 1) + ' / ' + TOUR.length + '</div><p>' + esc(st[2]) + '</p><div class="row"><button class="btn ghost small" data-tour="-1">Back</button><button class="btn small" data-tour="1">' + (i === TOUR.length - 1 ? "Done" : "Next") + '</button><button class="linkb small" data-tour="x">End tour</button></div>';
+      tourEl.hidden = false;
+    }, tab() === st[0] ? 0 : 150);
+  }
+  tourEl.addEventListener("click", function (e) { var b = e.target.closest("[data-tour]"); if (!b) return; var v = b.dataset.tour; tourShow(v === "x" ? -1 : tourI + +v); });
+  document.addEventListener("keydown", function (e) { if (tourI >= 0 && (e.key === "ArrowRight" || e.key === "ArrowLeft") && !/input|select|textarea/i.test(e.target.tagName)) { tourShow(tourI + (e.key === "ArrowRight" ? 1 : -1)); } });
+  var tb = document.getElementById("tourbtn"); if (tb) tb.addEventListener("click", function () { tourShow(0); });
+
+  window.LBClose = { S: S, totals: totals, render: render, tour: tourShow };
 })();
