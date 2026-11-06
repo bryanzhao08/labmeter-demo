@@ -88,7 +88,7 @@
       '<div class="grid g3">' + files + '</div>' +
       (S.note ? '<p class="muted small" style="margin:8px 0 0">' + esc(S.note) + '</p>' : "") +
       mapping() +
-      '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-act="sample">Sample month (FBS)</button><button class="btn ghost small" data-act="sample-ilab">Sample month (iLab layout)</button><button class="btn ghost small" data-act="nosensor">' + (noRuns ? "Add sensor runs back" : "Try without sensors") + '</button><span class="muted small">Your files stay in this browser.</span></div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-act="sample">Sample month (FBS)</button><button class="btn ghost small" data-act="sample-ilab">Sample month (iLab layout)</button><button class="btn ghost small" data-act="nosensor">' + (noRuns ? "Add sensor runs back" : "Try without sensors") + '</button><span class="muted small">Your files stay in this browser. Exports won\'t parse? <button class="linkb" data-act="tpl">Download blank templates</button></span></div>' +
       '<div class="grid g4" style="margin-top:22px">' +
       stat(S.A.rows.length - T.flagged, "lines matched automatically") + stat(T.flagged, "lines need a decision") + stat(T.open, "still open", T.open ? "" : "hero") + stat($(T.final), "final charges, incl. " + $(sum(S.A.rows, function (r) { return eff(r).penalty; })) + " penalties", "hero") +
       '</div>' +
@@ -443,6 +443,12 @@
       if (a === "grantcsv") grantCsv();
       if (a === "uscvol" || a === "uscsoa") uscForms(a);
       if (a === "more") { S.more = true; render(true); }
+      if (a === "tpl") {
+        dlCsv("labro-template-reservations.csv", [["Resource", "Email", "Name", "PI", "Account", "Start Date", "Start Time", "End Date", "End Time", "Status"], ["Zeiss LSM 880 Confocal", "jdoe@usc.edu", "Jane Doe", "Smith", "1-2345-6789", "10/01/2026", "9:00 AM", "10/01/2026", "11:00 AM", "Confirmed"]]);
+        setTimeout(function () { dlCsv("labro-template-usage-log.csv", [["Workstation", "Username", "Logon Time", "Logoff Time"], ["LSM880-PC", "jdoe", "2026-10-01 08:55:00", "2026-10-01 11:20:00"]]); }, 400);
+        setTimeout(function () { dlCsv("labro-template-instrument-runs.csv", [["sensor", "run_start", "run_end"], ["lsm880", "2026-10-01T09:02:00", "2026-10-01T11:05:00"]]); }, 800);
+        setTimeout(function () { dlCsv("labro-template-account-end-dates.csv", [["Account", "PI", "Sponsor", "End Date"], ["1-2345-6789", "Smith", "NIH R01", "2027-06-30"]]); }, 1200);
+      }
       if (a === "showmap") { S.showMap = true; render(true); }
       return;
     }
