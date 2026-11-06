@@ -5,7 +5,8 @@
   var C = window.LMAuditCore, RT = window.LBRates;
   var app = document.getElementById("app"), modal = document.getElementById("modal"), mbody = document.getElementById("mbody");
   var DKEY = "labro-close-decisions-v1";
-  var S = { B: null, A: null, L: null, filter: "action", dec: load(DKEY, {}), pi: "", loaded: false };
+  var STORE = load(DKEY, {}); if (typeof STORE !== "object" || Array.isArray(STORE)) STORE = {};
+  var S = { B: null, A: null, L: null, filter: "action", dec: {}, fp: null, pi: "", loaded: false };
   var STATIC = /[?&]static/.test(location.search);
 
   function load(k, d) { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; } }
@@ -20,11 +21,25 @@
   function sum(a, f) { return a.reduce(function (s, x) { return s + f(x); }, 0); }
 
   // ---------- data
+  // Decisions belong to one exact set of files + column/instrument mappings; change anything and they reset.
+  function fingerprint() {
+    return ["res", "use", "run"].map(function (k) { var f = C.state.files[k]; return f ? f.name + ":" + f.rows.length + ":" + JSON.stringify(f.map) : "-"; }).join("|") + "|" + JSON.stringify(C.state.amap);
+  }
+  function saveDec() { if (!S.fp) return; STORE[S.fp] = S.dec; var keys = Object.keys(STORE); while (keys.length > 8) delete STORE[keys.shift()]; save(DKEY, STORE); }
   function compute() {
     S.B = C.build(); C.ensureRates(S.B);
+    var fp = fingerprint(); if (fp !== S.fp) { S.fp = fp; S.dec = STORE[fp] || {}; }
     S.A = C.audit(S.B, "instrument"); S.L = C.audit(S.B, "computer");
   }
   function decided(r) { return S.dec[r.key]; }
+  // What actually gets billed for a line, after the manager's decision.
+  function eff(r) {
+    var d = S.dec[r.key], rt = rate(r.res);
+    if (d === "zero") return { charge: 0, penalty: 0, mins: 0, why: "Not billed (manager decision)" };
+    if (d === "booked") return { charge: r.booked / 60 * rt, penalty: 0, mins: r.booked, why: "Billed booked time (manager decision)" };
+    if (d === "waive") return { charge: r.charge - r.penalty, penalty: 0, mins: r.billed, why: (r.notes.join("; ") || "As booked") + "; penalty waived" };
+    return { charge: r.charge, penalty: r.penalty, mins: r.billed, why: r.notes.join("; ") || "As booked" };
+  }
   function finalCharge(r) {
     var d = S.dec[r.key];
     if (d === "waive") return r.charge - r.penalty;
@@ -49,7 +64,7 @@
 
   // ---------- views
   function viewClose() {
-    var T = totals(), mx = Math.max(T.booked, T.login, T.actual), noRuns = !C.state.files.run, R = C.rules();
+    var T = totals(), mx = Math.max(T.booked, T.login, T.actual) || 1, noRuns = !C.state.files.run, R = C.rules();
     var files = ["res", "use", "run"].map(function (k) {
       var f = C.state.files[k], s = C.SRC[k];
       return '<label class="drop" data-drop="' + k + '"><div class="k">' + esc(s.label) + (s.optional ? " · optional" : "") + '</div>' +
@@ -74,11 +89,12 @@
       mapping() +
       '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-act="sample">Sample month (FBS)</button><button class="btn ghost small" data-act="sample-ilab">Sample month (iLab layout)</button><button class="btn ghost small" data-act="nosensor">' + (noRuns ? "Add sensor runs back" : "Try without sensors") + '</button><span class="muted small">Your files stay in this browser.</span></div>' +
       '<div class="grid g4" style="margin-top:22px">' +
-      stat(S.A.rows.length - T.flagged, "lines matched automatically") + stat(T.flagged, "lines need a decision") + stat(T.open, "still open", T.open ? "" : "hero") + stat($(T.final), "final charges, incl. " + $(sum(S.A.rows, function (r) { return S.dec[r.key] === "waive" ? 0 : r.penalty; })) + " penalties", "hero") +
+      stat(S.A.rows.length - T.flagged, "lines matched automatically") + stat(T.flagged, "lines need a decision") + stat(T.open, "still open", T.open ? "" : "hero") + stat($(T.final), "final charges, incl. " + $(sum(S.A.rows, function (r) { return eff(r).penalty; })) + " penalties", "hero") +
       '</div>' +
       '<h2 id="queue">Decide the flagged lines</h2>' +
       (T.open ? '<div class="row" style="margin-bottom:8px"><button class="btn" data-act="acceptall">Apply your rules to all ' + T.open + ' open lines</button><span class="muted small">Penalties as your policy says, no-show fees as set, runs with no one to bill set aside. Change any line after.</span></div>' : '<p class="ok" style="margin:0 0 8px">All flagged lines decided.</p>') +
       queue() +
+      accountsSection() +
       '<h2>Send</h2>' + preview(T) +
       '<div class="grid g3" style="margin-top:14px">' +
       '<div class="card"><h3>Charges file for FBS</h3><p class="muted small">One line per user, instrument and day: hours, rate, charge and the reason. Map its columns once to your FBS import or journal template.</p><button class="btn" data-act="csv"' + (T.open ? " disabled" : "") + '>Download charges CSV</button>' + (T.open ? '<p class="small muted">Decide the open lines first.</p>' : "") + '</div>' +
@@ -112,12 +128,40 @@
     }).join("") + '</div>';
     return html + '</div>';
   }
+  // Grant end dates: charges after an account ends get rejected or need a late cost transfer, so flag them before sending.
+  function acctInfo() {
+    var A = S.accts; if (!A) return null;
+    var hi = function (re) { for (var i = 0; i < A.head.length; i++) if (re.test(A.head[i])) return i; return -1; };
+    var ia = hi(/account|fund|chart|worktag/i), ie = hi(/end|expir/i), is = hi(/sponsor|agency|type/i);
+    if (ia < 0 || ie < 0) return null;
+    var m = {}; A.rows.forEach(function (r) { var d = Date.parse(String(r[ie]).trim()); if (!isNaN(d)) m[String(r[ia]).trim()] = { end: Math.floor(d / 86400000), sponsor: is >= 0 ? r[is] : "" }; });
+    return m;
+  }
+  function accountsSection() {
+    var M = acctInfo(), WIN = 30;
+    var head = '<h2>Accounts to check before you send</h2>';
+    var up = '<label class="btn ghost small" style="position:relative;overflow:hidden">Upload account end dates<input type="file" accept=".csv,.tsv,.txt" data-accts style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>';
+    if (!M) return head + '<div class="card"><p class="muted" style="margin-top:0">Add a list of accounts with end dates (any CSV with an account column and an end-date column) and LaBro flags charges to grants that have ended or end within ' + WIN + ' days.</p>' + up + '</div>';
+    var last = Math.max.apply(null, S.A.rows.map(function (r) { return r.day; })), by = {};
+    S.A.rows.forEach(function (r) {
+      var a = M[r.acct], amt = finalCharge(r); if (!a || amt < 0.005) return;
+      var g = by[r.acct] || (by[r.acct] = { acct: r.acct, pi: r.pi, end: a.end, sponsor: a.sponsor, after: 0, total: 0, n: 0 });
+      g.total += amt; if (r.day > a.end) { g.after += amt; g.n++; }
+    });
+    var list = Object.keys(by).map(function (k) { return by[k]; }).filter(function (g) { return g.after > 0 || g.end - last <= WIN; }).sort(function (a, b) { return a.end - b.end; });
+    if (!list.length) return head + '<p class="ok">No charges to accounts that have ended or end within ' + WIN + ' days.</p>';
+    return head + list.map(function (g) {
+      var ended = g.end < last, sev = g.after > 0 ? "high" : "medium";
+      return '<div class="find"><span class="sev ' + sev + '">' + (g.after > 0 ? "ended" : "ends soon") + '</span><div><b>' + esc(g.pi) + ' lab · ' + esc(g.acct) + '</b> ' + (g.sponsor ? '<span class="muted">(' + esc(g.sponsor) + ')</span> ' : "") + '· ends ' + esc(C.isoDay(g.end)) +
+        (g.after > 0 ? '<div>' + $2(g.after) + ' across ' + g.n + ' lines was used <b>after</b> the end date. Move these to another account before sending, or they will need a late cost transfer.</div>' : '<div>' + (ended ? "Ended" : "Ends") + ' ' + Math.abs(g.end - last) + ' days ' + (ended ? "before" : "after") + ' this month closes. ' + $2(g.total) + ' this month. Remind the PI to name a new account for next month.</div>') + '</div></div>';
+    }).join("") + '<div style="margin-top:8px">' + up + ' <span class="muted small">Sample end dates are synthetic.</span></div>';
+  }
   function preview(T) {
     var rows = S.A.rows.filter(function (r) { return finalCharge(r) > 0.004; });
     var byPi = {}; rows.forEach(function (r) { var k = r.pi || "?"; byPi[k] = (byPi[k] || 0) + finalCharge(r); });
     var pis = Object.keys(byPi).sort(function (a, b) { return byPi[b] - byPi[a]; });
     return '<div class="grid g3"><div class="card" style="grid-column:span 2"><h3>What goes back to FBS</h3><div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Instrument</th><th class="n">Billed</th><th class="n">Charge</th><th>Reason</th></tr></thead><tbody>' +
-      rows.slice(0, 6).map(function (r) { return '<tr><td>' + esc(C.isoDay(r.day)) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.res.split(" ").slice(0, 2).join(" ")) + '</td><td class="n">' + h1(r.billed) + ' h</td><td class="n">' + $2(finalCharge(r)) + '</td><td class="small muted">' + esc((r.notes[0] || "As booked").slice(0, 46)) + '</td></tr>'; }).join("") +
+      rows.slice(0, 6).map(function (r) { return '<tr><td>' + esc(C.isoDay(r.day)) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.res.split(" ").slice(0, 2).join(" ")) + '</td><td class="n">' + h1(eff(r).mins) + ' h</td><td class="n">' + $2(finalCharge(r)) + '</td><td class="small muted">' + esc(eff(r).why.slice(0, 46)) + '</td></tr>'; }).join("") +
       '</tbody></table></div><p class="muted small" style="margin:8px 0 0">' + rows.length + ' lines · ' + $2(sum(rows, finalCharge)) + '</p></div>' +
       '<div class="card"><h3>By lab</h3>' + pis.map(function (p) { return '<div class="row" style="justify-content:space-between"><span>' + esc(p) + ' lab</span><b>' + $(byPi[p]) + '</b></div>'; }).join("") + '</div></div>';
   }
@@ -146,7 +190,7 @@
         '<div class="small muted">' + esc(C.dayLabel(r.day)) + '</div>' +
         '<div><div class="who">' + esc(r.name) + '</div><div class="small muted">' + esc(r.res) + '</div></div>' +
         '<div><span class="tag ' + st[1] + '">' + esc(st[0]) + '</span><div class="why">' + esc(r.notes.join(" · ") || "Booking, login and run agree") + '</div></div>' +
-        '<div class="amt">' + $2(finalCharge(r)) + (r.penalty ? '<div class="small muted">incl. ' + $2(r.penalty) + ' penalty</div>' : "") + '</div>' +
+        '<div class="amt">' + $2(finalCharge(r)) + (eff(r).penalty ? '<div class="small muted">incl. ' + $2(eff(r).penalty) + ' penalty</div>' : "") + '</div>' +
         '<div class="noclick">' + opts + '</div></div>';
     }).join("") + '</div>';
     if (rows.length > shown.length) html += '<div class="row" style="margin-top:8px"><button class="btn ghost small" data-act="more">Show all ' + rows.length + ' lines</button><span class="muted small">The CSV has all of them.</span></div>';
@@ -182,21 +226,21 @@
       '<div class="row noprint" style="margin-top:10px"><button class="btn" data-copy>Copy reply</button><button class="btn ghost" onclick="window.print()">Print or save as PDF</button></div>');
   }
   function reply(r) {
-    var amt = finalCharge(r), who = r.pi ? "Dr. " + r.pi : "there", ran = r.inst || r.billed;
+    var amt = finalCharge(r), who = r.pi ? "Dr. " + r.pi : "there", ran = S.A.hasRuns ? r.inst : r.comp;
     var body = "On " + C.dayLabel(r.day) + ", " + r.name + " booked the " + r.res + " for " + C.hm(r.booked) + ". ";
     if (ran >= 1) body += "The instrument log shows it running " + C.hm(ran) + (r.comp ? " during a " + C.hm(r.comp) + " login session" : "") + ". ";
     else body += "The instrument did not run during that booking. ";
     if (r.notes[0]) body += r.notes[0] + ". ";
-    body += amt > 0.004 ? "The charge of " + $2(amt) + (r.penalty && S.dec[r.key] !== "waive" ? ", including " + $2(r.penalty) + " under the core's overrun policy," : "") + " is based on that measured time. The timeline is attached; happy to go through it." : "There is no charge for this line.";
+    body += amt > 0.004 ? "The charge of " + $2(amt) + (eff(r).penalty ? ", including " + $2(eff(r).penalty) + " under the core's overrun policy," : "") + " is based on that measured time. The timeline is attached; happy to go through it." : "There is no charge for this line.";
     return "Hi " + who + ",\n\n" + body + "\n\nThanks,\nDana";
   }
   function statement(pi) {
     var rows = S.A.rows.filter(function (r) { return r.pi === pi && finalCharge(r) > 0.004; });
-    var tot = sum(rows, finalCharge), bookedTot = sum(rows, function (r) { return r.booked / 60 * rate(r.res); });
+    var tot = sum(rows, finalCharge), bookedTot = sum(S.A.rows.filter(function (r) { return r.pi === pi; }), function (r) { return r.booked / 60 * rate(r.res); });
     openModal('<p class="muted small">Statement · ' + esc(month()) + ' · Imaging core (demo)</p><h2 id="mtitle" style="margin-top:0">' + esc(pi) + ' lab</h2>' +
       '<div class="grid g3" style="margin-bottom:14px">' + stat($2(tot), "total this month", "hero") + stat(rows.length, "charged lines") + stat($2(bookedTot), "what bookings alone would show") + '</div>' +
-      '<div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Instrument</th><th class="n">Booked</th><th class="n">Ran</th><th class="n">Charge</th><th>Why</th></tr></thead><tbody>' +
-      rows.map(function (r) { return '<tr><td>' + esc(C.dayLabel(r.day)) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.res) + '</td><td class="n">' + C.hm(r.booked) + '</td><td class="n">' + C.hm(r.inst || r.billed) + '</td><td class="n">' + $2(finalCharge(r)) + '</td><td class="small">' + esc(r.notes.join("; ") || "As booked") + '</td></tr>'; }).join("") +
+      '<div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Instrument</th><th class="n">Booked</th><th class="n">' + (S.A.hasRuns ? "Ran" : "Logged in") + '</th><th class="n">Charge</th><th>Why</th></tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr><td>' + esc(C.dayLabel(r.day)) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.res) + '</td><td class="n">' + C.hm(r.booked) + '</td><td class="n">' + C.hm(S.A.hasRuns ? r.inst : r.comp) + '</td><td class="n">' + $2(finalCharge(r)) + '</td><td class="small">' + esc(eff(r).why) + '</td></tr>'; }).join("") +
       '</tbody><tfoot><tr><td colspan="5">Total</td><td class="n">' + $2(tot) + '</td><td></td></tr></tfoot></table></div>' +
       '<p class="muted small">Every line has an evidence timeline (booking, login, instrument run). Reply to dispute a line.</p><div class="row noprint"><button class="btn" onclick="window.print()">Print or save as PDF</button></div>');
   }
@@ -206,12 +250,10 @@
   function csv() {
     var head = ["Date", "Instrument", "User", "Email", "PI", "Account", "Booked h", "Logged-in h", "Ran h", "Billed h", "Rate", "Charge", "Penalty", "Decision", "Reason"];
     var lines = [head].concat(S.A.rows.filter(function (r) { return finalCharge(r) > 0.004; }).map(function (r) {
-      return [C.isoDay(r.day), r.res, r.name, r.email, r.pi, r.acct, h1(r.booked), h1(r.comp), h1(r.inst), h1(r.billed), rate(r.res).toFixed(2), finalCharge(r).toFixed(2), (S.dec[r.key] === "waive" ? 0 : r.penalty).toFixed(2), S.dec[r.key] || "auto", r.notes.join("; ")];
+      var e = eff(r);
+      return [C.isoDay(r.day), r.res, r.name, r.email, r.pi, r.acct, h1(r.booked), h1(r.comp), S.A.hasRuns ? h1(r.inst) : "", h1(e.mins), rate(r.res).toFixed(2), e.charge.toFixed(2), e.penalty.toFixed(2), S.dec[r.key] || "auto", e.why];
     }));
-    var q = function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    var blob = new Blob([lines.map(function (l) { return l.map(q).join(","); }).join("\n") + "\n"], { type: "text/csv" });
-    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "labro-charges-" + (S.A.rows[0] ? C.isoDay(S.A.rows[0].day).slice(0, 7) : "month") + ".csv";
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    dlCsv("labro-charges-" + (S.A.rows[0] ? C.isoDay(S.A.rows[0].day).slice(0, 7) : "month") + ".csv", lines);
   }
 
   // ---------- usage per instrument (shared by rates, grants, alerts)
@@ -220,7 +262,7 @@
     S.A.rows.forEach(function (r) {
       var u = by[r.res] || (by[r.res] = { res: r.res, booked: 0, login: 0, run: 0, pis: {}, nouser: 0, nouserMin: 0, transfer: 0, sensorOnly: false, users: {} });
       u.booked += r.booked; u.login += r.comp; u.run += r.inst; if (r.sensorOnly) u.sensorOnly = true;
-      if (r.user !== "(no user)") { u.pis[r.pi || "?"] = (u.pis[r.pi || "?"] || 0) + (r.inst || r.billed); u.users[r.user] = 1; }
+      if (r.user !== "(no user)") { u.pis[r.pi || "?"] = (u.pis[r.pi || "?"] || 0) + (S.A.hasRuns ? r.inst : r.comp); u.users[r.user] = 1; }
       if (r.flags.nouser) { u.nouser++; u.nouserMin += r.inst; }
       if (r.flags.transfer) u.transfer += r.comp - r.inst;
     });
@@ -230,21 +272,30 @@
 
   function viewRates() {
     if (!RT) return '<h1>Rates</h1><p class="muted">The rates engine did not load.</p>';
-    var core = RT.sampleCore(), U = usage(), months = days() / 30.4;
-    // Replace the sample's hours with this month's measured hours, annualized, so the page reflects the files loaded.
-    core.instruments.forEach(function (ins) {
-      var u = U.filter(function (x) { return x.res === ins.name; })[0]; if (!u) return;
-      ins.bookedHours = Math.round(RT.annualize(u.booked / 60, months)); ins.loginHours = u.sensorOnly ? null : Math.round(RT.annualize(u.login / 60, months)); ins.measuredHours = Math.round(RT.annualize(u.run / 60, months));
-      ins.billedRate = rate(ins.name) || ins.billedRate;
-      // Assume this year's rate was set the usual way: last year's cost pool ÷ booked hours (synthetic pools).
-      var k = { "BD LSRFortessa Analyzer": 0.9, "Nikon Ti2 Widefield": 0.97 }[ins.name] || 1;
-      ins.pool = Math.round(ins.billedRate * ins.bookedHours * k / 500) * 500; ins.carry = 0;
-      if (ins.items) { var extra = RT.costPool(ins.items).unallowable; ins.items = [{ label: "Allowable operating costs", amount: ins.pool, kind: "other" }].concat(ins.items.filter(function (it) { return RT.costPool([it]).unallowable > 0; })); ins.unallowable = extra; }
+    var sample = RT.sampleCore(), U = usage(), months = days() / 30.4, byName = {};
+    sample.instruments.forEach(function (i) { byName[i.name] = i; });
+    // Build one rate row per instrument in the loaded files. Hours: this month annualized (measured run time, or
+    // login time when no sensor file is loaded). Cost pools are synthetic: assume this year's rate was set the
+    // usual way, cost ÷ booked hours. Sample instruments keep their demo cost lines (e.g. one unallowable purchase).
+    var core = { instruments: [], rateSchedule: [] };
+    U.forEach(function (u) {
+      var smp = byName[u.res], billed = rate(u.res) || (smp && smp.billedRate) || 0;
+      var ins = { name: u.res, carry: 0, billedRate: billed,
+        bookedHours: Math.round(RT.annualize(u.booked / 60, months)),
+        loginHours: u.sensorOnly ? null : Math.round(RT.annualize(u.login / 60, months)),
+        measuredHours: Math.round(RT.annualize((S.A.hasRuns ? u.run : u.login) / 60, months)) };
+      var k = { "BD LSRFortessa Analyzer": 0.9, "Nikon Ti2 Widefield": 0.97 }[u.res] || 1;
+      ins.pool = Math.max(500, Math.round(billed * ins.bookedHours * k / 500) * 500);
+      if (smp && smp.items) ins.items = [{ label: "Allowable operating costs", amount: ins.pool, kind: "other" }].concat(smp.items.filter(function (it) { return RT.costPool([it]).unallowable > 0; }));
+      core.instruments.push(ins);
+      var sch = sample.rateSchedule.filter(function (r) { return r.instrument === u.res; });
+      if (sch.length) { var diff = sch.filter(function (r) { return r.userType === "federal"; })[0].rate - sch.filter(function (r) { return r.userType === "internal"; })[0].rate; core.rateSchedule.push({ userType: "internal", rate: billed, instrument: u.res }, { userType: "federal", rate: billed + diff, instrument: u.res }); }
     });
+    if (!core.instruments.length) return '<h1>Rates</h1><p class="muted">Load a reservation export on the Close tab first.</p>';
     var findings = RT.checks(core);
     core.instruments.forEach(function (ins) {
       var c = RT.compare(ins);
-      if (c.flags.indexOf("rate_from_bookings") >= 0 || (c.measured.rate && Math.abs(c.measured.rate - ins.billedRate) / ins.billedRate > 0.1))
+      if (ins.billedRate > 0 && (c.flags.indexOf("rate_from_bookings") >= 0 || (c.measured.rate && Math.abs(c.measured.rate - ins.billedRate) / ins.billedRate > 0.1)))
         findings.push({ severity: "medium", instrument: ins.name, finding: "Rate of " + $2(ins.billedRate) + "/h matches booked hours; measured hours need " + $2(c.measured.rate) + "/h to break even", cite: "2 CFR 200.468(a)" });
       if (c.flags.indexOf("under_recovery") >= 0) findings.push({ severity: "low", instrument: ins.name, finding: "Projected deficit of " + $(-c.measured.recovery) + " this year: the institution covers it or next year's rate rises", cite: "" });
     });
@@ -287,7 +338,7 @@
     return '<h1>Usage evidence for the next instrument grant</h1>' +
       '<p class="lede">NIH S10 awardees file an Annual Usage Report for four years after the award: users, their NIH grants, and hours, and major NIH-funded users should account for at least 35% of the instrument\'s accessible time. LaBro keeps that record as a side effect of billing: measured hours per lab, per instrument. <a href="https://grants.nih.gov/grants/guide/pa-files/PAR-17-074.html">NIH S10 notice</a></p>' +
       U.map(function (u) {
-        var tot = sum(Object.keys(u.pis), function (k) { return u.pis[k]; }) || 1, mx = 0; Object.keys(u.pis).forEach(function (k) { mx = Math.max(mx, u.pis[k]); });
+        var tot = sum(Object.keys(u.pis), function (k) { return u.pis[k]; }) || 1, mx = 0; Object.keys(u.pis).forEach(function (k) { mx = Math.max(mx, u.pis[k]); }); mx = mx || 1;
         var top3 = Object.keys(u.pis).map(function (k) { return u.pis[k]; }).sort(function (a, b) { return b - a; }).slice(0, 3), major = sum(top3, function (v) { return v; }) / (days() / 7 * 50 * 60);
         return '<div class="card" style="margin-bottom:14px"><div class="row" style="justify-content:space-between"><h3>' + esc(u.res) + ' <span class="tag ' + (major >= .35 ? "ok" : "warn") + '" title="Top 3 labs stand in for the major users named in the grant; accessible time = 50 staffed hours a week">Major users: ' + Math.round(major * 100) + '% of accessible time · S10 asks ≥35%</span></h3><span class="muted small">' + h1(u.run) + ' h measured · ' + Object.keys(u.users).length + ' users · ' + Object.keys(u.pis).length + ' labs</span></div><div class="heat">' +
           Object.keys(u.pis).sort(function (a, b) { return u.pis[b] - u.pis[a]; }).map(function (p) { var v = u.pis[p]; return '<div class="hrow"><span class="nm">' + esc(p) + ' lab</span><span class="t"><i style="width:' + (v / mx * 100).toFixed(1) + '%;background:var(--run)"></i></span><span class="num small">' + Math.round(v / tot * 100) + '%</span></div>'; }).join("") + '</div></div>';
@@ -348,12 +399,12 @@
     if (b && b.dataset.filter) { S.filter = b.dataset.filter; render(true); return; }
     if (b) {
       var a = b.dataset.act;
-      if (a === "sample") { S.dec = {}; save(DKEY, S.dec); C.loadSample().then(function () { render(true); }); }
-      if (a === "sample-ilab") { S.dec = {}; save(DKEY, S.dec); C.loadSample().then(function () { return fetch("data/audit/ilab_reservations.csv").then(function (r) { return r.text(); }); }).then(function (t) { C.setFile("res", "ilab_reservations.csv", t); render(true); }); }
-      if (a === "nosensor") { if (C.state.files.run) { S.saved = C.state.files.run; delete C.state.files.run; C.state.amap.run = {}; } else if (S.saved) { C.state.files.run = S.saved; } S.dec = {}; save(DKEY, S.dec); render(true); }
+      if (a === "sample") { S.saved = null; C.loadSample().then(function () { render(true); }); }
+      if (a === "sample-ilab") { S.saved = null; C.loadSample().then(function () { return fetch("data/audit/ilab_reservations.csv").then(function (r) { return r.text(); }); }).then(function (t) { C.setFile("res", "ilab_reservations.csv", t); render(true); }); }
+      if (a === "nosensor") { if (C.state.files.run) { S.saved = { f: C.state.files.run, amap: C.state.amap.run }; delete C.state.files.run; C.state.amap.run = {}; } else if (S.saved) { C.state.files.run = S.saved.f; C.state.amap.run = S.saved.amap; S.saved = null; } render(true); }
       if (a === "csv") csv();
       if (a === "stmt") statement(app.querySelector("[data-pi]").value);
-      if (a === "acceptall") { S.A.rows.filter(C.needsAction).forEach(function (r) { if (!S.dec[r.key]) S.dec[r.key] = SUGGEST[r.status] || "measured"; }); save(DKEY, S.dec); render(true); }
+      if (a === "acceptall") { S.A.rows.filter(C.needsAction).forEach(function (r) { if (!S.dec[r.key]) S.dec[r.key] = SUGGEST[r.status] || "measured"; }); saveDec(); render(true); }
       if (a === "grantcsv") grantCsv();
       if (a === "uscvol" || a === "uscsoa") uscForms(a);
       if (a === "more") { S.more = true; render(true); }
@@ -366,18 +417,26 @@
   app.addEventListener("keydown", function (e) { var row = e.target.closest("[data-row]"); if (row && (e.key === "Enter" || e.key === " ") && e.target === row) { e.preventDefault(); evidence(row.dataset.row); } });
   app.addEventListener("change", function (e) {
     var t = e.target;
-    if (t.dataset.dec != null) { if (t.value) S.dec[t.dataset.dec] = t.value; else delete S.dec[t.dataset.dec]; save(DKEY, S.dec); render(true); }
+    if (t.dataset.dec != null) { if (t.value) S.dec[t.dataset.dec] = t.value; else delete S.dec[t.dataset.dec]; saveDec(); render(true); }
     if (t.dataset.pi != null) S.pi = t.value;
-    if (t.dataset.map) { C.state.files[t.dataset.map].map[t.dataset.field] = +t.value; C.state.amap.use = {}; C.state.amap.run = {}; S.dec = {}; render(true); }
+    if (t.dataset.map) { C.state.files[t.dataset.map].map[t.dataset.field] = +t.value; C.state.amap.use = {}; C.state.amap.run = {}; render(true); }
     if (t.dataset.amap) { C.state.amap[t.dataset.amap][t.dataset.name] = t.value; render(true); }
     if (t.dataset.file) readFile(t.dataset.file, t.files[0]);
+    if (t.dataset.accts != null && t.files[0]) { var rd = new FileReader(); rd.onload = function () { S.accts = C.parseCSV(rd.result); render(true); }; rd.readAsText(t.files[0]); }
   });
   app.addEventListener("dragover", function (e) { var d = e.target.closest("[data-drop]"); if (d) { e.preventDefault(); d.classList.add("over"); } });
   app.addEventListener("dragleave", function (e) { var d = e.target.closest("[data-drop]"); if (d) d.classList.remove("over"); });
   app.addEventListener("drop", function (e) { var d = e.target.closest("[data-drop]"); if (d) { e.preventDefault(); readFile(d.dataset.drop, e.dataTransfer.files[0]); } });
-  function readFile(k, f) { if (!f) return; var rd = new FileReader(); rd.onload = function () { C.setFile(k, f.name, rd.result); S.dec = {}; save(DKEY, S.dec); render(false); }; rd.readAsText(f); }
+  function readFile(k, f) { if (!f) return; var rd = new FileReader(); rd.onload = function () { S.saved = null; C.setFile(k, f.name, rd.result); render(false); }; rd.readAsText(f); }
+  // CSV writer: quotes cells and neutralizes text that a spreadsheet would run as a formula (=, +, -, @).
+  function cell(v) {
+    if (typeof v === "number") return String(v);
+    v = String(v == null ? "" : v);
+    if (/^[=+\-@\t\r]/.test(v) && !/^-?\d+(\.\d+)?$/.test(v)) v = "'" + v;
+    return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
   function dlCsv(name, lines) {
-    var q = function (v) { v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var q = cell;
     var blob = new Blob([lines.map(function (l) { return l.map(q).join(","); }).join("\n") + "\n"], { type: "text/csv" });
     var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
@@ -394,16 +453,16 @@
     }
   }
   function grantCsv() {
-    var lines = [["Instrument", "Lab", "Measured hours", "Share"]];
+    var lines = [["Instrument", "Lab", (S.A.hasRuns ? "Measured" : "Logged-in") + " hours", "Share"]];
     usage().forEach(function (u) { var tot = sum(Object.keys(u.pis), function (k) { return u.pis[k]; }) || 1; Object.keys(u.pis).forEach(function (p) { lines.push([u.res, p, h1(u.pis[p]), (u.pis[p] / tot * 100).toFixed(1) + "%"]); }); });
-    var blob = new Blob([lines.map(function (l) { return l.join(","); }).join("\n") + "\n"], { type: "text/csv" });
-    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "labro-instrument-usage.csv"; document.body.appendChild(a); a.click(); a.remove();
+    dlCsv("labro-instrument-usage.csv", lines);
   }
   modal.addEventListener("click", function (e) {
     if (e.target.closest("[data-copy]")) { var t = document.getElementById("reply"); t.select(); try { navigator.clipboard.writeText(t.value); } catch (x) { document.execCommand("copy"); } e.target.textContent = "Copied"; return; } if (e.target === modal || e.target.closest("[data-close]")) closeModal(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) closeModal(); });
   if (STATIC) document.documentElement.classList.add("static");
 
+  fetch("data/audit/accounts.csv").then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) { if (t) { S.accts = C.parseCSV(t); if (S.loaded) render(true); } }).catch(function () {});
   C.loadSample().then(function () { S.loaded = true; render(false); }).catch(function (e) { app.innerHTML = '<p class="loading">Could not load the sample files (' + esc(e.message) + ').</p>'; });
   window.LBClose = { S: S, totals: totals, render: render };
 })();

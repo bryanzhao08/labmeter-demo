@@ -1,0 +1,33 @@
+<!doctype html><meta charset="utf-8"><title>smoke</title><body><pre id=o>running</pre><script>
+// Headless smoke test for close.html: run with tests/smoke.sh (needs a local server on :8765).
+var f=document.createElement('iframe');f.style.cssText="width:1200px;height:800px";
+f.onload=function(){setTimeout(go,2500)};f.src="../close.html?static#close";document.body.appendChild(f);
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function go(){var out=[],fail=0;function ok(c,m){out.push((c?"PASS ":"FAIL ")+m);if(!c)fail++}
+ try{var w=f.contentWindow,d=f.contentDocument;try{w.localStorage.clear()}catch(e){}
+ var blobs=[];w.URL.createObjectURL=function(b){blobs.push(b);return "blob:x"};w.HTMLAnchorElement.prototype.click=function(){};
+ var errs=[];w.addEventListener('error',e=>errs.push(e.message));
+ var app=()=>d.querySelector('#app').innerText;
+ ok(/bookings say \$27,455/.test(app()),"hero numbers");
+ ok(/Accounts to check/.test(app())&&/ENDED|ended/.test(app()),"expired account flagged");
+ d.querySelector('[data-act=acceptall]').click();await sleep(150);ok(/All flagged lines decided/.test(app()),"accept all");
+ d.querySelector('[data-act=csv]').click();await sleep(50);
+ var t=await blobs[blobs.length-1].text();ok(t.split("\n").length>250&&/^Date,Instrument/.test(t),"charges csv");
+ d.querySelector('[data-row]').click();await sleep(100);ok(!d.getElementById('modal').hidden&&/Hi /.test(d.getElementById('reply').value),"evidence + reply");
+ d.querySelector('[data-close]').click();
+ d.querySelector('[data-act=nosensor]').click();await sleep(150);ok(!/By actual run/.test(app())&&/Add sensor runs back/.test(app()),"no-sensor mode");
+ d.querySelector('[data-act=nosensor]').click();await sleep(150);ok(/By actual run/.test(app()),"sensor restored");
+ ok(/All flagged lines decided/.test(app()),"decisions restored with same files");
+ // formula injection
+ var inj=(await (await fetch('../data/audit/fbs_reservations.csv')).text()).replace(/James Okafor/g,'=HYPERLINK("x")');
+ w.LMAuditCore.setFile('res','inj.csv',inj);w.LBClose.render();await sleep(150);
+ ok(!/All flagged lines decided/.test(app()),"decisions reset for new file");
+ d.querySelector('[data-act=acceptall]').click();await sleep(100);d.querySelector('[data-act=csv]').click();await sleep(50);
+ t=await blobs[blobs.length-1].text();ok(t.indexOf(",'=HYPERLINK")>0||t.indexOf("\"'=HYPERLINK")>=0,"formula neutralized");
+ for(const tab of ["rates","grants","alerts","campus"]){w.location.hash="#"+tab;await sleep(250);ok(app().length>300&&!/NaN|undefined/.test(app()),"tab "+tab)}
+ w.location.hash="#rates";await sleep(200);d.querySelector('[data-act=uscvol]').click();d.querySelector('[data-act=uscsoa]').click();await sleep(50);
+ t=await blobs[blobs.length-1].text();ok(/^Rate Description/.test(t),"usc forms csv");
+ ok(!errs.length,"no page errors "+errs.join(";"));
+ }catch(e){out.push("FAIL exception "+e.message);fail++}
+ document.getElementById('o').textContent=out.join("\n")+"\n"+(fail?fail+" FAILED":"ALL PASS");}
+</script></body>
