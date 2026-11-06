@@ -29,3 +29,19 @@ for (const [name, expected] of cases) {
   if (errors.length) { failed = true; console.error(`${name}:\n  ${errors.join('\n  ')}`); }
 }
 if (failed) process.exitCode = 1; else console.log('ok');
+
+// Header-guess checks for layouts described in public docs (iLab events export, PPMS running sheet). Columns only.
+{
+  const C2 = window.LMAuditCore;
+  const ilabEvents = 'Event Type,Schedule / Resource Name,Scheduled Start Time,Scheduled End Time,Actual Start Time,Actual End Time,Customer Name,Customer Email,Customer Lab,Payment Information\n' +
+    'Session,Zeiss LSM 880 Confocal,2026-10-01 09:00,2026-10-01 11:00,2026-10-01 09:05,2026-10-01 11:40,A B,ab@usc.edu,Ruiz,1-2210-4471\n';
+  C2.setFile('res', 'ilab_events.csv', ilabEvents);
+  const m = C2.state.files.res.map, h = C2.state.files.res.head;
+  assert.strictEqual(h[m.start], 'Scheduled Start Time'); assert.strictEqual(h[m.end], 'Scheduled End Time');
+  assert.strictEqual(h[m.pi], 'Customer Lab'); assert.strictEqual(h[m.account], 'Payment Information'); assert.strictEqual(h[m.user], 'Customer Email');
+  const fbsLike = 'Resource,Email,Lab,Worktag String,Start Date,Start Time,End Date,End Time,Status\nX,a@usc.edu,Ruiz,W1,10/01/2026,9:00 AM,10/01/2026,11:00 AM,Confirmed\n';
+  C2.setFile('res', 'fbs_like.csv', fbsLike);
+  const m2 = C2.state.files.res.map, h2 = C2.state.files.res.head;
+  assert.strictEqual(h2[m2.account], 'Worktag String'); assert.strictEqual(h2[m2.pi], 'Lab');
+  console.log('ok headers');
+}

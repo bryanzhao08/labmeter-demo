@@ -12,10 +12,10 @@
         ["user", "User email or username", [/e-?mail/i, /user ?name|netid|login/i, /user/i], true],
         ["name", "User name", [/reserved by|full name|customer name|user name$|^name$|^user$/i], false],
         ["account", "Account / grant", [/worktag|account|fund|grant|chart|cost|payment|speedtype|^po\b/i], false],
-        ["pi", "PI / lab", [/^pi\b|pi name|principal|^lab$|^group$/i], false],
-        ["start", "Start date (or date and time)", [/start ?date/i, /^date$/i, /^start|begin|^from/i], true],
+        ["pi", "PI / lab", [/^pi\b|pi name|principal|^lab$|^group$|customer lab|lab name|group name|lab group/i], false],
+        ["start", "Start date (or date and time)", [/scheduled start|reservation start|booking start/i, /start ?date/i, /^date$/i, /^start|begin|^from/i], true],
         ["startTime", "Start time", [/start ?time/i, /^from$/i], false],
-        ["end", "End date (or date and time)", [/end ?date/i, /^end$|^end[ _]|finish/i], false],
+        ["end", "End date (or date and time)", [/scheduled end|reservation end|booking end/i, /end ?date/i, /^end$|^end[ _]|finish/i], false],
         ["endTime", "End time", [/end ?time/i, /^to$/i], false],
         ["status", "Status", [/status|state/i], false]
       ]
