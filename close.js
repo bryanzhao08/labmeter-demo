@@ -86,6 +86,7 @@
       '<div class="muted">Today: export reservations from FBS, pull login logs from five instrument PCs, line them up in a spreadsheet, and find overruns, walk-ups and forgotten logouts by eye, then answer PI emails disputing charges. With LaBro: drop the files below, decide ' + T.flagged + ' lines, send. <span class="small">(Dana is a composite persona.)</span></div></div></section>' +
       '<ol class="steps"><li class="done"><b>1</b>Add files</li><li class="' + (T.open ? "" : "done") + '"><b>2</b>Decide ' + T.flagged + ' flagged lines</li><li class="' + (T.open ? "" : "done") + '"><b>3</b>Send charges &amp; PI statements</li></ol>' +
       '<div class="grid g3">' + files + '</div>' +
+      (S.note ? '<p class="muted small" style="margin:8px 0 0">' + esc(S.note) + '</p>' : "") +
       mapping() +
       '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-act="sample">Sample month (FBS)</button><button class="btn ghost small" data-act="sample-ilab">Sample month (iLab layout)</button><button class="btn ghost small" data-act="nosensor">' + (noRuns ? "Add sensor runs back" : "Try without sensors") + '</button><span class="muted small">Your files stay in this browser.</span></div>' +
       '<div class="grid g4" style="margin-top:22px">' +
@@ -424,8 +425,8 @@
     if (b && b.dataset.filter) { S.filter = b.dataset.filter; render(true); return; }
     if (b) {
       var a = b.dataset.act;
-      if (a === "sample") { S.saved = null; C.loadSample().then(function () { render(true); }); }
-      if (a === "sample-ilab") { S.saved = null; C.loadSample().then(function () { return fetch("data/audit/ilab_reservations.csv").then(function (r) { return r.text(); }); }).then(function (t) { C.setFile("res", "ilab_reservations.csv", t); render(true); }); }
+      if (a === "sample") { S.saved = null; S.note = null; C.loadSample().then(function () { render(true); }); }
+      if (a === "sample-ilab") { S.saved = null; S.note = null; C.loadSample().then(function () { return fetch("data/audit/ilab_reservations.csv").then(function (r) { return r.text(); }); }).then(function (t) { C.setFile("res", "ilab_reservations.csv", t); render(true); }); }
       if (a === "nosensor") { if (C.state.files.run) { S.saved = { f: C.state.files.run, amap: C.state.amap.run }; delete C.state.files.run; C.state.amap.run = {}; } else if (S.saved) { C.state.files.run = S.saved.f; C.state.amap.run = S.saved.amap; S.saved = null; } render(true); }
       if (a === "csv") csv();
       if (a === "stmt") statement(app.querySelector("[data-pi]").value);
@@ -468,7 +469,18 @@
     if (!/\.xlsx?$/i.test(f.name)) return new Promise(function (res) { var rd = new FileReader(); rd.onload = function () { res(rd.result); }; rd.readAsText(f); });
     return loadXlsx().then(function (X) { return new Promise(function (res) { var rd = new FileReader(); rd.onload = function () { var wb = X.read(new Uint8Array(rd.result), { type: "array", cellDates: false }); res(X.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]], { rawNumbers: false })); }; rd.readAsArrayBuffer(f); }); });
   }
-  function readFile(k, f) { if (!f) return; readText(f).then(function (t) { S.saved = null; C.setFile(k, f.name, t); render(false); }).catch(function (e) { alertBox(e.message); }); }
+  function readFile(k, f) {
+    if (!f) return;
+    readText(f).then(function (t) {
+      // A raw Windows Security log (Event Viewer export) as the usage log: pair logon/logoff events into sessions first.
+      if (k === "use" && window.LBWinLog && LBWinLog.isWinLog(C.parseCSV(t.split(/\r?\n/, 1)[0] + "\n").head)) {
+        var r = LBWinLog.toSessions(t, { computer: f.name.replace(/\.[^.]+$/, "") });
+        S.note = "Converted a Windows Security log into " + r.sessions.length + " login sessions." + (r.warnings.length ? " " + r.warnings.join(" ") : "");
+        t = r.csv;
+      }
+      S.saved = null; C.setFile(k, f.name, t); render(false);
+    }).catch(function (e) { alertBox(e.message); });
+  }
   function alertBox(m) { var d = document.createElement("p"); d.className = "notice-sim"; d.setAttribute("role", "alert"); d.textContent = m; app.insertBefore(d, app.firstChild); }
   // CSV writer: quotes cells and neutralizes text that a spreadsheet would run as a formula (=, +, -, @).
   function cell(v) {

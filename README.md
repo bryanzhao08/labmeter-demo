@@ -13,8 +13,9 @@
   
   Engines: `audit.js` (`window.LMAuditCore`) and `rates.js` (`window.LBRates`).
 - `pitch.html`: pitch deck. `lab.html`: lab simulator. `overview.html`: the earlier sensor overview SPA (formerly `index.html`; old `index.html#/...` links redirect).
+- `winlog.js` (`window.LBWinLog`): turns a raw Windows Security log (Event Viewer CSV, 4624/4634/4647) into login sessions. It runs automatically when one is dropped as the usage log.
 - Tests:
-  - `node tests/core.test.js`, `node tests/rates.test.js`, `node tests/layouts.test.js`
+  - `node tests/core.test.js`, `node tests/rates.test.js`, `node tests/layouts.test.js`, `node tests/winlog.test.js`
   - Browser smoke test: run `python3 -m http.server 8765`, then `sh tests/smoke.sh`.
 
 A static GitHub Pages demo of LaBro: clip-on sensors detect when shared lab instruments actually run, NFC taps claim the instrument to a grant, and reconciliation compares bookings, claims and measured runs. Verified run time is billed; walk-ups, overruns, idle claims, no-shows and sensor gaps go to a review queue.
