@@ -59,7 +59,7 @@ h3{font-size:18px;margin:0 0 6px}
 .bar .t i{display:block;height:100%;border-radius:5px;transform-origin:left;animation:grow .9s cubic-bezier(.2,.7,.2,1) both}
 .bar .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 @keyframes grow{from{transform:scaleX(0)}}
-@media (max-width:560px){.bar{grid-template-columns:90px 1fr 84px}}
+@media (max-width:560px){.bar{grid-template-columns:90px 1fr 84px}.bars>.muted{margin-left:0!important}}
 /* queue */
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
 .chip{border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:999px;padding:5px 12px;font-size:14px}

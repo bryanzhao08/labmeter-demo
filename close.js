@@ -214,16 +214,17 @@
       }).join("") + '</tbody></table></div>' +
       '<p class="muted small">Hours are this month\'s files annualized. Cost pools, carry-forwards and the rate schedule are a synthetic sample core. Surplus / deficit = billed rate × measured hours − cost pool.</p>' +
       '<h2>What an auditor would flag</h2>' + findings.map(function (f) { return '<div class="find"><span class="sev ' + f.severity + '">' + f.severity + '</span><div><b>' + esc(f.instrument || "Core") + '</b> · ' + esc(f.finding) + (f.cite ? ' <span class="cite">' + esc(f.cite) + '</span>' : "") + '</div></div>'; }).join("") +
-      '<div class="callout muted">Why it matters: federal auditors have repeatedly found recharge centers with uncorrected surpluses and rates not based on actual costs and usage, which leads to refunds. A rate file backed by measured hours is the defense.</div>';
+      '<div class="callout muted">Why it matters: the rule asks for rates based on actual usage, adjusted at least every two years, with last period\'s surplus or deficit carried in (<a href="https://www.law.cornell.edu/cfr/text/2/200.468">2 CFR 200.468</a>). Auditors still question service-center charges, e.g. NSF OIG\'s 2025 audit of the University of Nebraska–Lincoln questioned $92,865 of inadequately supported service-center expenses. Most cores build rates in a spreadsheet.</div>';
   }
 
   function viewGrants() {
     var U = usage();
     return '<h1>Usage evidence for the next instrument grant</h1>' +
-      '<p class="lede">Shared-instrument grants (NIH S10, NSF MRI) ask who uses an instrument, how much, and for which funded projects, and S10 awardees keep reporting usage after the award. LaBro keeps that record as a side effect of billing: hours per lab, per instrument, measured rather than booked.</p>' +
+      '<p class="lede">NIH S10 awardees file an Annual Usage Report for four years after the award: users, their NIH grants, and hours, and major NIH-funded users should account for at least 35% of the instrument\'s accessible time. LaBro keeps that record as a side effect of billing: measured hours per lab, per instrument. <a href="https://grants.nih.gov/grants/guide/pa-files/PAR-17-074.html">NIH S10 notice</a></p>' +
       U.map(function (u) {
         var tot = sum(Object.keys(u.pis), function (k) { return u.pis[k]; }) || 1, mx = 0; Object.keys(u.pis).forEach(function (k) { mx = Math.max(mx, u.pis[k]); });
-        return '<div class="card" style="margin-bottom:14px"><div class="row" style="justify-content:space-between"><h3>' + esc(u.res) + '</h3><span class="muted small">' + h1(u.run) + ' h measured · ' + Object.keys(u.users).length + ' users · ' + Object.keys(u.pis).length + ' labs</span></div><div class="heat">' +
+        var top3 = Object.keys(u.pis).map(function (k) { return u.pis[k]; }).sort(function (a, b) { return b - a; }).slice(0, 3), major = sum(top3, function (v) { return v; }) / (days() / 7 * 50 * 60);
+        return '<div class="card" style="margin-bottom:14px"><div class="row" style="justify-content:space-between"><h3>' + esc(u.res) + ' <span class="tag ' + (major >= .35 ? "ok" : "warn") + '" title="Top 3 labs stand in for the major users named in the grant; accessible time = 50 staffed hours a week">Major users: ' + Math.round(major * 100) + '% of accessible time · S10 asks ≥35%</span></h3><span class="muted small">' + h1(u.run) + ' h measured · ' + Object.keys(u.users).length + ' users · ' + Object.keys(u.pis).length + ' labs</span></div><div class="heat">' +
           Object.keys(u.pis).sort(function (a, b) { return u.pis[b] - u.pis[a]; }).map(function (p) { var v = u.pis[p]; return '<div class="hrow"><span class="nm">' + esc(p) + ' lab</span><span class="t"><i style="width:' + (v / mx * 100).toFixed(1) + '%;background:var(--run)"></i></span><span class="num small">' + Math.round(v / tot * 100) + '%</span></div>'; }).join("") + '</div></div>';
       }).join("") +
       '<div class="row"><button class="btn" data-act="grantcsv">Download usage table (CSV)</button><span class="muted small">Columns: instrument, lab, measured hours, share. Add grant numbers in FBS accounts to group by funded project.</span></div>';
