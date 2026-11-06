@@ -155,7 +155,13 @@
       '<div class="row noprint" style="margin-top:10px"><button class="btn" data-copy>Copy reply</button><button class="btn ghost" onclick="window.print()">Print or save as PDF</button></div>');
   }
   function reply(r) {
-    return "Hi " + (r.pi ? "Dr. " + r.pi : "") + ",\n\nOn " + C.dayLabel(r.day) + ", " + r.name + " booked the " + r.res + " for " + C.hm(r.booked) + ". The instrument log shows it running " + C.hm(r.inst || r.billed) + (r.comp ? " during a " + C.hm(r.comp) + " login session" : "") + ". " + (r.notes[0] ? r.notes[0] + ". " : "") + "The charge of " + $2(finalCharge(r)) + " follows the core's posted policy. The timeline is attached; happy to go through it.\n\nThanks,\nDana";
+    var amt = finalCharge(r), who = r.pi ? "Dr. " + r.pi : "there", ran = r.inst || r.billed;
+    var body = "On " + C.dayLabel(r.day) + ", " + r.name + " booked the " + r.res + " for " + C.hm(r.booked) + ". ";
+    if (ran >= 1) body += "The instrument log shows it running " + C.hm(ran) + (r.comp ? " during a " + C.hm(r.comp) + " login session" : "") + ". ";
+    else body += "The instrument did not run during that booking. ";
+    if (r.notes[0]) body += r.notes[0] + ". ";
+    body += amt > 0.004 ? "The charge of " + $2(amt) + (r.penalty && S.dec[r.key] !== "waive" ? ", including " + $2(r.penalty) + " under the core's overrun policy," : "") + " is based on that measured time. The timeline is attached; happy to go through it." : "There is no charge for this line.";
+    return "Hi " + who + ",\n\n" + body + "\n\nThanks,\nDana";
   }
   function statement(pi) {
     var rows = S.A.rows.filter(function (r) { return r.pi === pi && finalCharge(r) > 0.004; });
