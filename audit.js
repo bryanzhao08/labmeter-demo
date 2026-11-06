@@ -11,7 +11,7 @@
         ["resource", "Instrument / resource", [/resource|instrument|equipment|system/i], true],
         ["user", "User email or username", [/e-?mail/i, /user ?name|netid|login/i, /user/i], true],
         ["name", "User name", [/reserved by|full name|customer name|user name$|^name$|^user$/i], false],
-        ["account", "Account / grant", [/account|fund|grant|chart|cost|payment|speedtype|^po\b/i], false],
+        ["account", "Account / grant", [/worktag|account|fund|grant|chart|cost|payment|speedtype|^po\b/i], false],
         ["pi", "PI / lab", [/^pi\b|pi name|principal|^lab$|^group$/i], false],
         ["start", "Start date (or date and time)", [/start ?date/i, /^date$/i, /^start|begin|^from/i], true],
         ["startTime", "Start time", [/start ?time/i, /^from$/i], false],

@@ -153,7 +153,7 @@
     return head + list.map(function (g) {
       var ended = g.end < last, sev = g.after > 0 ? "high" : "medium";
       return '<div class="find"><span class="sev ' + sev + '">' + (g.after > 0 ? "ended" : "ends soon") + '</span><div><b>' + esc(g.pi) + ' lab · ' + esc(g.acct) + '</b> ' + (g.sponsor ? '<span class="muted">(' + esc(g.sponsor) + ')</span> ' : "") + '· ends ' + esc(C.isoDay(g.end)) +
-        (g.after > 0 ? '<div>' + $2(g.after) + ' across ' + g.n + ' lines was used <b>after</b> the end date. Move these to another account before sending, or they will need a late cost transfer.</div>' : '<div>' + (ended ? "Ended" : "Ends") + ' ' + Math.abs(g.end - last) + ' days ' + (ended ? "before" : "after") + ' this month closes. ' + $2(g.total) + ' this month. Remind the PI to name a new account for next month.</div>') + '</div></div>';
+        (g.after > 0 ? '<div>' + $2(g.after) + ' across ' + g.n + ' lines was used <b>after</b> the end date. Move these to another account before sending, or they will need a late cost transfer. <a href="https://ris.usc.edu/wp-content/uploads/2024/02/Important-FBS-User-Instructions-on-Use-of-Accounts.pdf">USC\'s FBS instructions</a>: a worktag must not have expired.</div>' : '<div>' + (ended ? "Ended" : "Ends") + ' ' + Math.abs(g.end - last) + ' days ' + (ended ? "before" : "after") + ' this month closes. ' + $2(g.total) + ' this month. Remind the PI to name a new account for next month.</div>') + '</div></div>';
     }).join("") + '<div style="margin-top:8px">' + up + ' <span class="muted small">Sample end dates are synthetic.</span></div>';
   }
   function preview(T) {
