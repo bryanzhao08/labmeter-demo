@@ -243,6 +243,9 @@
       }).join("") + '</tbody></table></div>' +
       '<p class="muted small">Hours are this month\'s files annualized. Cost pools, carry-forwards and the rate schedule are a synthetic sample core. Surplus / deficit = billed rate × measured hours − cost pool.</p>' +
       '<h2>What an auditor would flag</h2>' + findings.map(function (f) { return '<div class="find"><span class="sev ' + f.severity + '">' + f.severity + '</span><div><b>' + esc(f.instrument || "Core") + '</b> · ' + esc(f.finding) + (f.cite ? ' <span class="cite">' + esc(f.cite) + '</span>' : "") + '</div></div>'; }).join("") +
+      '<h2>Fill the rate forms your finance office already uses</h2><div class="card"><p class="muted" style="margin-top:0">USC\'s Office of Financial Analysis publishes a Recharge Center Rate Analysis workbook and a Statement of Activities form. Both ask for <b>volume per service</b>: hours by user type for next year, and actual yearly usage. LaBro fills those rows from measured hours instead of bookings.</p>' +
+      '<div class="row"><button class="btn" data-act="uscvol">Volume tab rows (CSV)</button><button class="btn ghost" data-act="uscsoa">Statement of Activities: rate × yearly usage (CSV)</button></div>' +
+      '<p class="muted small" style="margin-bottom:0">Columns follow the public templates at <a href="https://fbs.usc.edu/financial-analysis/recharge/recharge-center-forms/">fbs.usc.edu › Recharge Center Forms</a>. Every sample user is internal; with real data, the user type comes from the FBS account.</p></div>' +
       '<div class="callout muted">Why it matters: the rule asks for rates based on actual usage, adjusted at least every two years, with last period\'s surplus or deficit carried in (<a href="https://www.law.cornell.edu/cfr/text/2/200.468">2 CFR 200.468</a>). Auditors still question service-center charges, e.g. NSF OIG\'s 2025 audit of the University of Nebraska–Lincoln questioned $92,865 of inadequately supported service-center expenses. Most cores build rates in a spreadsheet.</div>';
   }
 
@@ -319,6 +322,7 @@
       if (a === "stmt") statement(app.querySelector("[data-pi]").value);
       if (a === "acceptall") { S.A.rows.filter(C.needsAction).forEach(function (r) { if (!S.dec[r.key]) S.dec[r.key] = SUGGEST[r.status] || "measured"; }); save(DKEY, S.dec); render(true); }
       if (a === "grantcsv") grantCsv();
+      if (a === "uscvol" || a === "uscsoa") uscForms(a);
       if (a === "more") { S.more = true; render(true); }
       return;
     }
@@ -336,6 +340,23 @@
   app.addEventListener("dragleave", function (e) { var d = e.target.closest("[data-drop]"); if (d) d.classList.remove("over"); });
   app.addEventListener("drop", function (e) { var d = e.target.closest("[data-drop]"); if (d) { e.preventDefault(); readFile(d.dataset.drop, e.dataTransfer.files[0]); } });
   function readFile(k, f) { if (!f) return; var rd = new FileReader(); rd.onload = function () { C.setFile(k, f.name, rd.result); S.dec = {}; save(DKEY, S.dec); render(false); }; rd.readAsText(f); }
+  function dlCsv(name, lines) {
+    var q = function (v) { v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var blob = new Blob([lines.map(function (l) { return l.map(q).join(","); }).join("\n") + "\n"], { type: "text/csv" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function uscForms(kind) {
+    var U = usage(), months = days() / 30.4;
+    if (kind === "uscvol") {
+      var L = [["Long Name", "Short Name", "Basis for Billing", "Internal", "External Non-Profit", "External Profit", "Free Service", "Total", "Source"]];
+      U.forEach(function (u) { var hrs = Math.round(RT.annualize(u.run / 60, months)); L.push([u.res, u.res.split(" ").slice(0, 2).join(" "), "Hourly", hrs, 0, 0, 0, hrs, "LaBro measured run hours, " + (months < 1.5 ? "1 month x12" : Math.round(months) + " months annualized")]); });
+      dlCsv("usc-rate-analysis-volume.csv", L);
+    } else {
+      var L2 = [["Rate Description", "Rate", "Yearly Usage (volume)", "FY Total", "Booked hours (for comparison)"]];
+      U.forEach(function (u) { var hrs = Math.round(RT.annualize(u.run / 60, months)), r = rate(u.res); L2.push([u.res + " (per hour)", r.toFixed(2), hrs, (r * hrs).toFixed(2), Math.round(RT.annualize(u.booked / 60, months))]); });
+      dlCsv("usc-statement-of-activities-usage.csv", L2);
+    }
+  }
   function grantCsv() {
     var lines = [["Instrument", "Lab", "Measured hours", "Share"]];
     usage().forEach(function (u) { var tot = sum(Object.keys(u.pis), function (k) { return u.pis[k]; }) || 1; Object.keys(u.pis).forEach(function (p) { lines.push([u.res, p, h1(u.pis[p]), (u.pis[p] / tot * 100).toFixed(1) + "%"]); }); });
