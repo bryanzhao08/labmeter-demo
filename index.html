@@ -3,31 +3,73 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Overview · LaBro</title>
-<meta name="description" content="Static demo of LaBro: sensor-verified billing for shared lab instruments, plus a room-level finder for portable gear. Simulated data.">
-<meta name="color-scheme" content="light dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e7c6b'/%3E%3Cpath d='M6 21h5l3-10 4 14 3-9h5' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>LaBro</title>
+<meta name="description" content="LaBro closes a core facility's monthly instrument billing from FBS, iLab or PPMS exports, and builds next year's rates from measured hours.">
+<script>if (/^#\//.test(location.hash)) location.replace("overview.html" + location.hash);</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="close.css">
+<style>
+.hero{padding:56px 0 24px}
+.hero h1{font-size:60px;max-width:960px}
+.hero .lede{font-size:22px;max-width:760px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.cta a{text-decoration:none}
+.trio .card h3{font-size:22px}
+.trio .num{font-size:15px;color:var(--acc);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;counter-reset:s}
+.flow div{position:relative;padding:20px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--line)}
+.flow b{display:block;font-size:20px;margin-bottom:4px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.three .v{font-size:40px;font-weight:700;letter-spacing:-.02em}
+.offer{border:1px solid var(--acc);background:rgba(47,196,162,.06)}
+@media (max-width:760px){.hero h1{font-size:38px}.flow,.three{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
 <header class="top">
-  <div class="wrap bar">
-    <a class="brand" href="#/"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor"/><path d="M6 21h5l3-10 4 14 3-9h5" fill="none" stroke="var(--on-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>LaBro</span></a>
-    <nav aria-label="Primary" id="nav"></nav>
-    <a href="close.html" style="font-weight:600;white-space:nowrap">Month-end close app →</a>
-    <div class="setup" id="setup" role="group" aria-label="Setup"><button type="button" data-setup="fbs" aria-pressed="true" title="FBS keeps scheduling; LaBro audits actual use">With FBS</button><button type="button" data-setup="suite" aria-pressed="false" title="LaBro books, measures and bills end to end">All-in-one</button></div>
-    <button type="button" class="simsw" id="simsw" aria-pressed="false"><span class="simsw-t" aria-hidden="true"><i></i></span><span class="simsw-l">Live simulation</span></button>
-  </div>
+  <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span>LaBro</a>
+  <nav class="tabs" aria-label="Site">
+    <a href="close.html">Month-end close</a>
+    <a href="close.html#rates">Rates &amp; audit</a>
+    <a href="pitch.html">Pitch</a>
+    <a href="lab.html">Lab simulator</a>
+  </nav>
 </header>
-<main id="main" class="wrap" tabindex="-1" aria-busy="true"><p class="muted loadmsg" role="status"><span class="spin" aria-hidden="true"></span>Loading demo data</p></main>
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
-<footer class="foot"><div class="wrap footin"><span>Simulated data. No real hardware yet. Times are UTC; locations are room-level, not GPS.</span><a href="#/how">How it works</a></div></footer>
-<script src="scene.js"></script>
-<script src="audit.js"></script>
-<script src="app.js"></script>
+<main>
+  <section class="hero">
+    <p class="muted" style="margin:0 0 10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:14px">For university core facilities</p>
+    <h1>Your core bills by bookings. Your rate assumes them. Neither is what actually ran.</h1>
+    <p class="lede">LaBro reads the exports you already have from FBS, iLab or PPMS, plus instrument login logs. It closes the month with a reason for every charge, and builds next year's rate from measured hours.</p>
+    <div class="cta"><a class="btn" href="close.html">Try the month-end close →</a><a class="btn ghost" href="pitch.html">See the 4-minute pitch</a></div>
+    <div class="three">
+      <div class="card"><div class="v">$27,455</div><div class="muted">billed by booking</div></div>
+      <div class="card"><div class="v" style="color:var(--login)">$33,101</div><div class="muted">billed by PC login</div></div>
+      <div class="card"><div class="v" style="color:var(--acc)">$26,571</div><div class="muted">billed by actual run</div></div>
+    </div>
+    <p class="muted small">Same month, same five-instrument core. Synthetic sample data; open the app to see every line.</p>
+  </section>
+
+  <h2>Three jobs, one set of hours</h2>
+  <div class="grid g3 trio">
+    <div class="card"><div class="num">Every month</div><h3>Close the month</h3><p class="muted">Bookings, logins and instrument runs lined up per user per day. Your grace and penalty rules applied. Only the lines that need a decision reach you, each with an evidence timeline and a reply for the PI.</p><a href="close.html">Open →</a></div>
+    <div class="card"><div class="num">Every year</div><h3>Set rates on real hours</h3><p class="muted">Recharge rates are cost ÷ hours, and federal rules (2 CFR 200.468) want those hours to be actual usage. LaBro rebuilds each rate from measured hours, flags what an auditor would, and fills your finance office's rate template.</p><a href="close.html#rates">Open →</a></div>
+    <div class="card"><div class="num">When it counts</div><h3>Prove it</h3><p class="muted">Usage by lab for NIH S10 reports. Charges to grants that have ended, caught before you send. A timeline for any disputed charge. Runs with nobody booked, flagged.</p><a href="close.html#grants">Open →</a></div>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="flow">
+    <div><b>1 · Export</b><span class="muted">Last month's reservations from FBS, iLab or PPMS and the instrument-PC login log. No IT ticket, no install.</span></div>
+    <div><b>2 · Check</b><span class="muted">LaBro reconciles them in your browser. For instruments with no PC (centrifuges, shop tools), a clip-on current sensor records run time.</span></div>
+    <div><b>3 · Send</b><span class="muted">A charges file for FBS, PI statements, a rate file. Every number traces back to a booking, a login or a run.</span></div>
+  </div>
+
+  <h2>Pilot</h2>
+  <div class="card offer">
+    <p style="margin-top:0;font-size:19px"><b>Send one month of exports. Within 48 hours you get checked charges, a PI statement and a rate check. Free for the first month, then $200 a month per core.</b></p>
+    <p class="muted" style="margin-bottom:0">De-identified files are fine. Data is deleted on request. Built by a USC student founder in USC's Founders' Education program.</p>
+  </div>
+</main>
+<footer class="foot">Demo with synthetic data: no real people, accounts or institutions. The column layouts are mock-ups of FBS, iLab and PPMS exports. <a href="overview.html">Earlier sensor overview</a></footer>
 </body>
 </html>
