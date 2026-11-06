@@ -68,7 +68,7 @@
     var files = ["res", "use", "run"].map(function (k) {
       var f = C.state.files[k], s = C.SRC[k];
       return '<label class="drop" data-drop="' + k + '"><div class="k">' + esc(s.label) + (s.optional ? " · optional" : "") + '</div>' +
-        '<div class="n">' + (f ? '<span class="ok">✓</span> ' + esc(f.name) : "Drop a CSV here") + '</div>' +
+        '<div class="n">' + (f ? '<span class="ok">✓</span> ' + esc(f.name) : "Drop a CSV or Excel file") + '</div>' +
         '<div class="muted small">' + (f ? f.rows.length + " rows · " + esc(s.hint) : esc(s.hint)) + '</div><input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" data-file="' + k + '" aria-label="Upload ' + esc(s.label) + '"></label>';
     }).join("");
     var bar = function (lbl, v, col, note) { return '<div class="bar"><span>' + lbl + '</span><span class="t"><i style="width:' + (v / mx * 100).toFixed(1) + '%;background:' + col + '"></i></span><span class="num">' + $(v) + '</span></div>' + (note ? '<div class="muted small" style="margin:-4px 0 4px 162px">' + note + '</div>' : ""); };
