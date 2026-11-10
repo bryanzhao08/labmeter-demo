@@ -443,7 +443,7 @@
 
   // Engine API for close.html (LaBro Close). Same parser, rules and reconciliation as the Audit page.
   window.LMAuditCore = {
-    setFile: setFile, loadSample: loadSample, build: build, audit: audit, status: status, STATUS: STATUS,
+    guessMap: guessMap, parseDT: parseDT, setFile: setFile, loadSample: loadSample, build: build, audit: audit, status: status, STATUS: STATUS,
     needsAction: needsAction, sampleRate: sampleRate, parseCSV: parseCSV, hm: hm, clock: clock, dayLabel: dayLabel, isoDay: isoDay,
     rules: function () { return R; }, state: ST, SRC: SRC,
     ensureRates: function (B) { B.resources.forEach(function (r) { if (R.rates[r] == null) R.rates[r] = sampleRate(r); }); }

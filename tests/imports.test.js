@@ -1,0 +1,17 @@
+const assert = require('assert');
+global.window = {}; global.localStorage = {getItem: () => null, setItem: () => {}};
+require('../audit'); require('../winlog');
+const C = window.LMAuditCore, I = require('../imports');
+const a = {name:'a.csv', text:'Workstation,Username,Logon Time,Logoff Time\nPC,ada,2026-10-01 09:00:00,2026-10-01 10:00:00'};
+const b = {name:'b.csv', text:a.text+'\nPC,ben,2026-10-01 10:00:00,2026-10-01 11:00:00'};
+const out = I.merge([a,b], C, window.LBWinLog);
+assert.equal(out.rows,2); assert.equal(out.duplicates,1); assert.equal(out.sources[1].added,1);
+C.setFile('use','original',a.text);
+assert.throws(()=>I.merge([a,{name:'bad.csv',text:'x,y\n1,2'}], C), /bad.csv: missing/);
+assert.equal(C.state.files.use.name,'original');
+assert.throws(()=>I.merge([{name:'bad.csv',text:a.text.replace('10:00:00','08:00:00')}],C), /end after start/);
+assert.throws(()=>I.merge([{name:'empty.csv',text:a.text.split('\n')[0]}],C), /no usage rows/);
+C.setFile('res','r.csv','Resource,Username,Start,End\nPC,ada,2026-10-01 09:00:00,2026-10-01 10:00:00');
+C.setFile('use','batch',out.csv);
+assert.equal(C.build().use.length,2);
+console.log('batch import: deduplication, provenance, validation, atomic failure and reconciliation passed');

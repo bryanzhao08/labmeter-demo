@@ -60,3 +60,8 @@ The real LaBro FastAPI server (SQLite, fresh temporary DB) was started on a loca
 Download `collector/labro-collector.zip`, extract and follow its README. Collects session observations, activity estimates and optionally process-open time. It does not measure machine acquisition, identify people behind shared accounts, enforce login, or connect to FBS APIs.
 Each collector process has its own CSV to avoid concurrent-session overwrites. Writes use a temporary file before replacement. Import the CSV as a usage log and map the workstation to its reservation resource.
 Run `node tests/collector.test.js` with PowerShell installed to check synthetic active/idle timing and app import. These tests do not validate Windows installation, idle APIs, event backfill or shared-folder permissions; pilot on one Windows PC before wider use.
+
+## Batch usage logs
+In Close the month, select or drop multiple usage files together. The batch replaces the current usage dataset only after all files validate. Identical workstation/user/start/end sessions are deduplicated, and each output row retains its source filename. Raw Windows Security exports are converted before merging. Conversion warnings remain visible.
+Batch imports use automatic column detection; import an unrecognized layout alone to map it manually. This is file-based collection, not a live connection. Different overlapping intervals are not deduplicated as if they were identical evidence.
+Tests: `node tests/imports.test.js` and `tests/smoke-imports.html` served over HTTP.

@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>Batch import checks</title><pre id="o">running</pre>
+<iframe id="f" src="../close.html?static#close"></iframe>
+<script>
+f.onload = async function () {
+  const w=f.contentWindow, d=w.document, out=[];
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  function ok(v,s){if(!v)throw Error(s);out.push('PASS '+s)}
+  try {
+    for(let i=0;i<100&&!d.querySelector('[data-file=use]');i++)await sleep(100);
+    const csv='Workstation,Username,Logon Time,Logoff Time\nPC,ada,2026-10-01 09:00:00,2026-10-01 10:00:00';
+    async function upload(files){
+      const input=d.querySelector('[data-file=use]'), dt=new w.DataTransfer();
+      files.forEach(([name,text])=>dt.items.add(new w.File([text],name,{type:'text/csv'})));
+      input.files=dt.files;input.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(700);
+    }
+    ok(d.querySelector('[data-file=use]').multiple,'usage picker accepts multiple files');
+    await upload([['one.csv',csv],['two.csv',csv]]);
+    ok(/Imported 1 sessions from 2 files; removed 1 duplicates/.test(d.body.innerText),'batch summary');
+    ok(w.LMAuditCore.state.files.use.rows.length===1,'duplicates removed');
+    await upload([['valid.csv',csv],['broken.csv','a,b\n1,2']]);
+    ok(/broken.csv: missing/.test(d.body.innerText),'actionable error');
+    ok(w.LMAuditCore.state.files.use.rows.length===1,'failed batch preserves previous data');
+    o.textContent=out.join('\n')+'\nALL PASS';
+  } catch(e){o.textContent=out.join('\n')+'\nFAIL '+e.message}
+};
+</script>
