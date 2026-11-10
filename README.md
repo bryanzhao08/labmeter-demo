@@ -75,3 +75,10 @@ and stores requests/rules separately from the website. Uploaded source files are
 not persisted across launches. Releases are unsigned previews.
 Run `npm run desktop:test` for native app smoke checks.
 The manual Desktop builds GitHub workflow produces downloadable Mac/Windows artifacts.
+
+## Instrument-folder evidence
+New `folders.html` workflow, also packaged in desktop 0.2: user-selected folder,
+filename filtering, explicit column mapping, acquisition/session/reservation labels,
+saved profile, interval preview and traceable evidence CSV. Invalid records and
+overlaps block export. No manufacturer format or remote instrument access is assumed.
+See desktop/README.md for setup, timestamp conventions and limits.

@@ -1,0 +1,15 @@
+const assert=require('assert');
+global.window={};global.localStorage={getItem:()=>null,setItem:()=>{}};
+require('../audit');
+const E=require('../folder-engine'), C=window.LMAuditCore;
+const p={instrument:'NMR',kind:'acquisition',clock:'local',user:'operator',start:'begin',end:'finish'};
+const f={name:'NMR/log.csv',text:'operator,begin,finish\nada,2026-11-10 09:00:00,2026-11-10 09:03:00'};
+let r=E.parse([f,f],p,C);
+assert.equal(r.rows.length,1);assert.equal(r.rows[0].minutes,3);assert.equal(r.issues.length,0);
+assert(E.csv(r).includes('"acquisition"'));assert(E.csv(r).includes('NMR/log.csv'));
+r=E.parse([{...f,text:f.text+'\nben,2026-11-10 09:02:00,2026-11-10 09:05:00'}],p,C);
+assert(r.issues.some(x=>x.includes('overlaps')));assert.throws(()=>E.csv(r));
+r=E.parse([{...f,text:f.text.replaceAll('2026-11-10','2026-02-30')}],p,C);assert.equal(r.rows.length,0);
+assert.throws(()=>E.parse([f],{...p,user:'missing'},C),/missing column/);
+r=E.parse([{...f,text:f.text.replaceAll('09:00:00','09:00:00Z')}],p,C);assert.equal(r.rows.length,0);
+console.log('folder evidence: 3-minute acquisition, duplicates, overlap holds, source lineage and invalid timestamps passed');

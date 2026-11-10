@@ -37,7 +37,22 @@ async function createWindow() {
         localStorage.setItem('desktop-smoke','yes');
         return {tabs:results,xlsx:XLSX.version,storage:localStorage.getItem('desktop-smoke')};
       })()`);
-      console.log('DESKTOP PASS '+JSON.stringify(result));app.exit(0);
+      await main.loadURL('labro://app/folders.html');
+      const folderTest=await main.webContents.executeJavaScript(`(async()=>{
+        const f=new File(['operator,begin,finish\\nada,2026-11-10 09:00:00,2026-11-10 09:03:00'],'usage.csv');
+        Object.defineProperty(f,'webkitRelativePath',{value:'NMR/logs/usage.csv'});
+        const dt=new DataTransfer();dt.items.add(f);
+        document.getElementById('folder').files=dt.files;document.getElementById('folder').dispatchEvent(new Event('change'));
+        const check=document.querySelector('[data-file]');check.checked=true;check.dispatchEvent(new Event('change',{bubbles:true}));
+        for(let i=0;i<50&&document.getElementById('preview').disabled;i++)await new Promise(r=>setTimeout(r,20));
+        document.getElementById('instrument').value='NMR';
+        document.getElementById('end').value='finish';
+        document.getElementById('preview').click();await new Promise(r=>setTimeout(r,100));
+        if(!document.getElementById('results').innerText.includes('3.00 minutes'))throw Error('Folder preview failed');
+        if(document.getElementById('export').disabled)throw Error('Evidence export disabled');
+        return 'folder selection, mapping and acquisition preview passed';
+      })()`);
+      console.log('DESKTOP PASS '+JSON.stringify(result)+' '+folderTest);app.exit(0);
     } catch(e){console.error(e);app.exit(1);}
   }
 }

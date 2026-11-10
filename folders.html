@@ -1,0 +1,21 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LaBro · Instrument folders</title><link rel="stylesheet" href="close.css"></head>
+<body><header class="top"><a class="brand" href="close.html#requests">LaBro</a><a href="close.html#close">Back to billing review</a></header>
+<main style="max-width:1180px;margin:32px auto;padding:0 24px">
+<h1>Connect an instrument folder</h1>
+<p class="muted">Read timing logs from a folder you choose. Keep FBS or iLab for scheduling and accounting.</p>
+<div class="card"><h2>1. Choose the source</h2><p>Ask the instrument manager to locate the software’s usage or acquisition log. Select that folder, or its approved server copy. LaBro reads selected text logs only; it does not move experimental data or change the instrument.</p>
+<label class="btn">Choose folder<input id="folder" type="file" webkitdirectory multiple hidden></label>
+<p id="status" role="status" aria-live="polite">No folder selected. You’ll reselect the folder after reopening; the column profile is saved locally.</p>
+<label>Filename contains <input id="filter" type="text" placeholder="For example: usage or acquisition"></label>
+<div id="files" class="tw" style="margin-top:16px"></div></div>
+<div class="card" style="margin-top:20px"><h2>2. Describe the log</h2><p>CSV, TSV and delimited text with a header row are supported. Proprietary or free-form manufacturer logs need a separate adapter based on a real sample.</p>
+<div class="form">
+<label>Instrument name<input id="instrument" type="text" placeholder="Match the booking-system name"></label>
+<label>What these timestamps measure<select id="kind"><option value="acquisition">Data acquisition only</option><option value="login">Computer session</option><option value="reservation">Reserved time</option></select></label>
+<label>Timestamp convention<select id="clock"><option value="local">Instrument local time (no offset)</option><option value="utc">UTC timestamps ending in Z</option></select></label>
+</div><p class="small muted">Use the instrument’s configured time convention. Local timestamps cannot distinguish a repeated daylight-saving hour; resolve those records against the source log before billing.</p>
+<div id="mapping" class="form"></div><p><button id="preview" class="btn" disabled>Preview selected logs</button> <button id="save" class="btn ghost">Save this profile</button></p>
+<p id="error" role="alert"></p></div>
+<section id="results" style="margin-top:24px"></section>
+<p class="muted">Evidence is not a billing policy. Setup time, no-shows, after-hours discounts and departmental rates remain core-specific. Nothing here is submitted to FBS or iLab.</p>
+</main><script src="audit.js"></script><script src="folder-engine.js"></script><script src="folders.js"></script></body></html>

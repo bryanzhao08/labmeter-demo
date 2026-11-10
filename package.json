@@ -1,5 +1,5 @@
 {
-  "name": "labro-desktop", "version": "0.1.0", "private": true,
+  "name": "labro-desktop", "version": "0.2.0", "private": true,
   "description": "Local-first core facility requests, billing review and campus reporting",
   "author": "LaBro", "main": "desktop/main.cjs",
   "scripts": {
