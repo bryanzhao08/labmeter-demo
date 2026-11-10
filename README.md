@@ -65,3 +65,13 @@ Run `node tests/collector.test.js` with PowerShell installed to check synthetic 
 In Close the month, select or drop multiple usage files together. The batch replaces the current usage dataset only after all files validate. Identical workstation/user/start/end sessions are deduplicated, and each output row retains its source filename. Raw Windows Security exports are converted before merging. Conversion warnings remain visible.
 Batch imports use automatic column detection; import an unrecognized layout alone to map it manually. This is file-based collection, not a live connection. Different overlapping intervals are not deduplicated as if they were identical evidence.
 Tests: `node tests/imports.test.js` and `tests/smoke-imports.html` served over HTTP.
+
+## Downloadable desktop app
+LaBro now has an Electron desktop preview. Build an Apple Silicon Mac ZIP with
+`npm ci && npm run desktop:mac`; build a Windows x64 installer on Windows with
+`npm run desktop:win`. See [desktop setup and limits](desktop/README.md).
+The app bundles its data and Excel reader, blocks network requests in the renderer,
+and stores requests/rules separately from the website. Uploaded source files are
+not persisted across launches. Releases are unsigned previews.
+Run `npm run desktop:test` for native app smoke checks.
+The manual Desktop builds GitHub workflow produces downloadable Mac/Windows artifacts.
