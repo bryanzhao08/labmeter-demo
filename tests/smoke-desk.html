@@ -1,0 +1,46 @@
+<!doctype html><meta charset="utf-8"><title>smoke</title><body><pre id=o>running</pre><script>
+// Headless smoke test for Requests, Rules and the research-office view: sh tests/smoke.sh smoke-desk.html
+var f=document.createElement('iframe');f.style.cssText="width:1200px;height:800px";
+f.onload=function(){setTimeout(go,2500)};f.src="../close.html?static#requests";document.body.appendChild(f);
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function go(){var out=[],fail=0,t;function ok(c,m){out.push((c?"PASS ":"FAIL ")+m);if(!c)fail++;document.getElementById("o").textContent="running\n"+out.join("\n")}
+ try{var w=f.contentWindow,d=f.contentDocument;try{w.localStorage.clear()}catch(e){}
+ var blobs=[],OB=w.Blob;w.Blob=function(parts,o){blobs.push(parts.join(""));return new OB(parts,o)};w.URL.createObjectURL=function(){return "blob:x"};w.HTMLAnchorElement.prototype.click=function(){};
+ var errs=[];w.addEventListener('error',e=>errs.push(e.message));
+ var app=()=>d.querySelector('#app').innerText,q=s=>d.querySelector(s),ch=(el,v)=>{el.value=v;el.dispatchEvent(new w.Event('change',{bubbles:true}))};
+ w.location.hash="#rules";await sleep(200);w.location.hash="#requests";await sleep(300);
+ ok(/Held for a look · 6/.test(app())&&/Mei Lin is on the Chen, L\. Lab roster, not Chen, W\. Lab/.test(app())&&/Quantity 12 is 12× the usual 1/.test(app()),"requests: six planted holds");
+ ok(d.body.getAttribute('data-role')==='core',"role core");
+ // new request: lab fills from the roster, industry markup previewed
+ var u=q('[data-dkf=user]');u.value="Pia Lund";u.dispatchEvent(new w.Event('input',{bubbles:true}));await sleep(50);
+ ok(q('[data-dkf=lab]').value==="Helix Bio"&&/Industry customers/.test(q('#dk-pv').innerText),"form: roster fills lab, rule previewed");
+ q('[data-dk=add]').click();await sleep(200);ok(/Added R\d+ for Pia Lund/.test(app()),"request added");
+ // fixes
+ var n=()=>+/Held for a look · (\d+)/.exec(app())[1];
+ [...d.querySelectorAll('[data-dk=fix]')].find(b=>/Move to Chen, L\. Lab/.test(b.textContent)).click();await sleep(200);ok(n()===5,"fix wrong lab");
+ [...d.querySelectorAll('[data-dk=fix]')].find(b=>/Change to 1$/.test(b.textContent)).click();await sleep(200);ok(n()===4,"fix quantity");
+ d.querySelector('[data-dk=ok]').click();await sleep(200);ok(n()===3,"approve as is");
+ q('[data-dk=trail]').click();await sleep(50);t=blobs[blobs.length-1];ok(/^No\.,Date/.test(t)&&/Approved as is despite/.test(t)&&/move to Chen/.test(t),"audit trail csv");
+ q('[data-dk=bill]').click();await sleep(250);t=blobs[blobs.length-1];
+ ok(/^Quantity,Per,SKU,Description,Date,Unit Price,Requested by,Lab,Charge/.test(t)&&t.split("\n").length>490&&!/2610/.test(t),"fbs upload csv excludes held");
+ ok(/marked billed/.test(app())&&/Bill 0 clean lines/.test(app()),"billed and cleared");
+ ok(JSON.parse(w.localStorage.getItem('labro-desk-v1')).requests.some(r=>r.status==='billed'),"saved to this browser");
+ // rules: turning a rule off releases its lines; a new price rule changes totals
+ w.location.hash="#rules";await sleep(300);ok(/Price rules · 2/.test(app())&&/Hold rules · 5/.test(app())&&/Instrument time rules/.test(app()),"rules page");
+ var cb=q('[data-dkr="ended|on"]');cb.checked=false;cb.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(200);
+ w.location.hash="#requests";await sleep(300);ok(n()===2,"rule off releases lines");
+ w.location.hash="#rules";await sleep(300);q('[data-dk=addrule][data-v=price]').click();await sleep(200);ok(/Price rules · 3/.test(app()),"add price rule");
+ var sel=[...d.querySelectorAll('select[data-dkr$="when.0.field"]')].pop();ch(sel,"amount");await sleep(200);
+ ok([...d.querySelectorAll('select[data-dkr$="when.0.op"]')].pop().value==="gte","field change resets comparison");
+ var g=q('[data-dkh=grace]');ch(g,"0");await sleep(200);ok(w.LBApp.C.rules().grace===0,"hourly rule edit");ch(q('[data-dkh=grace]'),"60");await sleep(100);
+ // research office
+ w.location.hash="#campus";await sleep(400);
+ ok(d.body.getAttribute('data-role')==='office'&&/Research office view/.test(app())&&/6 cores reporting/.test(app()),"campus view + role");
+ ok(/Mass spectrometry core · Recovered 63% of cost/.test(app())&&/Labs across cores/.test(app())&&/No summary received/.test(app())&&!/NaN|undefined/.test(app()),"campus flags and labs");
+ q('[data-dk=mine]').click();await sleep(50);t=blobs[blobs.length-1];var j=JSON.parse(t);ok(j.length===2&&j[1].core==="Cell culture core"&&j[1].billed>0&&!/Mei Lin/.test(t),"summary json has totals, no requester names");
+ q('[data-dk=rollcsv]').click();await sleep(50);t=blobs[blobs.length-1];ok(/^Core,Month,Billed/.test(t)&&t.split("\n").length>=7,"rollup csv");
+ for(const tab of ["close","services","rates","grants","alerts"]){w.location.hash="#"+tab;await sleep(250);ok(app().length>300&&!/NaN|undefined/.test(app()),"tab "+tab)}
+ ok(!errs.length,"no page errors "+errs.join(";"));
+ }catch(e){out.push("FAIL exception "+e.message);fail++}
+ document.getElementById('o').textContent=out.join("\n")+"\n"+(fail?fail+" FAILED":"ALL PASS");}
+</script></body>

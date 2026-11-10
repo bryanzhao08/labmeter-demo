@@ -138,3 +138,46 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,te
 .chip,.btn.small,select{min-height:36px}
 @media (pointer:coarse){.btn,.chip,.x,.linkb,select{min-height:44px}.x{min-width:44px}.linkb{padding:10px}}
 html.static *{animation:none!important;transition:none!important}
+/* role switch + desk (requests, rules, research office) */
+.role{display:flex;padding:3px;border-radius:999px;background:var(--bg2);box-shadow:inset 0 0 0 1px var(--line)}
+.role a{color:var(--mut);text-decoration:none;padding:6px 14px;border-radius:999px;font-weight:600;font-size:15px}
+.role a[aria-current=true]{background:var(--acc);color:#05201a}
+body[data-role=office] .tabs{display:none}
+body[data-role=core] .tabs a[data-role=office]{display:none}
+input[type=text],input[type=date]{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:36px}
+input[type=date]{color-scheme:dark}
+.form{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.form label{display:grid;gap:4px;font-size:14px;color:var(--mut)}
+.form select,.form input[type=text]{min-width:180px;max-width:100%}
+.pv{margin:12px 0 0;font-variant-numeric:tabular-nums}
+.qi.held{grid-template-columns:96px minmax(0,1.2fr) minmax(0,2fr) 90px auto}
+.qi .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.rule{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:start;padding:14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);margin-bottom:8px}
+.rule.off{opacity:.55}
+.rule .rname{width:100%;max-width:520px;font-weight:600;background:transparent;border-color:transparent;padding-left:0}
+.rule .rname:hover,.rule .rname:focus{border-color:var(--line);padding-left:8px}
+.rline{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.rline .kw{color:var(--mut);font-weight:600;min-width:46px}
+.rline input[type=text]{min-width:150px;width:190px}
+.rule .fx{color:var(--mut);font-size:14px}
+.rule .fx b{color:var(--ink)}
+.sw{display:inline-flex;align-items:center;min-height:36px}
+.sw input{width:20px;height:20px;accent-color:var(--acc)}
+.xbtn{background:none;border:0;color:var(--mut);font-size:20px;line-height:1;padding:4px 8px;border-radius:8px}
+.xbtn:hover{color:var(--bad)}
+.rec{display:inline-grid;grid-template-columns:90px 44px;gap:8px;align-items:center}
+.rec .t{height:10px;border-radius:5px;background:var(--line);position:relative;overflow:hidden}
+.rec .t i{position:absolute;inset:0 auto 0 0;border-radius:5px}
+.rec .t u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+td.wrap{white-space:normal;min-width:260px}
+@media (max-width:860px){.qi.held{grid-template-columns:1fr 1fr}.qi .acts{justify-content:flex-start;grid-column:1/-1}.rule{grid-template-columns:auto 1fr}.rule>.xbtn{grid-column:2;justify-self:start}}
+table.reqs td.wrap{min-width:150px}
+table.reqs td{padding:8px 12px}
+.form label>span{display:flex;gap:6px;align-items:center;color:var(--mut)}
+.qi>*{min-width:0}
+@media (max-width:560px){
+  .qi.held{grid-template-columns:1fr}.qi.held .amt{text-align:left}
+  .form label{flex:1 1 100%}.form select,.form input[type=text],.form input[type=date]{width:100%;min-width:0}
+  .role a{padding:6px 10px;font-size:14px}.rline select,.rline input[type=text]{max-width:100%}
+  .stat .v{font-size:28px}
+}

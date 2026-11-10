@@ -2,6 +2,10 @@
 
 ## Start here (2026-11-06)
 - `index.html`: landing page.
+- `close.html#requests`, `#rules`, `#campus` (2026-11-10), two roles in one app:
+  - **Core manager**: a request log priced by the price list plus editable when/then rules (`rules.js`, LBRules). Hold rules keep bad lines out of the FBS upload, with one-click fixes. Outputs: FBS eLog upload CSV, audit trail CSV, month summary JSON. State lives in localStorage (`labro-desk-v1`).
+  - **Research office**: rolls up one month summary per core (`campus.js`, LBCampus): recovery against target, booked vs measured hours, idle instruments, lab spend across cores. Two cores come from the browser's own data; four are simulated. Cores report by file; there is no live feed.
+  - UI in `desk.js`, plugged into `close.js` through `window.LBApp`. Tests: `node tests/rules.test.js`, `sh tests/smoke.sh smoke-desk.html`.
 - `close.html`, **LaBro Close**: the month-end close app. Load FBS/iLab/PPMS reservations, a login log and optional sensor runs. You get:
   - checked charges with reasons, plus decisions on flagged lines
   - evidence timelines and PI replies

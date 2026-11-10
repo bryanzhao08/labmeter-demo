@@ -633,5 +633,8 @@
   document.addEventListener("keydown", function (e) { if (tourI >= 0 && (e.key === "ArrowRight" || e.key === "ArrowLeft") && !/input|select|textarea/i.test(e.target.tagName)) { tourShow(tourI + (e.key === "ArrowRight" ? 1 : -1)); } });
   var tb = document.getElementById("tourbtn"); if (tb) tb.addEventListener("click", function () { tourShow(0); });
 
+  // Hook for desk.js (Requests, Rules and the research-office view): shared state and helpers.
+  window.LBApp = { S: S, C: C, SV: SV, views: VIEWS, render: render, tab: tab, esc: esc, usd: $, usd2: $2, stat: stat, sum: sum, dlCsv: dlCsv, readText: readText, alertBox: alertBox,
+    totals: totals, usage: usage, days: days, month: month, svc: svc, finalCharge: finalCharge, decided: decided };
   window.LBClose = { S: S, totals: totals, render: render, tour: tourShow };
 })();
