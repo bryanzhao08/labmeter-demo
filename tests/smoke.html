@@ -3,7 +3,7 @@
 var f=document.createElement('iframe');f.style.cssText="width:1200px;height:800px";
 f.onload=function(){setTimeout(go,2500)};f.src="../close.html?static#close";document.body.appendChild(f);
 function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
-async function go(){var out=[],fail=0;function ok(c,m){out.push((c?"PASS ":"FAIL ")+m);if(!c)fail++}
+async function go(){var out=[],fail=0;function ok(c,m){out.push((c?"PASS ":"FAIL ")+m);if(!c)fail++;document.getElementById("o").textContent="running\n"+out.join("\n")}
  try{var w=f.contentWindow,d=f.contentDocument;try{w.localStorage.clear()}catch(e){}
  var blobs=[];w.URL.createObjectURL=function(b){blobs.push(b);return "blob:x"};w.HTMLAnchorElement.prototype.click=function(){};
  var errs=[];w.addEventListener('error',e=>errs.push(e.message));

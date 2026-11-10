@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><title>smoke</title><body><pre id=o>running</pre><script>
+// Headless smoke test for close.html: run with tests/smoke.sh (needs a local server on :8765).
+var f=document.createElement('iframe');f.style.cssText="width:1200px;height:800px";
+f.onload=function(){setTimeout(go,2500)};f.src="../close.html?static#services";document.body.appendChild(f);
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function go(){var out=[],fail=0;function ok(c,m){out.push((c?"PASS ":"FAIL ")+m);if(!c)fail++;document.getElementById("o").textContent="running\n"+out.join("\n")}
+ try{var w=f.contentWindow,d=f.contentDocument;try{w.localStorage.clear()}catch(e){}
+ var blobs=[];w.URL.createObjectURL=function(b){blobs.push(b);return "blob:x"};w.HTMLAnchorElement.prototype.click=function(){};
+ var errs=[];w.addEventListener('error',e=>errs.push(e.message));
+ var app=()=>d.querySelector('#app').innerText;
+ w.location.hash="#services";await sleep(250);ok(/Services & pricing/.test(app())&&/university subsidy needed/.test(app())&&/An average hides/.test(app()),"services pricing");
+ d.querySelector('[data-act=svc-sample]').click();await sleep(200);ok(/held for a look/.test(app())&&/usually bills to Chen, L\. Lab/.test(app())&&/Quantity 12/.test(app()),"services upload check");
+ d.querySelector('[data-act=svc-clean]').click();await sleep(50);t=await blobs[blobs.length-1].text();ok(/^Quantity,SKU/.test(t)&&t.split("\n").length>180,"services clean csv");
+ d.querySelector('[data-act=svc-fbs]').click();await sleep(50);t=await blobs[blobs.length-1].text();ok(/^SKU,Description/.test(t),"services price list csv");
+ var inpS=d.querySelector('[data-svc=subsidyPct]');inpS.value="0";inpS.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(150);ok(/[-−]?\$[0-9,]{1,5}\s*university subsidy needed/.test(app()),"subsidy input");
+ ok(!errs.length,"no page errors "+errs.join(";"));
+ }catch(e){out.push("FAIL exception "+e.message);fail++}
+ document.getElementById('o').textContent=out.join("\n")+"\n"+(fail?fail+" FAILED":"ALL PASS");}
+</script></body>

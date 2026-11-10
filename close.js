@@ -408,7 +408,79 @@
   }
 
   // ---------- routing + events
-  var VIEWS = { close: viewClose, rates: viewRates, grants: viewGrants, alerts: viewAlerts, campus: viewCampus };
+
+  // ---------- services: per-item pricing and pre-upload check (cores that bill per item, e.g. cell culture)
+  var SV = window.LBServices;
+  function svc() {
+    if (!S.svc) { var m = SV.sampleModel(); S.svc = { model: m, src: "sample cell culture core", up: null, upName: "", roster: null }; }
+    var P = SV.price(S.svc.model), list = SV.fbsList(P, S.svc.model.industryPct);
+    if (S.svc.up === "sample") { var mo = SV.sampleMonth(list); S.svc.lines = mo.lines; S.svc.roster = mo.roster; S.svc.up = "sample-loaded"; S.svc.upName = "Sample October upload (synthetic)"; }
+    return { P: P, list: list, K: S.svc.lines ? SV.check(S.svc.lines, list, S.svc.roster) : null };
+  }
+  function viewServices() {
+    var v = svc(), P = v.P, m = S.svc.model, K = v.K;
+    var inp = function (path, label, val, suf) { return '<label class="small">' + label + '<br><input type="number" step="any" data-svc="' + path + '" value="' + val + '" style="width:130px"> ' + (suf || "") + '</label>'; };
+    var note = function (r) {
+      var o = [];
+      if (r.flags.indexOf("below_supplies") >= 0) o.push('<span style="color:var(--bad)">below supply cost</span>');
+      if (r.flags.indexOf("current_low") >= 0) o.push('<span style="color:var(--warn)">today ' + $(r.current) + ': under-priced</span>');
+      if (r.flags.indexOf("current_high") >= 0) o.push('<span class="muted">today ' + $(r.current) + ': above new price</span>');
+      return o.join(" · ");
+    };
+    // averaging check: services sharing one price today whose real cost differs a lot
+    var groups = {}; P.rows.forEach(function (r) { if (r.current) { var k = r.current + "|" + r.name.split(",")[0].trim().toLowerCase(); (groups[k] = groups[k] || []).push(r); } });
+    var avg = Object.keys(groups).map(function (k) { var g = groups[k], lo = Math.min.apply(null, g.map(function (r) { return r.full; })), hi = Math.max.apply(null, g.map(function (r) { return r.full; })); return g.length > 1 && hi > lo * 1.2 ? { price: +k.split("|")[0], g: g, lo: lo, hi: hi } : null; }).filter(Boolean);
+    var html = '<h1 class="apph">Services &amp; pricing</h1><p class="muted small" style="margin:0 0 16px">For cores that bill per item: cell culture, media, sample prep. ' + esc(P.rows.length) + ' services · source: ' + esc(S.svc.src) + '</p>' +
+      '<div class="card"><h3 style="margin:0 0 10px">Your costs for the year</h3><div class="row" style="gap:16px">' +
+      inp("fixed.maintenance", "Equipment maintenance / yr", m.fixed.maintenance, "$") + inp("fixed.stockPerMonth", "Stock cell lines / month", m.fixed.stockPerMonth, "$") + inp("fixed.other", "Other fixed / yr", m.fixed.other, "$") +
+      inp("salaries", "Staff salaries + fringe / yr", m.salaries, "$") + inp("overagePct", "Overage (tax, shipping, unrecorded)", m.overagePct, "%") +
+      inp("subsidyPct", "University subsidy", m.subsidyPct, "%") + inp("industryPct", "Industry markup", m.industryPct, "%") + inp("volumePct", "Volume vs last year", m.volumePct == null ? 100 : m.volumePct, "%") +
+      '</div><p class="muted small" style="margin:10px 0 0">Each price = supplies from its recipe + an equal share of fixed costs per item + labor by minutes, plus overage. Fixed costs and salaries are fully recovered at the expected volume.</p></div>' +
+      '<div class="grid g4" style="margin-top:16px">' + stat($(P.cost), "full cost of the year") + stat($(P.revenue), "paid by labs at academic prices") + stat($(P.subsidy), "university subsidy needed", "hero") + stat($2(P.perUnit), "fixed cost per item, plus " + $2(P.perMin) + " per labor minute") + '</div>' +
+      (avg.length ? avg.map(function (a) { return '<p class="notice-sim" style="margin-top:16px">' + a.g.length + ' services are all priced ' + $(a.price) + ' today (' + esc(a.g.map(function (r) { return r.name; }).join(", ")) + '), but they cost ' + $(a.lo) + '–' + $(a.hi) + ' to make. An average hides which ones lose money.</p>'; }).join("") : "") +
+      '<div class="tw" style="margin-top:16px"><table><thead><tr><th>SKU</th><th>Service</th><th class="n">Per yr</th><th class="n">Supplies</th><th class="n">Fixed</th><th class="n">Labor</th><th class="n">Full cost</th><th class="n">Academic</th><th class="n">Industry</th><th>Note</th></tr></thead><tbody>' +
+      P.rows.map(function (r) { return '<tr><td>' + esc(r.sku) + '</td><td>' + esc(r.name) + '</td><td class="n">' + r.volume + '</td><td class="n">' + $2(r.consumables) + '</td><td class="n">' + $2(r.fixed) + '</td><td class="n">' + $2(r.labor) + '</td><td class="n">' + $2(r.full) + '</td><td class="n"><b>' + $(r.academic) + '</b></td><td class="n">' + $(r.industry) + '</td><td class="small">' + note(r) + '</td></tr>'; }).join("") +
+      '</tbody></table></div>' +
+      '<div class="row" style="margin-top:12px"><button class="btn" data-act="svc-fbs">New price list for FBS SKUs (CSV)</button><button class="btn ghost" data-act="svc-usc">Rate template rows, every service (CSV)</button><button class="btn ghost" data-act="svc-tpl">Recipe template (CSV)</button>' +
+      '<label class="btn ghost" style="cursor:pointer">Load your recipes (CSV / Excel)<input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" data-svcfile="recipes" hidden></label></div>' +
+      '<h2 style="margin-top:36px">Check before you upload to FBS</h2><p class="muted small" style="margin:0 0 12px">Add the file you upload to the FBS eLog (Quantity, SKU, Unit Price, Requested by, Lab, Charge). Lines with a problem are held back so you never have to void an invoice.</p>' +
+      '<div class="row"><label class="btn" style="cursor:pointer">Add upload file<input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" data-svcfile="upload" hidden></label><button class="btn ghost" data-act="svc-sample">Use sample October</button>' + (S.svc.upName ? '<span class="muted small">' + esc(S.svc.upName) + '</span>' : "") + '</div>';
+    if (K) {
+      var labs = Object.keys(K.byLab).sort(function (a, b) { return K.byLab[b] - K.byLab[a]; });
+      html += '<div class="grid g4" style="margin-top:16px">' + stat(K.lines.length, "lines") + stat($(K.total), "to invoice") + stat(K.clean, "clean, ready to upload") + stat(K.held.length, "held for a look", K.held.length ? "" : "hero") + '</div>' +
+        (K.held.length ? '<div class="q" style="margin-top:16px">' + K.held.map(function (h) { var l = h.line; return '<div class="qi" style="grid-template-columns:100px minmax(0,1.3fr) minmax(0,2.2fr) 90px"><span class="small muted">' + esc(l.date) + '</span><span><b>' + esc(l.user || "?") + '</b><br><span class="small muted">' + esc(l.lab) + ' · SKU ' + esc(l.sku) + ' × ' + l.qty + '</span></span><span class="why">' + h.issues.map(function (i) { return esc(i.why); }).join("<br>") + '</span><span class="n">' + $2(h.amount) + '</span></div>'; }).join("") + '</div>' : '<p class="ok" style="margin-top:12px">Every line checks out.</p>') +
+        '<div class="row" style="margin-top:12px"><button class="btn" data-act="svc-clean">Clean lines for the FBS upload (CSV)</button><button class="btn ghost" data-act="svc-held">Held lines (CSV)</button></div>' +
+        '<div class="card" style="margin-top:16px"><h3 style="margin:0 0 8px">By lab</h3>' + labs.map(function (k) { return '<div class="row" style="justify-content:space-between"><span>' + esc(k) + '</span><b>' + $(K.byLab[k]) + '</b></div>'; }).join("") + '</div>';
+    }
+    return html;
+  }
+  function svcCsv(kind) {
+    var v = svc(), P = v.P;
+    if (kind === "fbs") dlCsv("labro-fbs-price-list.csv", [["SKU", "Description", "Per", "Academic Price", "Industry Price", "Current Price"]].concat(P.rows.map(function (r) { return [r.sku, r.name, r.unit, r.academic.toFixed(2), r.industry.toFixed(2), r.current ? r.current.toFixed(2) : ""]; })));
+    if (kind === "usc") dlCsv("labro-rate-template-services.csv", [["Rate Description", "Unit", "Annual Volume", "Supplies", "Fixed Share", "Labor", "Full Cost", "Academic Rate", "Industry Rate", "Projected Revenue"]].concat(P.rows.map(function (r) { return [r.name + " (SKU " + r.sku + ")", r.unit, r.volume, r.consumables.toFixed(2), r.fixed.toFixed(2), r.labor.toFixed(2), r.full.toFixed(2), r.academic.toFixed(2), r.industry.toFixed(2), (r.academic * r.volume).toFixed(2)]; })));
+    if (kind === "tpl") dlCsv("labro-recipe-template.csv", [["SKU", "Name", "Unit", "Item", "Qty", "Unit cost", "Labor min", "Volume/yr", "Current price"]].concat([].concat.apply([], S.svc.model.skus.slice(0, 3).map(function (s) { return s.recipe.map(function (it, i) { return [s.sku, i ? "" : s.name, i ? "" : s.unit, it.item, it.qty, it.cost, i ? "" : s.laborMin, i ? "" : s.volume, i ? "" : (s.current || "")]; }); }))));
+    if ((kind === "clean" || kind === "held") && v.K) {
+      var rows = v.K.lines.filter(function (o) { return kind === "clean" ? !o.issues.length : o.issues.length; });
+      dlCsv("labro-upload-" + kind + ".csv", [["Quantity", "SKU", "Description", "Date", "Unit Price", "Requested by", "Lab", "Charge"].concat(kind === "held" ? ["Problem"] : [])].concat(rows.map(function (o) { var l = o.line; return [l.qty, l.sku, l.desc, l.date, l.price == null ? "" : l.price.toFixed(2), l.user, l.lab, l.charge].concat(kind === "held" ? [o.issues.map(function (i) { return i.why; }).join("; ")] : []); })));
+    }
+  }
+  function svcSet(path, val) {
+    var m = S.svc.model, k = path.split("."), n = parseFloat(val); if (!isFinite(n)) n = 0;
+    if (/Pct$/.test(k[k.length - 1]) && k[0] !== "volumePct") n = Math.min(Math.max(n, 0), 1000);
+    if (k[0] === "volumePct") n = Math.min(Math.max(n, 1), 1000);
+    if (k.length === 2) m[k[0]][k[1]] = Math.max(0, n); else m[k[0]] = /Pct$/.test(k[0]) ? n : Math.max(0, n);
+  }
+  function svcFile(kind, f) {
+    if (!f) return;
+    readText(f).then(function (t) {
+      var tb = C.parseCSV(t);
+      if (kind === "recipes") { var sk = SV.recipesFromTable(tb); if (!sk.length) throw new Error("No services found in " + f.name + "."); S.svc.model.skus = sk; S.svc.src = f.name; }
+      else { S.svc.lines = SV.linesFromTable(tb); S.svc.roster = null; S.svc.up = "file"; S.svc.upName = f.name; }
+      render(true);
+    }).catch(function (e) { alertBox(e.message); });
+  }
+
+  var VIEWS = { services: viewServices, close: viewClose, rates: viewRates, grants: viewGrants, alerts: viewAlerts, campus: viewCampus };
   function tab() { var t = (location.hash || "#close").slice(1).split("?")[0]; return VIEWS[t] ? t : "close"; }
   function render(keepScroll) {
     var y = window.scrollY;
@@ -425,6 +497,8 @@
     if (b && b.dataset.filter) { S.filter = b.dataset.filter; render(true); return; }
     if (b) {
       var a = b.dataset.act;
+      if (a === "svc-sample") { S.svc.up = "sample"; render(true); }
+      if (/^svc-(fbs|usc|tpl|clean|held)$/.test(a)) svcCsv(a.slice(4));
       if (a === "sample") { S.saved = null; S.note = null; C.loadSample().then(function () { render(true); }); }
       if (a === "sample-ilab") { S.saved = null; S.note = null; C.loadSample().then(function () { return fetch("data/audit/ilab_reservations.csv").then(function (r) { return r.text(); }); }).then(function (t) { C.setFile("res", "ilab_reservations.csv", t); render(true); }); }
       if (a === "nosensor") { if (C.state.files.run) { S.saved = { f: C.state.files.run, amap: C.state.amap.run }; delete C.state.files.run; C.state.amap.run = {}; } else if (S.saved) { C.state.files.run = S.saved.f; C.state.amap.run = S.saved.amap; S.saved = null; } render(true); }
@@ -456,6 +530,8 @@
     if (t.dataset.map) { C.state.files[t.dataset.map].map[t.dataset.field] = +t.value; C.state.amap.use = {}; C.state.amap.run = {}; render(true); }
     if (t.dataset.amap) { C.state.amap[t.dataset.amap][t.dataset.name] = t.value; render(true); }
     if (t.dataset.file) readFile(t.dataset.file, t.files[0]);
+    if (t.dataset.svc) { svcSet(t.dataset.svc, t.value); render(true); }
+    if (t.dataset.svcfile) svcFile(t.dataset.svcfile, t.files[0]);
     if (t.dataset.accts != null && t.files[0]) { readText(t.files[0]).then(function (txt) { S.accts = C.parseCSV(txt); render(true); }).catch(function (e) { alertBox(e.message); }); }
   });
   app.addEventListener("dragover", function (e) { var d = e.target.closest("[data-drop]"); if (d) { e.preventDefault(); d.classList.add("over"); } });
