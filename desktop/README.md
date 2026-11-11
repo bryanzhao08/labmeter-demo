@@ -41,3 +41,12 @@ times are never converted into usage. Evidence export is separate from billing;
 it does not apply acquisition-only policy to the existing billing engine.
 For a new instrument, obtain a sanitized log sample and compare one known session
 to the software's display before defining an adapter and approving its output.
+
+## Reconciliation workspace (0.3)
+New startup screen: workbench.html. CSV/Excel worksheet selection, adjustable mapping,
+raw login-event reconstruction, paired intervals, booking/usage timelines and a review
+queue. Policy bases: booked, observed, or union (overlap counted once).
+Only ready rows export; missing source endpoints block export. Review reasons accompany
+accepted exceptions. Rates and rounding are editable, but rates are currently per service
+for the batch, and rounding is per user/instrument/day. Source/review state is not restored
+after restart. See README.md for remaining limits.

@@ -19,7 +19,7 @@ async function createWindow() {
     if(url.startsWith('blob:labro://app/')) return {action:'allow',overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}}};
     external(url); return {action:'deny'};
   });
-  await main.loadURL('labro://app/close.html#requests');
+  await main.loadURL(smoke?'labro://app/close.html#requests':'labro://app/workbench.html');
   if(smoke) {
     try {
       const result=await main.webContents.executeJavaScript(`(async()=>{
@@ -52,7 +52,40 @@ async function createWindow() {
         if(document.getElementById('export').disabled)throw Error('Evidence export disabled');
         return 'folder selection, mapping and acquisition preview passed';
       })()`);
-      console.log('DESKTOP PASS '+JSON.stringify(result)+' '+folderTest);app.exit(0);
+      await main.loadURL('labro://app/workbench.html');
+      const workbenchTest=await main.webContents.executeJavaScript(`(async()=>{
+        document.getElementById('sample').click();
+        if(document.querySelectorAll('.review-table tbody tr').length<3)throw Error('Review table missing');
+        if(!document.getElementById('results').innerText.includes('$280.00'))throw Error('Disjoint union not billed as four hours');
+        if(!document.getElementById('results').innerText.includes('Repeated login'))throw Error('Repeated-login exception missing');
+        const wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['placeholder'],['select Raw sheet']]),'Summary');
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Resource','Begin','End','Owner','Lab','PTA','Reservation type'],['Analyzer','10/2/26 09:00','10/2/26 11:00','Jamie Chen','Willow Lab','DEMO-01','Self-Service']]),'Raw');
+        const f=new File([XLSX.write(wb,{type:'array',bookType:'xlsx'})],'test-bookings.xlsx'),dt=new DataTransfer();dt.items.add(f);
+        const input=document.getElementById('book-file');input.files=dt.files;input.dispatchEvent(new Event('change'));
+        for(let i=0;i<100&&!document.getElementById('book-sheet');i++)await new Promise(r=>setTimeout(r,30));
+        const select=document.getElementById('book-sheet');select.value='Raw';select.dispatchEvent(new Event('change'));
+        if(document.getElementById('book-user').selectedOptions[0].textContent!=='Owner')throw Error('Owner mapping failed');
+        document.getElementById('sample').click();
+        return 'review, union policy, raw events, Excel worksheet selection and mapping passed';
+      })()`);
+      await main.webContents.executeJavaScript("document.querySelectorAll('.source-panel details').forEach(el=>el.open=false)");
+      await new Promise(r=>setTimeout(r,150));
+      fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-workbench.png'),(await main.webContents.capturePage()).toPNG());
+      await main.webContents.executeJavaScript("document.getElementById('results').scrollIntoView()");
+      await new Promise(r=>setTimeout(r,100));
+      fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-review.png'),(await main.webContents.capturePage()).toPNG());
+      main.setMinimumSize(390,600);main.setSize(390,844);
+      const mobileOverflow=await main.webContents.executeJavaScript("document.documentElement.scrollWidth > innerWidth + 2");
+      if(mobileOverflow)throw Error('Mobile page overflow');
+      main.setSize(1360,900);
+      await main.loadURL('labro://app/pitch.html?static');
+      for(const id of ['product-update','interview-interest','validation-next']){
+        await main.webContents.executeJavaScript("document.querySelectorAll('section').forEach(s=>s.classList.remove('cur','past'));document.getElementById("+JSON.stringify(id)+").classList.add('cur');");
+        await new Promise(r=>setTimeout(r,100));
+        fs.writeFileSync(path.join(require('node:os').tmpdir(),id+'.png'),(await main.webContents.capturePage()).toPNG());
+      }
+      console.log('DESKTOP PASS '+JSON.stringify(result)+' '+folderTest+' '+workbenchTest+' mobile overflow check and updated slides rendered');app.exit(0);
     } catch(e){console.error(e);app.exit(1);}
   }
 }

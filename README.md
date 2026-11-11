@@ -82,3 +82,19 @@ filename filtering, explicit column mapping, acquisition/session/reservation lab
 saved profile, interval preview and traceable evidence CSV. Invalid records and
 overlaps block export. No manufacturer format or remote instrument access is assumed.
 See desktop/README.md for setup, timestamp conventions and limits.
+
+## Reconciliation workspace (0.3)
+Open `workbench.html` (the new desktop start screen).
+Import booking and usage CSV/Excel, select worksheets, and check the column mappings.
+Raw login/logout or paired intervals are supported. Save mapping/policy profiles locally.
+Choose booked, observed, or union-of-booked-and-observed time; 1/15/30-minute rounding;
+self-service/assisted/training rates; and explicit username aliases.
+Review repeated logins, no-shows and overlaps. Missing endpoints block exports.
+Download ready charges with original source references and review reasons; held rows
+are excluded. Source files/reviews are not persisted, and no charges are sent externally.
+Current rounding is per user/instrument/day. Split batches when instrument rates differ.
+Setup fees, after-hours discounts, per-reservation rounding and live integrations remain
+unimplemented. Example identities/accounts are synthetic.
+Tests: `node tests/reconcile.test.js`, `npm run desktop:test`.
+Pitch sections product-update, interview-interest and validation-next document supplied
+discovery feedback without implying paid commitments.

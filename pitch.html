@@ -458,32 +458,40 @@ svg text{font-family:'Instrument Sans',system-ui,sans-serif;fill:var(--ink)}
   </aside>
 </section>
 
-<!-- 14 Where we are -->
-<section>
-  <h2>Where we <em>are</em></h2>
-  <svg viewBox="0 0 1380 560" width="1380" height="560">
-    <path class="f draw" data-s="1" pathLength="1" d="M90 260 H1290" stroke="var(--acc)" stroke-width="6" fill="none"/>
-    <g class="f pop" data-s="1"><circle cx="90" cy="260" r="26" fill="var(--acc)"/>
-      <text x="90" y="200" text-anchor="middle" font-size="30" font-weight="700" style="fill:var(--acc)">NOW</text>
-      <text x="40" y="340" font-size="34" font-weight="700">Software works</text>
-      <text x="40" y="390" font-size="30" style="fill:var(--mute)">USC manager:</text>
-      <text x="40" y="436" font-size="34" font-weight="700" style="fill:var(--acc)">"Oh, absolutely."</text></g>
-    <g class="f pop" data-s="2"><circle cx="490" cy="260" r="22" fill="var(--panel2)" stroke="var(--acc)" stroke-width="5"/>
-      <text x="490" y="200" text-anchor="middle" font-size="30" font-weight="700">DEC</text>
-      <text x="430" y="340" font-size="34" font-weight="700">Real USC files</text><text x="430" y="384" font-size="34" font-weight="700">+ first LOIs</text></g>
-    <g class="f pop" data-s="3"><circle cx="890" cy="260" r="22" fill="var(--panel2)" stroke="var(--acc)" stroke-width="5"/>
-      <text x="890" y="200" text-anchor="middle" font-size="30" font-weight="700">JAN</text>
-      <text x="830" y="340" font-size="34" font-weight="700">Paid pilot</text></g>
-    <g class="f pop" data-s="4"><circle cx="1290" cy="260" r="22" fill="var(--panel2)" stroke="var(--acc)" stroke-width="5"/>
-      <text x="1290" y="200" text-anchor="middle" font-size="30" font-weight="700">2027</text>
-      <text x="1330" y="340" text-anchor="end" font-size="34" font-weight="700">USC campus-wide</text></g>
-  </svg>
-  <aside class="notes">
-    <b>1</b> "The software works today. The manager I talked to said <b>'Oh, absolutely'</b> to automating this."<br>
-    <b>2</b> "Next, I run one month of their real files…"<br>
-    <b>3</b> "…then start a paid pilot in January…"<br>
-    <b>4</b> "…then go campus-wide at USC."
-  </aside>
+<!-- Discovery update: product direction and interview evidence, 2026-11-10 -->
+<section id="product-update">
+  <h2>Different instruments.<br>Different billing rules.</h2>
+  <div style="margin-top:44px;display:grid;grid-template-columns:1fr 1fr;gap:60px">
+    <div><p style="font-size:34px;color:var(--mute)">NMR core</p><p style="font-size:46px;line-height:1.2">“we charge them for<br>data acquisition.”</p><p style="font-size:30px;color:var(--mute)">USC NMR manager · discovery call</p></div>
+    <div><p style="font-size:34px;color:var(--mute)">Flow cytometry core</p><p style="font-size:46px;line-height:1.2">Two hours booked.<br>Two hours used afterward.<br>Four hours billable.</p><p style="font-size:30px;color:var(--mute)">Policy example from the Caltech call</p></div>
+  </div>
+  <p style="font-size:34px;margin-top:38px;color:var(--acc)">LaBro reads the evidence, applies the core’s policy,<br>and puts exceptions in front of the manager.</p>
+  <aside class="notes">The interviews changed the product. / Shawn’s NMR core bills acquisition time. / The flow core bills time reserved plus time used outside the reservation. [pause] One fixed billing rule cannot serve both. / LaBro keeps the source records, makes the policy explicit, and asks the manager to review uncertain charges. Current prototype supports file imports, three time bases, rounding and service rates; manufacturer-specific acquisition adapters still need sample logs.</aside>
+</section>
+<section id="interview-interest">
+  <h2>Managers want help<br>with the work between systems.</h2>
+  <div style="margin-top:44px;padding-left:30px;border-left:6px solid var(--acc)">
+    <p style="font-size:46px;line-height:1.2;margin:0 0 16px">“having a tool to do that would be nice.”</p>
+    <p style="font-size:30px;color:var(--mute)">Caltech flow core manager · matching instrument logs to bookings</p>
+  </div>
+  <div style="margin-top:42px;padding-left:30px;border-left:6px solid var(--login)">
+    <p style="font-size:44px;line-height:1.2;margin:0 0 16px">“if I could automatically have all of the data<br>exported, that would be great.”</p>
+    <p style="font-size:30px;color:var(--mute)">Stanford flow core manager · reducing manual exports</p>
+  </div>
+  <p style="font-size:30px;color:var(--mute);margin-top:38px">Discovery interest in the workflow. No purchase or pilot commitment.</p>
+  <aside class="notes">These are short excerpts from the supplied interview transcripts. / At Caltech, the manager showed the spreadsheets and said a matching tool would be useful. / At Stanford, automatic exports were the request. [pause] These are signals of interest, not signed customers. The Stanford team is also building its own scripts, which is a real alternative we must outperform. Source files: text-4CD5-9A05-2D-0.txt and text-9DA2486B4B30-1.txt.</aside>
+</section>
+<section id="validation-next">
+  <h2>The next test is<br>one real month.</h2>
+  <p style="font-size:44px;line-height:1.25;margin-top:48px">“I’ll try to send you some data files of the process<br>if you think that’d be helpful.”</p>
+  <p style="font-size:30px;color:var(--mute)">Caltech flow core manager · offered follow-up files</p>
+  <div style="margin-top:50px;font-size:34px;line-height:1.65">
+    Compare LaBro with the manager’s existing billing workbook.<br>
+    Check every exception, rounding decision, and lab total.<br>
+    Measure review time and ask who would approve a paid trial.
+  </div>
+  <p style="font-size:30px;color:var(--acc);margin-top:30px">Offer recorded. Redacted source files and payment are not yet confirmed.</p>
+  <aside class="notes">The concrete next step is a redacted month of files. / We already have a screen share and an offer to send data. / We do not yet have the complete workbooks or a paid commitment. [pause] We will compare our output with the manager’s final bill and measure how much review remains. Not every core has this pain: another imaging manager said overtime was not a big problem. Start with cores that reconcile many transactions manually.</aside>
 </section>
 
 <!-- 15 Ask + close -->

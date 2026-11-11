@@ -1,0 +1,18 @@
+const assert=require('assert'),E=require('../reconcile-engine');
+const s=E.time('2026-10-02 09:00:00'), p={basis:'union',round:30,rates:{self:70,assisted:125,training:125}};
+const b={instrument:'Analyzer',user:'Jamie',s,e:s+120,lab:'Lab',account:'W1',mode:'Self-Service',ref:'book:2'};
+const u={instrument:'Analyzer',user:'Jamie',s:s+120,e:s+240,ref:'use:2',flags:[]};
+let r=E.reconcile([b],[u],p)[0];assert.equal(r.billed,240);assert.equal(r.amount,280);
+r=E.reconcile([{...b,e:s+60}],[{...u,s,e:s+48}],{...p,basis:'actual'})[0];assert.equal(r.billed,60);
+r=E.reconcile([b],[{...u,s,e:s+180}],p)[0];assert.equal(r.billed,180,'overlap counted once');
+r=E.reconcile([b],[{...u,s,e:s+3}],{...p,basis:'actual',round:1})[0];assert.equal(r.billed,3);
+r=E.reconcile([b],[{...u,user:'j1'}],{...p,aliases:{j1:'Jamie'}});assert.equal(r.length,1);
+assert.equal(E.time('10/2/26 09:00','us'),s);assert(Number.isNaN(E.time('2/30/26 09:00','us')));
+const table={rows:[['A','10/2/26 09:00','Login successful.'],['A','10/2/26 09:20','Login successful.'],['A','10/2/26 09:48','Logout.']]};
+const map={user:0,timestamp:1,event:2};
+let n=E.normalize(table,map,{events:true,format:'us',instrument:'Analyzer',source:'raw'});
+assert.equal(n.records.length,1);assert.equal(n.records[0].e-n.records[0].s,48);assert.equal(n.records[0].flags.length,1);
+n=E.normalize({rows:table.rows.slice(0,2)},map,{events:true,format:'us',instrument:'Analyzer',source:'raw'});
+assert.equal(n.records.length,0);assert(n.issues[0].includes('no logout'));
+r=E.reconcile([b],[u,{...u,user:'Other'}],p);assert(r.every(x=>x.flags.some(f=>f.includes('Overlapping'))));
+console.log('reconciliation: disjoint union, overlaps, rounding, acquisition policy, aliases, US dates, repeated and missing logouts passed');
