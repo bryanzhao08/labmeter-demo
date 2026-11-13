@@ -1,0 +1,11 @@
+User Full Name,Timestamp,Record
+User A,2026-10-02 09:02,Login
+User A,2026-10-02 10:58,Logout
+John,2026-10-03 09:00,Login
+John,2026-10-03 13:00,Logout
+User F,2026-10-04 14:00,Login
+User F,2026-10-04 15:00,Logout
+User D,2026-10-04 11:00,Login
+User D,2026-10-04 12:00,Logout
+User E,2026-10-05 10:00,Login
+User E,2026-10-05 11:30,Logout

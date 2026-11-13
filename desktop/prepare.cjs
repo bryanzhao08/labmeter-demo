@@ -4,7 +4,7 @@ fs.mkdirSync(out, { recursive: true });
 for (const name of fs.readdirSync(root)) {
   if (/\.(js|html|css)$/.test(name)) fs.copyFileSync(path.join(root,name),path.join(out,name));
 }
-for (const name of ['data','collector','vendor','media'])
+for (const name of ['data','collector','vendor','media','fonts'])
   fs.cpSync(path.join(root,name), path.join(out,name), {recursive:true});
 for (const name of fs.readdirSync(out).filter(n=>n.endsWith('.html'))) {
   const p=path.join(out,name);

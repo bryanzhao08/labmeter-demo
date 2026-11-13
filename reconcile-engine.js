@@ -21,7 +21,7 @@ function normalize(table,map,opts){
     const s=time(get(r,opts.events?'timestamp':'start'),opts.format);
     const ref=opts.source+': row '+(i+2);
     if(!user||!instrument||!Number.isFinite(s)){issues.push(ref+': missing identity/instrument or invalid timestamp.');return;}
-    const base={user,instrument,s,ref,lab:get(r,'lab'),account:get(r,'account'),mode:get(r,'mode')};
+    const base={user,instrument,s,ref,lab:get(r,'lab'),account:get(r,'account'),mode:get(r,'mode'),tier:get(r,'tier')};
     if(opts.events){
       const action=key(get(r,'event')).replace(/[.!]$/,'');
       const kind=/^(login successful|login|logon|log in)$/.test(action)?'in':/^(logout|logoff|log out)$/.test(action)?'out':null;
@@ -57,6 +57,22 @@ function merge(intervals){
   });return out;
 }
 const minutes=ivs=>merge(ivs).reduce((n,v)=>n+v[1]-v[0],0);
+// Minutes of the merged intervals that fall outside business hours. Times are local wall-clock
+// minutes since 1970-01-01, which was a Thursday.
+function afterMinutes(ivs,win){
+  if(!win)return 0;let total=0;
+  merge(ivs).forEach(([a,b])=>{
+    for(let t=a;t<b;){
+      const dayStart=Math.floor(t/1440)*1440,next=Math.min(b,dayStart+1440),dow=(Math.floor(t/1440)+4)%7,weekend=dow===0||dow===6;
+      if(win.weekends&&weekend){total+=next-t;t=next;continue}
+      const open=dayStart+win.end*60,close=dayStart+win.start*60;
+      // Business hours are [end, start) on a day; the rest of the day is after hours.
+      const lo=Math.max(t,open),hi=Math.min(next,close),inHours=win.start>win.end?Math.max(0,hi-lo):0;
+      total+=(next-t)-inHours;t=next;
+    }
+  });
+  return total;
+}
 function reconcile(bookings,usage,policy){
   const groups=new Map(),aliases=policy.aliases||{};
   function add(r,kind){
@@ -64,17 +80,18 @@ function reconcile(bookings,usage,policy){
     // A boundary-spanning session is split for daily review; no duplicate time.
     for(let s=r.s;s<r.e;){
       const e=Math.min(r.e,(Math.floor(s/1440)+1)*1440),day=Math.floor(s/1440),k=key(r.instrument)+'|'+key(user)+'|'+day;
-      if(!groups.has(k))groups.set(k,{id:k,instrument:r.instrument,user,day,book:[],use:[],refs:[],flags:[],labs:new Set(),accounts:new Set(),modes:new Set()});
+      if(!groups.has(k))groups.set(k,{id:k,instrument:r.instrument,user,day,book:[],use:[],refs:[],flags:[],labs:new Set(),accounts:new Set(),modes:new Set(),tiers:new Set()});
       const g=groups.get(k);g[kind].push([s,e]);g.refs.push(r.ref);g.flags.push(...(r.flags||[]));
       if(r.e> (Math.floor(r.s/1440)+1)*1440)g.flags.push('Cross-midnight interval split by day; review rounding.');
-      if(kind==='book'){if(r.lab)g.labs.add(r.lab);if(r.account)g.accounts.add(r.account);if(r.mode)g.modes.add(key(r.mode));}
+      if(kind==='book'){if(r.lab)g.labs.add(r.lab);if(r.account)g.accounts.add(r.account);if(r.mode)g.modes.add(key(r.mode));if(r.tier)g.tiers.add(key(r.tier));}
       s=e;
     }
   }
   bookings.forEach(r=>add(r,'book'));usage.forEach(r=>add(r,'use'));
   const rows=Array.from(groups.values()).map(g=>{
     const b=minutes(g.book),u=minutes(g.use);
-    let basis=policy.basis==='union'?minutes([...g.book,...g.use]):policy.basis==='booked'?b:u;
+    const basisIvs=policy.basis==='union'?[...g.book,...g.use]:policy.basis==='booked'?g.book:g.use;
+    let basis=minutes(basisIvs);
     let modes=Array.from(g.modes),mode=modes[0]||'';
     if(/^(self[- ]?serve|self[- ]?service)$/.test(mode))mode='self';
     if(/^(assisted|staff[- ]?assisted|assistance)$/.test(mode))mode='assisted';
@@ -84,11 +101,17 @@ function reconcile(bookings,usage,policy){
     if(g.accounts.size!==1)g.flags.push('Missing or multiple funding accounts; confirm allocation.');
     if(!g.book.length)g.flags.push('Usage without a matching booking or identity.');
     if(!g.use.length)g.flags.push('Booking without observed use; confirm no-show policy.');
-    const rounded=Math.ceil(basis/policy.round-1e-9)*policy.round,rate=Number(policy.rates[mode]);
+    const rounded=Math.ceil(basis/policy.round-1e-9)*policy.round;
+    const tiers=Array.from(g.tiers),tier=tiers.length===1?tiers[0]:(policy.defaultTier||'internal');
+    if(tiers.length>1)g.flags.push('Mixed rate tiers in one day; confirm which rate applies.');
+    const rateAt=after=>policy.rateFor?policy.rateFor(mode,tier,after):Number(policy.rates[mode]);
+    const rate=rateAt(false),afterRate=rateAt(true);
     if(!Number.isFinite(rate)||rate<0)g.flags.push('No valid rate for service type.');
-    return {...g,book:merge(g.book),use:merge(g.use),booked:b,used:u,raw:basis,billed:rounded,rate:Number.isFinite(rate)?rate:0,
-      amount:Math.round(rounded/60*(Number.isFinite(rate)?rate:0)*100)/100,
-      mode,lab:Array.from(g.labs).join(' / '),account:Array.from(g.accounts).join(' / '),
+    const afterMin=basis>0?afterMinutes(basisIvs,policy.afterHours):0,afterBilled=basis>0?rounded*afterMin/basis:0;
+    const okRate=Number.isFinite(rate)?rate:0,okAfter=Number.isFinite(afterRate)?afterRate:okRate;
+    return {...g,book:merge(g.book),use:merge(g.use),booked:b,used:u,raw:basis,billed:rounded,rate:okRate,
+      amount:Math.round(((rounded-afterBilled)/60*okRate+afterBilled/60*okAfter)*100)/100,
+      mode,tier,afterMinutes:Math.round(afterBilled),afterRate:okAfter,lab:Array.from(g.labs).join(' / '),account:Array.from(g.accounts).join(' / '),
       refs:[...new Set(g.refs)],flags:[...new Set(g.flags)]};
   });
   // Shared instrument at overlapping times under different users is ambiguous.
@@ -100,5 +123,5 @@ function reconcile(bookings,usage,policy){
   }
   return rows.sort((a,b)=>a.day-b.day||a.instrument.localeCompare(b.instrument)||a.user.localeCompare(b.user));
 }
-const API={time,normalize,merge,minutes,reconcile};root.LBReconcile=API;if(typeof module!=='undefined')module.exports=API;
+const API={time,normalize,merge,minutes,reconcile,afterMinutes};root.LBReconcile=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);

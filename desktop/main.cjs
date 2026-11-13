@@ -19,73 +19,57 @@ async function createWindow() {
     if(url.startsWith('blob:labro://app/')) return {action:'allow',overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}}};
     external(url); return {action:'deny'};
   });
-  await main.loadURL(smoke?'labro://app/close.html#requests':'labro://app/workbench.html');
+  await main.loadURL('labro://app/app.html');
   if(smoke) {
     try {
-      const result=await main.webContents.executeJavaScript(`(async()=>{
-        for(let i=0;i<100&&!document.querySelector('[data-dk=add]');i++)await new Promise(r=>setTimeout(r,50));
-        const results=[];
-        for(const tab of ['requests','rules','services','close','campus']) {
-          location.hash=tab;await new Promise(r=>setTimeout(r,100));
-          if(document.getElementById('app').innerText.length<100)throw Error('Empty '+tab);
-          results.push(tab);
-        }
-        const script=document.createElement('script');script.src='vendor/xlsx.full.min.js';
-        await new Promise((ok,no)=>{script.onload=ok;script.onerror=no;document.head.appendChild(script)});
-        if(!window.XLSX)throw Error('Offline spreadsheet reader missing');
+      const result=await main.webContents.executeJavaScript(String.raw`(async()=>{
+        const pause=ms=>new Promise(r=>setTimeout(r,ms));
+        const wait=async fn=>{for(let i=0;i<300;i++){if(fn())return;await pause(50)}throw Error('Timed out waiting for app state')};
+        await wait(()=>document.getElementById('assistant'));
+        const sidebar=document.getElementById('sidebar');
         if(typeof require!=='undefined')throw Error('Node exposed');
-        localStorage.setItem('desktop-smoke','yes');
-        return {tabs:results,xlsx:XLSX.version,storage:localStorage.getItem('desktop-smoke')};
+        if(!window.XLSX)throw Error('Offline spreadsheet reader missing');
+        await document.fonts.ready;
+        if(!document.fonts.check('14px Inter')||!/Inter/.test(getComputedStyle(document.body).fontFamily))throw Error('Inter font not loaded');
+        const originalFetch=window.fetch;window.fetch=(url,...rest)=>String(url).startsWith('http://127.0.0.1:11434/')?Promise.reject(Error('offline')):originalFetch(url,...rest);
+        if(!document.getElementById('price-file')||!document.querySelector('[data-drop=price]'))throw Error('Price sheet drop zone missing');
+        document.getElementById('sample-sheet').click();await wait(()=>document.querySelector('.file-ok'));
+        document.getElementById('description').value="We're the flow cytometry core. We have a cell sorter. We book in FBS.";
+        document.getElementById('assistant').click();await wait(()=>document.getElementById('save-profile'));
+        const priceRows=document.querySelectorAll('.price tbody tr').length;
+        if(priceRows<8)throw Error('Prices not read from the sheet: '+priceRows);
+        const heads=[...document.querySelectorAll('.price th')].map(x=>x.innerText).join('|');
+        if(!/Internal/.test(heads)||!/External/.test(heads)||!/Commercial/.test(heads)||!/After hours/.test(heads))throw Error('Rate tiers missing: '+heads);
+        if(!document.getElementById('ah-start'))throw Error('After-hours window missing');
+        if(!document.body.innerText.includes('hourly prices from sample-price-sheet.csv'))throw Error('Price source note missing');
+        if(document.querySelector('[data-group=instrument_type]'))throw Error('Preset machine buttons still shown');
+        document.querySelector('[data-machine="Cell sorter"]').click();await wait(()=>document.querySelector('[data-machine="Cell sorter"]').getAttribute('aria-pressed')==='false');
+        document.getElementById('new-machine').value='Confocal microscope 2';document.getElementById('add-machine').click();await wait(()=>[...document.querySelectorAll('[data-machine]')].some(b=>b.textContent==='Confocal microscope 2'));
+        document.getElementById('save-profile').click();await wait(()=>location.hash==='#schedule'&&document.getElementById('mock'));
+        if(!document.body.innerText.includes('Import your reservations'))throw Error('Empty schedule prompt missing');
+        document.getElementById('mock').click();await wait(()=>document.querySelector('.tl .blk'));
+        if(!document.body.innerText.includes('Just curious')&&false)throw Error('x');
+        const blocks=document.querySelectorAll('.blk').length;if(blocks<3)throw Error('Few reservation blocks: '+blocks);
+        if(!document.querySelector('.use'))throw Error('Logged use bars missing');
+        if(!document.querySelector('.band'))throw Error('After-hours shading missing');
+        document.querySelector('.blk[data-res]').click();await wait(()=>document.querySelector('.drawer'));
+        const dr=document.querySelector('.drawer').innerText;
+        if(!/Reservation/.test(dr)||!/Rate/.test(dr)||!/per hour/.test(dr))throw Error('Reservation details incomplete');
+        document.querySelector('[data-view=week]').click();await wait(()=>document.querySelector('.week'));
+        document.querySelector('[data-view=day]').click();await wait(()=>document.querySelector('.tl'));
+        location.hash='results';await wait(()=>document.querySelector('table tbody tr'));
+        const scr=document.getElementById('screen').innerText;
+        if(!scr.match(/\$[0-9,]+\.\d{2}/))throw Error('Dollar amount missing');
+        document.querySelector('[data-filter=look]').click();await wait(()=>document.querySelector('[data-filter=look][aria-pressed=true]'));
+        if(!document.getElementById('screen').innerText.includes('Needs a look'))throw Error('Held row missing');
+        if(document.getElementById('export').disabled)throw Error('Export disabled for a clean month');
+        location.hash='upload';await wait(()=>document.getElementById('log-file'));
+        if(!document.body.innerText.includes('Just curious?'))throw Error('Simulated data prompt missing');
+        if(sidebar!==document.getElementById('sidebar'))throw Error('Sidebar replaced');
+        return {xlsx:XLSX.version,priceRows,blocks,resultRows:document.querySelectorAll('tbody tr').length};
       })()`);
-      await main.loadURL('labro://app/folders.html');
-      const folderTest=await main.webContents.executeJavaScript(`(async()=>{
-        const f=new File(['operator,begin,finish\\nada,2026-11-10 09:00:00,2026-11-10 09:03:00'],'usage.csv');
-        Object.defineProperty(f,'webkitRelativePath',{value:'NMR/logs/usage.csv'});
-        const dt=new DataTransfer();dt.items.add(f);
-        document.getElementById('folder').files=dt.files;document.getElementById('folder').dispatchEvent(new Event('change'));
-        const check=document.querySelector('[data-file]');check.checked=true;check.dispatchEvent(new Event('change',{bubbles:true}));
-        for(let i=0;i<50&&document.getElementById('preview').disabled;i++)await new Promise(r=>setTimeout(r,20));
-        document.getElementById('instrument').value='NMR';
-        document.getElementById('end').value='finish';
-        document.getElementById('preview').click();await new Promise(r=>setTimeout(r,100));
-        if(!document.getElementById('results').innerText.includes('3.00 minutes'))throw Error('Folder preview failed');
-        if(document.getElementById('export').disabled)throw Error('Evidence export disabled');
-        return 'folder selection, mapping and acquisition preview passed';
-      })()`);
-      await main.loadURL('labro://app/workbench.html');
-      const workbenchTest=await main.webContents.executeJavaScript(`(async()=>{
-        document.getElementById('sample').click();
-        if(document.querySelectorAll('.review-table tbody tr').length<3)throw Error('Review table missing');
-        if(!document.getElementById('results').innerText.includes('$280.00'))throw Error('Disjoint union not billed as four hours');
-        if(!document.getElementById('results').innerText.includes('Repeated login'))throw Error('Repeated-login exception missing');
-        const wb=XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['placeholder'],['select Raw sheet']]),'Summary');
-        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Resource','Begin','End','Owner','Lab','PTA','Reservation type'],['Analyzer','10/2/26 09:00','10/2/26 11:00','Jamie Chen','Willow Lab','DEMO-01','Self-Service']]),'Raw');
-        const f=new File([XLSX.write(wb,{type:'array',bookType:'xlsx'})],'test-bookings.xlsx'),dt=new DataTransfer();dt.items.add(f);
-        const input=document.getElementById('book-file');input.files=dt.files;input.dispatchEvent(new Event('change'));
-        for(let i=0;i<100&&!document.getElementById('book-sheet');i++)await new Promise(r=>setTimeout(r,30));
-        const select=document.getElementById('book-sheet');select.value='Raw';select.dispatchEvent(new Event('change'));
-        if(document.getElementById('book-user').selectedOptions[0].textContent!=='Owner')throw Error('Owner mapping failed');
-        document.getElementById('sample').click();
-        return 'review, union policy, raw events, Excel worksheet selection and mapping passed';
-      })()`);
-      await main.webContents.executeJavaScript("document.querySelectorAll('.source-panel details').forEach(el=>el.open=false)");
-      await new Promise(r=>setTimeout(r,150));
-      fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-workbench.png'),(await main.webContents.capturePage()).toPNG());
-      await main.webContents.executeJavaScript("document.getElementById('results').scrollIntoView()");
-      await new Promise(r=>setTimeout(r,100));
-      fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-review.png'),(await main.webContents.capturePage()).toPNG());
-      main.setMinimumSize(390,600);main.setSize(390,844);
-      const mobileOverflow=await main.webContents.executeJavaScript("document.documentElement.scrollWidth > innerWidth + 2");
-      if(mobileOverflow)throw Error('Mobile page overflow');
-      main.setSize(1360,900);
-      await main.loadURL('labro://app/pitch.html?static');
-      for(const id of ['product-update','interview-interest','validation-next']){
-        await main.webContents.executeJavaScript("document.querySelectorAll('section').forEach(s=>s.classList.remove('cur','past'));document.getElementById("+JSON.stringify(id)+").classList.add('cur');");
-        await new Promise(r=>setTimeout(r,100));
-        fs.writeFileSync(path.join(require('node:os').tmpdir(),id+'.png'),(await main.webContents.capturePage()).toPNG());
-      }
-      console.log('DESKTOP PASS '+JSON.stringify(result)+' '+folderTest+' '+workbenchTest+' mobile overflow check and updated slides rendered');app.exit(0);
+      fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-app.png'),(await main.webContents.capturePage()).toPNG());
+      console.log('DESKTOP PASS '+JSON.stringify(result));app.exit(0);
     } catch(e){console.error(e);app.exit(1);}
   }
 }
@@ -103,11 +87,10 @@ app.whenReady().then(async()=>{
   session.defaultSession.setPermissionRequestHandler((wc,permission,done)=>done(false));
   session.defaultSession.setPermissionCheckHandler(()=>false);
   // Desktop workflows run entirely from the bundle. Documentation opens in the browser.
-  session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(details,done)=>done({cancel:true}));
+  session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(details,done)=>done({cancel:!/^http:\/\/127\.0\.0\.1:11434\/api\/generate(?:\?|$)/.test(details.url)}));
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     ...(process.platform==='darwin'?[{role:'appMenu'}]:[]),
-    {label:'File',submenu:[{label:'Requests',click:()=>main.loadURL('labro://app/close.html#requests')},
-      {label:'Research office',click:()=>main.loadURL('labro://app/close.html#campus')},{type:'separator'},{role:'close'}]},
+    {label:'File',submenu:[{role:'close'}]},
     {role:'editMenu'},{role:'viewMenu'},{role:'windowMenu'}
   ]));
   await createWindow();

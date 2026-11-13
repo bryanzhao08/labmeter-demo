@@ -1,0 +1,4 @@
+Flow cytometer: self-service $60/hr, assisted $125/hr, external $96/hr, after hours $45/hr
+Cell sorter: self-service $110/hr, assisted $165/hr
+Confocal microscope: self-service $40/hr, assisted $80/hr, training $80/hr
+Billed in 30-minute increments.

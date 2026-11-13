@@ -1,0 +1,6 @@
+Resource,Begin,End,Owner,Lab,PTA,Reservation type
+Flow cytometer,2026-10-02 09:00,2026-10-02 11:00,User A,Lab 1,PTA-0001,self-service
+Confocal microscope,2026-10-03 09:00,2026-10-03 11:00,John,Lab 2,PTA-0002,self-service
+Confocal microscope,2026-10-03 13:00,2026-10-03 15:00,User C,Lab 3,PTA-0003,self-service
+Flow cytometer,2026-10-04 11:00,2026-10-04 12:00,User D,Lab 1,PTA-0001,assisted
+Confocal microscope,2026-10-05 10:00,2026-10-05 11:30,User E,Lab 4,PTA-0004,training

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LaBro</title>
+<link rel="stylesheet" href="labro.css">
+</head>
+<body>
+<aside id="sidebar">
+  <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="wordmark">LaBro</span></div>
+  <nav aria-label="Main navigation">
+    <a href="#schedule"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2v4M13 2v4"/></svg>Schedule</a>
+    <a href="#upload"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V4M6.5 7.5 10 4l3.5 3.5M4 14v2h12v-2"/></svg>Upload a month</a>
+    <a href="#results"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h8"/></svg>Results</a>
+    <a href="#setup"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h8M15 6h1M4 14h1M8 14h8"/><circle cx="13.5" cy="6" r="1.6"/><circle cx="6.5" cy="14" r="1.6"/></svg>Billing rules</a>
+  </nav>
+  <p class="local"><span class="dot" aria-hidden="true"></span>Local only. Files stay on this computer.</p>
+</aside>
+<div class="shell">
+  <header id="topbar"><span id="lab-title">Your lab</span><span id="page-title"></span></header>
+  <main id="viewport"><div id="screen"></div></main>
+</div>
+<div id="toast" role="status" hidden></div>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="audit.js"></script>
+<script src="reconcile-engine.js"></script>
+<script src="ratesheet.js"></script>
+<script src="schedule.js"></script>
+<script src="helpers.js"></script>
+<script src="labro.js"></script>
+</body>
+</html>
