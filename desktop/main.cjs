@@ -2,13 +2,14 @@ const {app, BrowserWindow, protocol, net, session, shell, Menu, ipcMain, dialog,
 const path = require('node:path');
 const {pathToFileURL} = require('node:url');
 const fs = require('node:fs');
+const {readSafeFile}=require('./web/safe-read.cjs');
 const smoke = process.argv.includes('--smoke-test');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(),'labro-desktop-test-')));
 protocol.registerSchemesAsPrivileged([{scheme:'labro',privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
 const root = path.join(__dirname,'web');
 function local(url) { try { const u=new URL(url); return u.protocol==='labro:'&&u.host==='app'; } catch {return false;} }
 function external(url) { if (/^https:\/\//i.test(url)) shell.openExternal(url); }
-let main;
+let main, credentialWindow;
 // ---- Connections: booking-system API access ----
 // The token is typed by the manager, encrypted with the operating system's keychain, and used only
 // in this process. The page can ask "is a token saved" but can never read it back.
@@ -103,16 +104,37 @@ function listFiles(){
 }
 const trusted=e=>{try{return new URL(e.senderFrame.url).protocol==='labro:'}catch{return false}};
 ipcMain.handle('labro:conn:get',e=>trusted(e)?connPublic():null);
-ipcMain.handle('labro:conn:save',(e,d)=>{
-  if(!trusted(e)||!d||typeof d!=='object')return connPublic();
+ipcMain.handle('labro:conn:save',async(e,d)=>{
+  if(!trusted(e)||e.sender!==main.webContents||!d||typeof d!=='object')throw new Error('Not allowed');
   if(!CONNECTORS[d.system])throw new Error('Unknown system');
-  const base=connBase(d.system,d.base),coreId=String(d.coreId||'').trim().slice(0,40),next={system:d.system,base,coreId,token:conn&&conn.system===d.system?conn.token:undefined};
-  const token=typeof d.token==='string'?d.token.trim():'';
-  if(token){if(token.length>4000)throw new Error('That token is too long.');
-    if(safeStorage.isEncryptionAvailable()){next.token=safeStorage.encryptString(token).toString('base64');memToken=null}else{memToken=token;next.token=undefined}}
-  conn=next;fs.writeFileSync(connPath(),JSON.stringify(conn),{mode:0o600});
-  if(token&&fs.readFileSync(connPath(),'utf8').includes(token)){fs.rmSync(connPath(),{force:true});throw new Error('Refusing to store a token unencrypted.')}
-  return connPublic();
+  const base=connBase(d.system,d.base),coreId=String(d.coreId||'').trim();
+  if(!/^[A-Za-z0-9_-]{1,40}$/.test(coreId))throw new Error('Enter a valid core ID.');
+  if(credentialWindow)throw new Error('The token window is already open.');
+  return new Promise(resolve=>{
+    const win=credentialWindow=new BrowserWindow({parent:main,modal:true,width:480,height:300,resizable:false,show:!smoke,title:'iLab API token',webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,preload:path.join(__dirname,'credential-preload.cjs')}});
+    let finished=false;
+    const finish=result=>{if(finished)return;finished=true;credentialWindow=null;resolve(result);if(!win.isDestroyed())win.close()};
+    win.on('closed',()=>finish({saved:false}));
+    win.webContents.on('will-navigate',event=>event.preventDefault());
+    win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
+    win.loadFile(path.join(__dirname,'credential.html'));
+    win._saveToken=token=>{
+      try{
+        token=typeof token==='string'?token.trim():'';
+        if(token.length>4000)throw new Error('That token is too long.');
+        if(!token&&!(conn&&conn.system===d.system&&connToken()))throw new Error('Paste the API token from iLab.');
+        const next={system:d.system,base,coreId,token:conn&&conn.system===d.system?conn.token:undefined};
+        if(token){if(safeStorage.isEncryptionAvailable()){next.token=safeStorage.encryptString(token).toString('base64');memToken=null}else{memToken=token;next.token=undefined}}
+        conn=next;fs.writeFileSync(connPath(),JSON.stringify(conn),{mode:0o600});
+        finish({saved:true,info:connPublic()});
+        return null;
+      }catch(err){return err.message}
+    };
+  });
+});
+ipcMain.handle('labro:credential:submit',(e,token)=>{
+  if(!credentialWindow||e.sender!==credentialWindow.webContents||e.senderFrame!==credentialWindow.webContents.mainFrame)throw new Error('Not allowed');
+  return credentialWindow._saveToken(token);
 });
 ipcMain.handle('labro:conn:forget',e=>{if(!trusted(e))return null;conn=null;memToken=null;try{fs.rmSync(connPath(),{force:true})}catch{}return connPublic()});
 ipcMain.handle('labro:conn:test',async e=>{
@@ -143,10 +165,7 @@ ipcMain.handle('labro:folder:forget',e=>{if(!trusted(e))return null;folder=null;
 ipcMain.handle('labro:folder:scan',e=>trusted(e)&&folder?listFiles():[]);
 ipcMain.handle('labro:folder:read',(e,name)=>{
   if(!trusted(e)||!folder||typeof name!=='string'||!FILE_RX.test(name))throw new Error('Not allowed');
-  const base=fs.realpathSync(folder),target=fs.realpathSync(path.resolve(base,name)),rel=path.relative(base,target);
-  if(!rel||rel.startsWith('..')||path.isAbsolute(rel))throw new Error('Not allowed');
-  const st=fs.statSync(target);if(!st.isFile()||st.size>MAX_BYTES)throw new Error('File too large');
-  return fs.readFileSync(target);
+  return readSafeFile(folder,name,MAX_BYTES);
 });
 async function createWindow() {
   main = new BrowserWindow({width:1360,height:900,minWidth:800,minHeight:600,title:'LaBro',
@@ -218,6 +237,16 @@ async function createWindow() {
         if(sidebar!==document.getElementById('sidebar'))throw Error('Sidebar replaced');
         return {xlsx:XLSX.version,priceRows,blocks,files:frows.length,report:copied.split('\n').length};
       })()`);
+      // Optional, synthetic-data-only product captures for the pitch and manual review.
+      if(process.env.LABRO_CAPTURE_DIR){
+        const captures=path.resolve(process.env.LABRO_CAPTURE_DIR);fs.mkdirSync(captures,{recursive:true});
+        await new Promise(resolve=>setTimeout(resolve,3500));
+        for(const page of ['upload','schedule','results']){
+          await main.webContents.executeJavaScript(`(async()=>{location.hash=${JSON.stringify(page)};await new Promise(resolve=>setTimeout(resolve,500));await document.fonts.ready;window.scrollTo(0,0)})()`);
+          fs.writeFileSync(path.join(captures,page+'.png'),(await main.webContents.capturePage()).toPNG());
+        }
+        await main.webContents.executeJavaScript("location.hash='upload'");
+      }
       // A new export lands in the folder while the app is open: it must be picked up without a click.
       const m=path.join(root,'data','mock','fbs-reservations.csv'),lines=fs.readFileSync(m,'utf8').split('\n');
       fs.writeFileSync(path.join(folder,'Newer export.csv'),[lines[0],...lines.slice(1,5)].join('\n')+'\n');
@@ -236,6 +265,15 @@ async function createWindow() {
         if(q.headers.authorization!=='bearer test-token-123'){r.writeHead(401);r.end('{}');return}
         r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({ilab_response:{equipment:[{id:1,name:'Aria III sorter'},{id:2,name:'LSM 980 confocal'}]}}))});
       await new Promise(ok=>api.listen(0,'127.0.0.1',ok));process.env.LABRO_TEST_API='http://127.0.0.1:'+api.address().port;
+      let credentialStep=0,lastCredential=null;
+      const credentialTest=setInterval(async()=>{
+        const win=credentialWindow;
+        if(!win||win===lastCredential||win.isDestroyed()||win.webContents.isLoading())return;
+        lastCredential=win;credentialStep++;
+        if(credentialStep===2){win.close();return}
+        const token=credentialStep===1?'wrong-token':'test-token-123';
+        await win.webContents.executeJavaScript(`document.getElementById('token').value=${JSON.stringify(token)};document.querySelector('form').requestSubmit()`);
+      },50);
       const connected=await main.webContents.executeJavaScript(String.raw`(async()=>{
         const pause=ms=>new Promise(r=>setTimeout(r,ms));
         const wait=async fn=>{for(let i=0;i<300;i++){if(fn())return;await pause(50)}throw Error('Timed out waiting for connections page')};
@@ -244,15 +282,19 @@ async function createWindow() {
         await wait(()=>/Connect to FBS through its exports/.test(document.body.innerText));
         if(!/Folder connected/.test(document.body.innerText))throw Error('FBS card does not show the connected folder');
         document.getElementById('sys-url').value='https://my.ilabsolutions.com/service_center/show_external/5582';document.getElementById('sys-find').click();
-        await wait(()=>document.getElementById('ilab-token'));
+        await wait(()=>document.getElementById('ilab-save'));
         if(document.getElementById('ilab-core').value!=='5582')throw Error('Core ID not read from the web address');
-        document.getElementById('ilab-token').value='wrong-token';document.getElementById('ilab-save').click();
+        if(document.getElementById('ilab-token'))throw Error('Token field present in main page');
+        document.getElementById('ilab-save').click();
         await wait(()=>/Not connected/.test(document.body.innerText));
         if(!/refused the token/.test(document.body.innerText))throw Error('Bad token not explained');
-        document.getElementById('ilab-token').value='test-token-123';document.getElementById('ilab-save').click();
+        document.getElementById('ilab-save').click();
+        await wait(()=>document.getElementById('ilab-save')&&!document.getElementById('ilab-save').disabled);
+        if(/Connected\./.test(document.body.innerText))throw Error('Cancelled entry reported success');
+        document.getElementById('ilab-save').click();
         await wait(()=>/Connected\./.test(document.body.innerText));
         if(!/Aria III sorter/.test(document.body.innerText))throw Error('Equipment list missing');
-        if(document.getElementById('ilab-token').value!=='')throw Error('Token left in the page');
+        if(document.getElementById('ilab-token'))throw Error('Token field present in main page');
         const info=await window.labroConn.get();
         if(!info.hasToken||JSON.stringify(info).includes('test-token'))throw Error('Token readable from the page');
         if(document.documentElement.innerHTML.includes('test-token-123'))throw Error('Token present in the page');
@@ -260,9 +302,11 @@ async function createWindow() {
         document.getElementById('ilab-machines').click();
         document.getElementById('conn-forget').click();await wait(()=>!document.getElementById('conn-forget'));
         return true})()`);
+      clearInterval(credentialTest);
+      if(credentialStep!==3)throw new Error('Credential window coverage incomplete');
       api.close();
-      if(!seen.length||seen.some(x=>!/^\/v1\/cores\/5582\/equipment\.json$/.test(x.url)))throw new Error('Unexpected API calls: '+JSON.stringify(seen.map(x=>x.url)));
-      if(seen[seen.length-1].auth!=='bearer test-token-123')throw new Error('Token not sent as a bearer header');
+      if(seen.length!==2||seen.some(x=>!/^\/v1\/cores\/5582\/equipment\.json$/.test(x.url)))throw new Error('Unexpected API calls: '+JSON.stringify(seen.map(x=>x.url)));
+      if(seen[0].auth!=='bearer wrong-token'||seen[seen.length-1].auth!=='bearer test-token-123')throw new Error('Token not sent as a bearer header');
       if(fs.existsSync(connPath()))throw new Error('Connection file left behind after removal');
       fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-app.png'),(await main.webContents.capturePage()).toPNG());
       console.log('DESKTOP PASS '+JSON.stringify({...result,watched,connected}));app.exit(0);

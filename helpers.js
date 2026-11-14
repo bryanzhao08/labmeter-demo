@@ -1,6 +1,7 @@
 /* Pure helpers for the LaBro app: reading plain-language setup, per-machine rules and flags. */
 (function(root){
 'use strict';
+const Rates=root.LBRates||(typeof require!=='undefined'?require('./ratesheet.js'):null);
 const choices={booking_system:['Booked Scheduler','FBS','iLab','PPMS','Other'],instrument_type:['Flow cytometer','Confocal','NMR','Mass spectrometer','Other'],billing:['Booked plus used','Used only','Booked only','Acquisition time'],round_minutes:[30,15,1]};
 const patterns={tier:/^(?:user type|affiliation|rate tier|customer type|tier|membership|member type)$/i,instrument:/^(resource|instrument|workstation|equipment)$/i,user:/^(owner|user full name|username|user|operator|customer name)$/i,start:/^(begin|start|login|logon time)$/i,end:/^(end|finish|logout|logoff time)$/i,lab:/^(lab|pi|group)$/i,account:/^(pta|account|worktag|grant)$/i,mode:/^(reservation type|reservation|service type|mode)$/i,timestamp:/^(timestamp|date and time)$/i,event:/^(record|event|action)$/i};
 const fields={book:['instrument','user','start','end','lab','account','mode','tier'],use:['instrument','user','start','end','timestamp','event']};
@@ -16,14 +17,16 @@ function validateModel(candidate,base){const p=JSON.parse(JSON.stringify(base));
 function setBilling(p,v){p.basis=v==='Booked only'?'booked':v==='Used only'||v==='Acquisition time'?'actual':'union';p.evidence=v==='Acquisition time'?'acquisition':'login'}
 const tierKey=(text,known)=>{const t=String(text||'').trim().toLowerCase();if(!t)return '';if(known&&known.includes(t))return t;if(/commercial|industry|for[- ]?profit|corporate/.test(t))return 'commercial';if(/external|outside|academic|non[- ]?profit/.test(t))return 'external';if(/internal|campus|member|university|home/.test(t))return 'internal';return t};
 function policyFor(profile,instrument){
-  const name=String(instrument||'').trim().toLowerCase(),keys=Object.keys(profile.machine_rules||{}),key=keys.find(k=>k.trim().toLowerCase()===name)||keys.find(k=>{const x=k.trim().toLowerCase();return x&&name&&(x.includes(name)||name.includes(x))}),rule=profile.machine_rules?.[key]||{};
+  const keys=Object.keys(profile.machine_rules||{}),match=Rates.matchNames(keys,instrument),key=match.names[0],rule=profile.machine_rules?.[key]||{};
   const p={basis:profile.basis,evidence:profile.evidence,round:profile.round_minutes,rates:{...profile.rates,...rule.rates},defaultTier:profile.default_tier||'internal'};
   if(choices.billing.includes(rule.billing))setBilling(p,rule.billing);
   if(rule.round_minutes!=null&&rule.round_minutes!=='')p.round=Number(rule.round_minutes);
-  const items=root.LBRates?root.LBRates.itemsFor(profile.rate_card,instrument):[];
+  const cardMatch=Rates.matchNames((profile.rate_card||[]).filter(i=>i.hourly!==false).map(i=>i.machine),instrument);
+  if(match.ambiguous||cardMatch.ambiguous)p.machineMatchAmbiguous=true;
+  const items=Rates.itemsFor(profile.rate_card,instrument);
   if(items.length){
     const known=(profile.tiers||[]).map(t=>t.key);
-    p.rateFor=(mode,tier,after)=>{if(rule.rates&&rule.rates[mode]!=null&&!after)return Number(rule.rates[mode]);const v=root.LBRates.rateFor(items,mode,tierKey(tier,known)||p.defaultTier,after);return Number.isFinite(v)?v:Number(p.rates[mode])};
+    p.rateFor=(mode,tier,after)=>{if(rule.rates&&rule.rates[mode]!=null&&!after)return Number(rule.rates[mode]);const v=Rates.rateFor(items,mode,tierKey(tier,known)||p.defaultTier,after);return Number.isFinite(v)?v:Number(p.rates[mode])};
     if(items.some(i=>Object.keys(i.after||{}).length))p.afterHours=profile.after_hours||{start:18,end:9,weekends:true};
   }
   return p;

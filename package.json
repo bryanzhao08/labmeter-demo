@@ -13,7 +13,7 @@
   "build": {
     "appId": "org.labro.desktop", "productName": "LaBro",
     "directories": {"output": "release"},
-    "files": ["desktop/main.cjs", "desktop/preload.cjs", "desktop/web/**/*", "package.json"],
+    "files": ["desktop/main.cjs", "desktop/preload.cjs", "desktop/credential-preload.cjs", "desktop/credential.html", "desktop/credential.js", "desktop/credential.css", "desktop/web/**/*", "package.json"],
     "mac": {"category": "public.app-category.productivity", "identity": null},
     "win": {"target": "nsis"},
     "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true},

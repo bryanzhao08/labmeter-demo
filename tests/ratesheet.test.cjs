@@ -55,3 +55,8 @@ Self-service,$55
 Assisted,$120`));
 assert.equal(rateFor(itemsFor(g.items,'Anything'),'assisted','internal'),120);
 console.log('ratesheet tests pass');
+
+const scoped=[{machine:'Scope 10',mode:'self',hourly:true,rates:{internal:100},after:{}},{machine:'Scope 1',mode:'self',hourly:true,rates:{internal:10},after:{}}];
+assert.equal(rateFor(itemsFor(scoped,'Scope 1'),'self','internal',false),10);
+assert.deepEqual(itemsFor(scoped,'Scope'),[]);
+assert.equal(require('../ratesheet.js').matchNames(scoped.map(i=>i.machine),'Scope').ambiguous,true);

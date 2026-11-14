@@ -1,0 +1,147 @@
+Reservation ID,Resource,Reserved By,PI,Account,Start Date,Start Time,End Date,End Time,Status,Service Type,User Type
+R40103,Flow cytometer 2,User C,Lab 3,PTA-0003,10/01/2026,8:00 AM,10/01/2026,10:00 AM,Confirmed,Assisted,Internal
+R40104,Cell sorter,User F,Lab 2,PTA-0002,10/01/2026,9:00 AM,10/01/2026,11:00 AM,Confirmed,Self-service,Internal
+R40101,Flow cytometer 1,User C,Lab 3,PTA-0003,10/01/2026,9:00 AM,10/01/2026,12:00 PM,Confirmed,Assisted,Internal
+R40105,Confocal microscope,User G,Lab 3,PTA-0003,10/01/2026,10:00 AM,10/01/2026,12:00 PM,Confirmed,Self-service,Internal
+R40106,Confocal microscope,User E,Lab 4,PTA-0004,10/01/2026,1:00 PM,10/01/2026,3:00 PM,Confirmed,Training,External
+R40102,Flow cytometer 2,User G,Lab 3,PTA-0003,10/01/2026,2:00 PM,10/01/2026,4:00 PM,Confirmed,Self-service,Internal
+R40111,Confocal microscope,John,Lab 2,PTA-0002,10/02/2026,9:00 AM,10/02/2026,12:00 PM,Confirmed,Self-service,Internal
+R40109,Flow cytometer 2,User G,Lab 3,PTA-0003,10/02/2026,9:00 AM,10/02/2026,12:00 PM,Confirmed,Self-service,Internal
+R40108,Flow cytometer 1,User D,Lab 1,PTA-0001,10/02/2026,10:00 AM,10/02/2026,11:00 AM,Confirmed,Self-service,Internal
+R40110,Cell sorter,User A,Lab 1,PTA-0001,10/02/2026,3:00 PM,10/02/2026,5:00 PM,Confirmed,Self-service,Internal
+R40107,Flow cytometer 1,John,Lab 2,PTA-0002,10/02/2026,3:00 PM,10/02/2026,5:00 PM,Confirmed,Assisted,Internal
+R40112,Flow cytometer 2,User H,Lab 5,PTA-0005,10/03/2026,10:00 AM,10/03/2026,12:00 PM,Confirmed,Self-service,Commercial
+R40115,Flow cytometer 2,User F,Lab 2,PTA-0002,10/05/2026,8:00 AM,10/05/2026,10:00 AM,Confirmed,Assisted,Internal
+R40117,Cell sorter,User H,Lab 5,PTA-0005,10/05/2026,10:00 AM,10/05/2026,12:00 PM,Confirmed,Assisted,Commercial
+R40118,Confocal microscope,User A,Lab 1,PTA-0001,10/05/2026,11:00 AM,10/05/2026,1:00 PM,Confirmed,Training,Internal
+R40119,Confocal microscope,User E,Lab 4,PTA-0004,10/05/2026,1:00 PM,10/05/2026,4:00 PM,Confirmed,Self-service,External
+R40114,Flow cytometer 2,User F,Lab 2,PTA-0002,10/05/2026,1:00 PM,10/05/2026,4:00 PM,Confirmed,Self-service,Internal
+R40113,Flow cytometer 1,John,Lab 2,PTA-0002,10/05/2026,3:00 PM,10/05/2026,5:00 PM,Confirmed,Self-service,Internal
+R40116,Flow cytometer 2,User E,Lab 4,PTA-0004,10/05/2026,6:30 PM,10/05/2026,9:00 PM,Confirmed,Self-service,External
+R40122,Flow cytometer 2,User A,Lab 1,PTA-0001,10/06/2026,8:00 AM,10/06/2026,10:00 AM,Confirmed,Assisted,Internal
+R40123,Cell sorter,User F,Lab 2,PTA-0002,10/06/2026,10:00 AM,10/06/2026,12:00 PM,Confirmed,Assisted,Internal
+R40124,Confocal microscope,User H,Lab 5,PTA-0005,10/06/2026,10:00 AM,10/06/2026,12:00 PM,Confirmed,Training,Commercial
+R40121,Flow cytometer 1,User H,Lab 5,PTA-0005,10/06/2026,10:00 AM,10/06/2026,11:00 AM,Confirmed,Self-service,Commercial
+R40120,Flow cytometer 1,User F,Lab 2,PTA-0002,10/06/2026,3:00 PM,10/06/2026,5:00 PM,Confirmed,Self-service,Internal
+R40125,Confocal microscope,User D,Lab 1,PTA-0001,10/06/2026,6:30 PM,10/06/2026,9:00 PM,Confirmed,Self-service,Internal
+R40129,Cell sorter,User H,Lab 5,PTA-0005,10/07/2026,8:00 AM,10/07/2026,10:00 AM,Confirmed,Self-service,Commercial
+R40127,Flow cytometer 1,User H,Lab 5,PTA-0005,10/07/2026,11:00 AM,10/07/2026,1:00 PM,Confirmed,Assisted,Commercial
+R40126,Flow cytometer 1,User A,Lab 1,PTA-0001,10/07/2026,1:00 PM,10/07/2026,3:00 PM,Confirmed,Self-service,Internal
+R40130,Confocal microscope,User A,Lab 1,PTA-0001,10/07/2026,2:00 PM,10/07/2026,4:00 PM,Confirmed,Training,Internal
+R40128,Flow cytometer 2,John,Lab 2,PTA-0002,10/07/2026,2:00 PM,10/07/2026,4:00 PM,Confirmed,Self-service,Internal
+R40133,Cell sorter,User D,Lab 1,PTA-0001,10/08/2026,9:00 AM,10/08/2026,12:00 PM,Confirmed,Assisted,Internal
+R40135,Confocal microscope,User H,Lab 5,PTA-0005,10/08/2026,9:00 AM,10/08/2026,12:00 PM,Confirmed,Self-service,Commercial
+R40131,Flow cytometer 1,User D,Lab 1,PTA-0001,10/08/2026,9:00 AM,10/08/2026,12:00 PM,Confirmed,Self-service,Internal
+R40245,Flow cytometer 1,John,Lab 2,PTA-0002,10/08/2026,9:00 AM,10/08/2026,11:00 AM,Confirmed,Self-service,Internal
+R40132,Flow cytometer 2,User G,Lab 3,PTA-0003,10/08/2026,10:00 AM,10/08/2026,11:00 AM,Confirmed,Assisted,Internal
+R40134,Cell sorter,User A,Lab 1,PTA-0001,10/08/2026,1:00 PM,10/08/2026,4:00 PM,Confirmed,Self-service,Internal
+R40137,Flow cytometer 1,User C,Lab 3,PTA-0003,10/09/2026,8:00 AM,10/09/2026,10:00 AM,Confirmed,Self-service,Internal
+R40142,Confocal microscope,User H,Lab 5,PTA-0005,10/09/2026,9:00 AM,10/09/2026,11:00 AM,Confirmed,Self-service,Commercial
+R40140,Flow cytometer 2,User E,Lab 4,PTA-0004,10/09/2026,9:00 AM,10/09/2026,12:00 PM,Confirmed,Assisted,External
+R40141,Cell sorter,User C,Lab 3,PTA-0003,10/09/2026,10:00 AM,10/09/2026,12:00 PM,Confirmed,Assisted,Internal
+R40139,Flow cytometer 2,User F,Lab 2,PTA-0002,10/09/2026,1:00 PM,10/09/2026,3:00 PM,Confirmed,Self-service,Internal
+R40136,Flow cytometer 1,User H,Lab 5,PTA-0005,10/09/2026,3:00 PM,10/09/2026,5:00 PM,Confirmed,Self-service,Commercial
+R40138,Flow cytometer 2,User G,Lab 3,PTA-0003,10/09/2026,3:00 PM,10/09/2026,5:00 PM,Confirmed,Self-service,Internal
+R40143,Confocal microscope,User A,Lab 1,PTA-0001,10/09/2026,6:30 PM,10/09/2026,9:00 PM,Confirmed,Self-service,Internal
+R40147,Cell sorter,User F,Lab 2,PTA-0002,10/12/2026,8:00 AM,10/12/2026,10:00 AM,Confirmed,Self-service,Internal
+R40148,Confocal microscope,User C,Lab 3,PTA-0003,10/12/2026,9:00 AM,10/12/2026,11:00 AM,Confirmed,Training,Internal
+R40144,Flow cytometer 1,John,Lab 2,PTA-0002,10/12/2026,11:00 AM,10/12/2026,1:00 PM,Confirmed,Assisted,Internal
+R40145,Flow cytometer 2,User H,Lab 5,PTA-0005,10/12/2026,11:00 AM,10/12/2026,1:00 PM,Confirmed,Self-service,Commercial
+R40146,Flow cytometer 2,John,Lab 2,PTA-0002,10/12/2026,1:00 PM,10/12/2026,4:00 PM,Confirmed,Self-service,Internal
+R40149,Confocal microscope,User D,Lab 1,PTA-0001,10/12/2026,6:30 PM,10/12/2026,9:00 PM,Confirmed,Self-service,Internal
+R40152,Flow cytometer 2,User E,Lab 4,PTA-0004,10/13/2026,8:00 AM,10/13/2026,10:00 AM,Confirmed,Self-service,External
+R40153,Cell sorter,User A,Lab 1,PTA-0001,10/13/2026,9:00 AM,10/13/2026,11:00 AM,Confirmed,Self-service,Internal
+R40154,Cell sorter,User A,Lab 1,PTA-0001,10/13/2026,11:00 AM,10/13/2026,1:00 PM,Confirmed,Self-service,Internal
+R40150,Flow cytometer 1,John,Lab 2,PTA-0002,10/13/2026,1:00 PM,10/13/2026,3:00 PM,Confirmed,Self-service,Internal
+R40241,Cell sorter,User C,Lab 3,PTA-0003,10/13/2026,2:00 PM,10/13/2026,4:00 PM,Cancelled,Assisted,Internal
+R40155,Confocal microscope,User F,Lab 2,PTA-0002,10/13/2026,3:00 PM,10/13/2026,5:00 PM,Confirmed,Self-service,Internal
+R40151,Flow cytometer 1,User G,Lab 3,PTA-0003,10/13/2026,3:00 PM,10/13/2026,5:00 PM,Confirmed,Self-service,Internal
+R40156,Confocal microscope,User D,Lab 1,PTA-0001,10/13/2026,6:30 PM,10/13/2026,9:00 PM,Confirmed,Self-service,Internal
+R40160,Cell sorter,User H,Lab 5,PTA-0005,10/14/2026,8:00 AM,10/14/2026,10:00 AM,Confirmed,Self-service,Commercial
+R40161,Confocal microscope,User G,Lab 3,PTA-0003,10/14/2026,10:00 AM,10/14/2026,12:00 PM,Confirmed,Training,Internal
+R40158,Flow cytometer 1,User H,Lab 5,PTA-0005,10/14/2026,10:00 AM,10/14/2026,12:00 PM,Confirmed,Self-service,Commercial
+R40159,Flow cytometer 2,John,Lab 2,PTA-0002,10/14/2026,2:00 PM,10/14/2026,4:00 PM,Confirmed,Self-service,Internal
+R40157,Flow cytometer 1,User F,Lab 2,PTA-0002,10/14/2026,3:00 PM,10/14/2026,5:00 PM,Confirmed,Self-service,Internal
+R40244,Cell sorter,John,Lab 2,PTA-0002,10/15/2026,9:00 AM,10/15/2026,12:00 PM,Confirmed,,Internal
+R40167,Confocal microscope,User E,Lab 4,PTA-0004,10/15/2026,9:00 AM,10/15/2026,11:00 AM,Confirmed,Self-service,External
+R40162,Flow cytometer 1,User E,Lab 4,PTA-0004,10/15/2026,9:00 AM,10/15/2026,12:00 PM,Confirmed,Assisted,External
+R40165,Cell sorter,User C,Lab 3,PTA-0003,10/15/2026,11:00 AM,10/15/2026,1:00 PM,Confirmed,Assisted,Internal
+R40163,Flow cytometer 2,User E,Lab 4,PTA-0004,10/15/2026,11:00 AM,10/15/2026,1:00 PM,Confirmed,Self-service,External
+R40166,Cell sorter,User C,Lab 3,PTA-0003,10/15/2026,2:00 PM,10/15/2026,4:00 PM,Confirmed,Assisted,Internal
+R40164,Flow cytometer 2,User H,Lab 5,PTA-0005,10/15/2026,3:00 PM,10/15/2026,5:00 PM,Confirmed,Assisted,Commercial
+R40171,Confocal microscope,John,Lab 2,PTA-0002,10/16/2026,8:00 AM,10/16/2026,10:00 AM,Confirmed,Training,Internal
+R40170,Cell sorter,User E,Lab 4,PTA-0004,10/16/2026,9:00 AM,10/16/2026,12:00 PM,Confirmed,Self-service,External
+R40168,Flow cytometer 1,User F,Lab 2,PTA-0002,10/16/2026,1:00 PM,10/16/2026,4:00 PM,Confirmed,Assisted,Internal
+R40169,Flow cytometer 2,User G,Lab 3,PTA-0003,10/16/2026,1:00 PM,10/16/2026,4:00 PM,Confirmed,Assisted,Internal
+R40172,Confocal microscope,User C,Lab 3,PTA-0003,10/16/2026,3:00 PM,10/16/2026,5:00 PM,Confirmed,Training,Internal
+R40176,Flow cytometer 2,User C,Lab 3,PTA-0003,10/19/2026,8:00 AM,10/19/2026,10:00 AM,Confirmed,Self-service,Internal
+R40178,Cell sorter,User H,Lab 5,PTA-0005,10/19/2026,9:00 AM,10/19/2026,11:00 AM,Confirmed,Assisted,Commercial
+R40180,Confocal microscope,User C,Lab 3,PTA-0003,10/19/2026,9:00 AM,10/19/2026,12:00 PM,Confirmed,Self-service,Internal
+R40177,Cell sorter,User H,Lab 5,PTA-0005,10/19/2026,11:00 AM,10/19/2026,1:00 PM,Confirmed,Assisted,Commercial
+R40174,Flow cytometer 1,User A,Lab 1,PTA-0001,10/19/2026,11:00 AM,10/19/2026,1:00 PM,Confirmed,Self-service,Internal
+R40175,Flow cytometer 2,User F,Lab 2,PTA-0002,10/19/2026,1:00 PM,10/19/2026,4:00 PM,Confirmed,Assisted,Internal
+R40179,Confocal microscope,User G,Lab 3,PTA-0003,10/19/2026,2:00 PM,10/19/2026,4:00 PM,Confirmed,Self-service,Internal
+R40173,Flow cytometer 1,User F,Lab 2,PTA-0002,10/19/2026,2:00 PM,10/19/2026,4:00 PM,Confirmed,Self-service,Internal
+R40184,Cell sorter,User C,Lab 3,PTA-0003,10/20/2026,9:00 AM,10/20/2026,11:00 AM,Confirmed,Self-service,Internal
+R40186,Confocal microscope,User C,Lab 3,PTA-0003,10/20/2026,9:00 AM,10/20/2026,11:00 AM,Confirmed,Self-service,Internal
+R40242,Confocal microscope,User F,Lab 2,PTA-0002,10/20/2026,9:00 AM,10/20/2026,11:00 AM,Cancelled,Self-service,Internal
+R40185,Confocal microscope,User F,Lab 2,PTA-0002,10/20/2026,1:00 PM,10/20/2026,3:00 PM,Confirmed,Training,Internal
+R40181,Flow cytometer 1,User G,Lab 3,PTA-0003,10/20/2026,1:00 PM,10/20/2026,4:00 PM,Confirmed,Self-service,Internal
+R40182,Flow cytometer 2,User D,Lab 1,PTA-0001,10/20/2026,1:00 PM,10/20/2026,3:00 PM,Confirmed,Assisted,Internal
+R40183,Cell sorter,User H,Lab 5,PTA-0005,10/20/2026,2:00 PM,10/20/2026,4:00 PM,Confirmed,Assisted,Commercial
+R40191,Cell sorter,User F,Lab 2,PTA-0002,10/21/2026,8:00 AM,10/21/2026,10:00 AM,Confirmed,Assisted,Internal
+R40193,Confocal microscope,User H,Lab 5,PTA-0005,10/21/2026,8:00 AM,10/21/2026,10:00 AM,Confirmed,Self-service,Commercial
+R40187,Flow cytometer 1,John,Lab 2,PTA-0002,10/21/2026,8:00 AM,10/21/2026,10:00 AM,Confirmed,Self-service,Internal
+R40190,Flow cytometer 2,User A,Lab 1,PTA-0001,10/21/2026,9:00 AM,10/21/2026,11:00 AM,Confirmed,Self-service,Internal
+R40192,Cell sorter,User H,Lab 5,PTA-0005,10/21/2026,10:00 AM,10/21/2026,11:00 AM,Confirmed,Assisted,Commercial
+R40189,Flow cytometer 2,User C,Lab 3,PTA-0003,10/21/2026,11:00 AM,10/21/2026,1:00 PM,Confirmed,Self-service,Internal
+R40188,Flow cytometer 1,User G,Lab 3,PTA-0003,10/21/2026,1:00 PM,10/21/2026,3:00 PM,Confirmed,Self-service,Internal
+R40194,Confocal microscope,User G,Lab 3,PTA-0003,10/21/2026,3:00 PM,10/21/2026,5:00 PM,Confirmed,Self-service,Internal
+R40195,Confocal microscope,John,Lab 2,PTA-0002,10/21/2026,6:30 PM,10/21/2026,9:00 PM,Confirmed,Self-service,Internal
+R40200,Flow cytometer 2,John,Lab 2,PTA-0002,10/22/2026,8:00 AM,10/22/2026,10:00 AM,Confirmed,Self-service,Internal
+R40201,Cell sorter,User D,Lab 1,PTA-0001,10/22/2026,9:00 AM,10/22/2026,11:00 AM,Confirmed,Assisted,Internal
+R40197,Flow cytometer 1,User A,Lab 1,PTA-0001,10/22/2026,9:00 AM,10/22/2026,11:00 AM,Confirmed,Self-service,Internal
+R40243,Flow cytometer 2,User A,Lab 1,,10/22/2026,9:00 AM,10/22/2026,11:00 AM,Confirmed,Self-service,Internal
+R40199,Flow cytometer 2,User G,Lab 3,PTA-0003,10/22/2026,10:00 AM,10/22/2026,11:00 AM,Confirmed,Self-service,Internal
+R40203,Confocal microscope,User F,Lab 2,PTA-0002,10/22/2026,11:00 AM,10/22/2026,1:00 PM,Confirmed,Training,Internal
+R40202,Cell sorter,User A,Lab 1,PTA-0001,10/22/2026,2:00 PM,10/22/2026,4:00 PM,Confirmed,Assisted,Internal
+R40196,Flow cytometer 1,User D,Lab 1,PTA-0001,10/22/2026,2:00 PM,10/22/2026,4:00 PM,Confirmed,Assisted,Internal
+R40198,Flow cytometer 2,John,Lab 2,PTA-0002,10/22/2026,2:00 PM,10/22/2026,4:00 PM,Confirmed,Assisted,Internal
+R40204,Flow cytometer 1,John,Lab 2,PTA-0002,10/23/2026,9:00 AM,10/23/2026,12:00 PM,Confirmed,Assisted,Internal
+R40207,Flow cytometer 2,User G,Lab 3,PTA-0003,10/23/2026,9:00 AM,10/23/2026,12:00 PM,Confirmed,Self-service,Internal
+R40210,Confocal microscope,User F,Lab 2,PTA-0002,10/23/2026,10:00 AM,10/23/2026,11:00 AM,Confirmed,Self-service,Internal
+R40211,Confocal microscope,User G,Lab 3,PTA-0003,10/23/2026,1:00 PM,10/23/2026,4:00 PM,Confirmed,Self-service,Internal
+R40208,Flow cytometer 2,User G,Lab 3,PTA-0003,10/23/2026,1:00 PM,10/23/2026,3:00 PM,Confirmed,Assisted,Internal
+R40209,Cell sorter,User C,Lab 3,PTA-0003,10/23/2026,2:00 PM,10/23/2026,4:00 PM,Confirmed,Assisted,Internal
+R40205,Flow cytometer 1,John,Lab 2,PTA-0002,10/23/2026,3:00 PM,10/23/2026,5:00 PM,Confirmed,Self-service,Internal
+R40206,Flow cytometer 2,User H,Lab 5,PTA-0005,10/23/2026,3:00 PM,10/23/2026,5:00 PM,Confirmed,Self-service,Commercial
+R40216,Confocal microscope,User D,Lab 1,PTA-0001,10/26/2026,10:00 AM,10/26/2026,11:00 AM,Confirmed,Self-service,Internal
+R40213,Flow cytometer 1,User G,Lab 3,PTA-0003,10/26/2026,11:00 AM,10/26/2026,1:00 PM,Confirmed,Assisted,Internal
+R40215,Cell sorter,John,Lab 2,PTA-0002,10/26/2026,1:00 PM,10/26/2026,3:00 PM,Confirmed,Self-service,Internal
+R40212,Flow cytometer 1,John,Lab 2,PTA-0002,10/26/2026,1:00 PM,10/26/2026,4:00 PM,Confirmed,Assisted,Internal
+R40214,Flow cytometer 2,User D,Lab 1,PTA-0001,10/26/2026,1:00 PM,10/26/2026,4:00 PM,Confirmed,Assisted,Internal
+R40220,Confocal microscope,User E,Lab 4,PTA-0004,10/27/2026,10:00 AM,10/27/2026,12:00 PM,Confirmed,Self-service,External
+R40217,Flow cytometer 1,User C,Lab 3,PTA-0003,10/27/2026,1:00 PM,10/27/2026,4:00 PM,Confirmed,Self-service,Internal
+R40218,Flow cytometer 2,User D,Lab 1,PTA-0001,10/27/2026,1:00 PM,10/27/2026,4:00 PM,Confirmed,Self-service,Internal
+R40219,Cell sorter,User E,Lab 4,PTA-0004,10/27/2026,3:00 PM,10/27/2026,5:00 PM,Confirmed,Assisted,External
+R40227,Confocal microscope,User E,Lab 4,PTA-0004,10/28/2026,8:00 AM,10/28/2026,10:00 AM,Confirmed,Self-service,External
+R40223,Flow cytometer 2,User D,Lab 1,PTA-0001,10/28/2026,8:00 AM,10/28/2026,10:00 AM,Confirmed,Self-service,Internal
+R40226,Cell sorter,User F,Lab 2,PTA-0002,10/28/2026,10:00 AM,10/28/2026,11:00 AM,Confirmed,Self-service,Internal
+R40222,Flow cytometer 1,User A,Lab 1,PTA-0001,10/28/2026,10:00 AM,10/28/2026,12:00 PM,Confirmed,Assisted,Internal
+R40224,Flow cytometer 2,User G,Lab 3,PTA-0003,10/28/2026,11:00 AM,10/28/2026,1:00 PM,Confirmed,Self-service,Internal
+R40221,Flow cytometer 1,User A,Lab 1,PTA-0001,10/28/2026,2:00 PM,10/28/2026,4:00 PM,Confirmed,Self-service,Internal
+R40225,Flow cytometer 2,User C,Lab 3,PTA-0003,10/28/2026,2:00 PM,10/28/2026,4:00 PM,Confirmed,Self-service,Internal
+R40228,Flow cytometer 1,User G,Lab 3,PTA-0003,10/29/2026,8:00 AM,10/29/2026,10:00 AM,Confirmed,Self-service,Internal
+R40231,Cell sorter,User E,Lab 4,PTA-0004,10/29/2026,9:00 AM,10/29/2026,12:00 PM,Confirmed,Assisted,External
+R40229,Flow cytometer 2,User E,Lab 4,PTA-0004,10/29/2026,9:00 AM,10/29/2026,11:00 AM,Confirmed,Self-service,External
+R40230,Flow cytometer 2,John,Lab 2,PTA-0002,10/29/2026,1:00 PM,10/29/2026,3:00 PM,Confirmed,Self-service,Internal
+R40232,Confocal microscope,User E,Lab 4,PTA-0004,10/29/2026,2:00 PM,10/29/2026,4:00 PM,Confirmed,Self-service,External
+R40233,Flow cytometer 1,User C,Lab 3,PTA-0003,10/30/2026,8:00 AM,10/30/2026,10:00 AM,Confirmed,Self-service,Internal
+R40235,Flow cytometer 2,User D,Lab 1,PTA-0001,10/30/2026,9:00 AM,10/30/2026,11:00 AM,Confirmed,Self-service,Internal
+R40239,Confocal microscope,User F,Lab 2,PTA-0002,10/30/2026,11:00 AM,10/30/2026,1:00 PM,Confirmed,Self-service,Internal
+R40236,Flow cytometer 2,User D,Lab 1,PTA-0001,10/30/2026,1:00 PM,10/30/2026,3:00 PM,Confirmed,Self-service,Internal
+R40237,Cell sorter,John,Lab 2,PTA-0002,10/30/2026,2:00 PM,10/30/2026,4:00 PM,Confirmed,Assisted,Internal
+R40240,Confocal microscope,User A,Lab 1,PTA-0001,10/30/2026,3:00 PM,10/30/2026,5:00 PM,Confirmed,Self-service,Internal
+R40238,Cell sorter,User A,Lab 1,PTA-0001,10/30/2026,6:30 PM,10/30/2026,9:00 PM,Confirmed,Self-service,Internal
+R40234,Flow cytometer 1,User G,Lab 3,PTA-0003,10/30/2026,6:30 PM,10/30/2026,9:00 PM,Confirmed,Self-service,Internal
+R40246,Confocal microscope,User E,Lab 4,PTA-0004,10/31/2026,9:00 AM,10/31/2026,1:00 PM,Confirmed,Self-service,External

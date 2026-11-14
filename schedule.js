@@ -21,8 +21,8 @@ const pad=n=>String(n).padStart(2,'0');
 function dateOf(v){const s=clean(v);let m=s.match(/(\d{4})-(\d{2})-(\d{2})/);if(m&&+m[1]>=1990)return m[1]+'-'+m[2]+'-'+m[3];
   m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){let y=+m[3];if(y<100)y+=2000;return y+'-'+pad(m[1])+'-'+pad(m[2])}return ''}
 function timeOf(v){const s=clean(v).replace(/(\d{4})-(\d{2})-(\d{2})/,'').replace(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/,'');
-  const m=s.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);if(!m)return '';let h=+m[1];
-  if(m[3]){if(h<1||h>12)return '';h=h%12+(/pm/i.test(m[3])?12:0)}if(h>23)return '';return pad(h)+':'+m[2]}
+  const m=s.match(/^\s*T?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?\s*$/i);if(!m)return '';let h=+m[1];
+  if(m[4]){if(h<1||h>12)return '';h=h%12+(/pm/i.test(m[4])?12:0)}if(h>23||+m[2]>59||(m[3]&&+m[3]>59))return '';return pad(h)+':'+m[2]}
 /* Start or end side: a combined column, or a date column plus a time column. */
 function sideColumns(head,prefix){
   const rx=prefix==='start'?/^(?:start|begin|from|check[- ]?in)\b/:/^(?:end|finish|to|check[- ]?out)\b/;

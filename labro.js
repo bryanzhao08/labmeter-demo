@@ -150,7 +150,7 @@ const machineColor=name=>PALETTE[Math.max(0,S.resources(res?res.items:[]).indexO
 function setReservations(table,name){
   const r=S.readReservations(table);
   rows=null;rowIndex=new Map();issues=[];approved={};
-  if(r){res={name,...r};sources.book={name,table:r.table,detect:detectColumns(r.table,'book'),canonical:true}}
+  if(r){res={name,...r};sources.book={name,table:r.table,detect:detectColumns(r.table,'book'),canonical:true,reservationIssues:r.issues}}
   else{res=null;sources.book={name,table,detect:detectColumns(table,'book')}}
   sched={...sched,day:null,sel:null,hidden:new Set()};
 }
@@ -313,13 +313,14 @@ function results(){
   const ready=rows.filter(eligible),held=rows.length-ready.length;
   const shown=rows.map((r,i)=>({r,i})).filter(({r})=>resFilter==='all'||(resFilter==='look'?!eligible(r):eligible(r)));
   const tab=(k,l,n)=>`<button type="button" data-filter="${k}" aria-pressed="${resFilter===k}">${l} <span class="hint">${n}</span></button>`;
-  return `<div class="result-head"><div><h1>Ready to bill <span class="figure">${money(ready.reduce((s,r)=>s+r.amount,0))}</span></h1><p class="sub">${plural(ready.length,'session','sessions')} ready · ${held} ${held===1?'session needs':'sessions need'} a look</p></div><div class="head-actions"><button id="export" class="secondary" ${!ready.length||issues.length?'disabled':''}>Export spreadsheet</button></div></div>
+  return `<div class="result-head"><div><h1>${issues.length?'Incomplete analysis':'Ready to bill'} <span class="figure">${money(ready.reduce((s,r)=>s+r.amount,0))}</span></h1><p class="sub">${issues.length?'Provisional total · ':''}${plural(ready.length,'session','sessions')} ${issues.length?'included':'ready'} · ${held} ${held===1?'session needs':'sessions need'} a look</p></div><div class="head-actions"><button id="export" class="secondary" ${!ready.length||issues.length?'disabled':''}>Export spreadsheet</button></div></div>
   ${issues.length?`<div class="banner warn" role="alert"><div><strong>Some source rows could not be read. Correct the files and analyze again before exporting.</strong><ul>${issues.slice(0,10).map(x=>`<li>${esc(x)}</li>`).join('')}${issues.length>10?`<li>and ${issues.length-10} more</li>`:''}</ul></div></div>`:''}
   <div class="tabs" role="group" aria-label="Filter sessions">${tab('all','All',rows.length)}${tab('look','Needs a look',held)}${tab('ready','Ready',ready.length)}</div>
   <p class="legend"><span class="flag k-time">Time</span><span class="flag k-who">Who pays</span><span class="flag k-unusual">Unusual</span><span class="flag k-data">Data</span></p>
   <div class="table-wrap"><table><thead><tr><th>Who</th><th>Instrument</th><th class="num">Booked</th><th class="num">Used</th><th class="num">Hours billed</th><th class="num">Charge</th><th>Status</th></tr></thead><tbody>${shown.map(({r,i})=>`<tr><td>${esc(r.user)}<small>${S.fmtDay(r.day)}${res?` · <a href="#schedule" data-goto="${r.day}" data-goto-res="${esc(r.instrument)}">View on schedule</a>`:''}</small></td><td>${esc(r.instrument)}<small>${esc(r.mode||'No service type')}${r.tier?' · '+esc(r.tier):''}</small></td><td class="num">${(r.booked/60).toFixed(2)} h</td><td class="num">${(r.used/60).toFixed(2)} h</td><td class="num">${(r.billed/60).toFixed(2)}${r.afterMinutes?`<small>${(r.afterMinutes/60).toFixed(2)} after hours</small>`:''}</td><td class="num">${money(r.amount)}<small>${money(r.rate)}/h</small></td><td>${eligible(r)?(Object.prototype.hasOwnProperty.call(approved,r.id)&&r.flags.length?'<span class="pill ok">Approved</span>':'<span class="pill ok">Ready</span>'):`<strong class="needs">Needs a look</strong><div>${r.flags.map(f=>`<span class="flag k-${flagKind(f)}">${esc(f)}</span>`).join('')}</div><div class="row-actions"><input data-note="${i}" aria-label="Optional approval reason for ${esc(r.user)}" placeholder="Reason (optional)"><button class="secondary" data-approve="${i}">Approve</button></div>`}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function exportCSV(){
+  if(!rows||issues.length||!rows.some(eligible))return;
   const iso=d=>new Date(d*86400000).toISOString().slice(0,10);
   const out=[['Date','Instrument','User','Lab','Account','Service','User type','Booked minutes','Used minutes','Policy','Evidence','Billable minutes','After-hours minutes','Rate','Charge','Reason','Source references'],...rows.filter(eligible).map(r=>[iso(r.day),r.instrument,r.user,r.lab,r.account,r.mode,r.tier,r.booked,r.used,r.policy,r.evidence,r.billed,r.afterMinutes||0,r.rate,r.amount,approved[r.id]||'Matched',r.refs.join('; ')])];
   const cell=v=>{v=String(v??'');if(/^[\s\t\r\n]*[=+@-]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
@@ -450,8 +451,7 @@ function ilabCard(){
   if(!CONN)return `<section class="card"><h2>iLab</h2><p class="hint">Connecting with an iLab API token works in the desktop app, where the token can be stored encrypted. In the browser, export from iLab and add the files on the Upload page.</p></section>`;
   return `<section class="card"><h2>Connect to iLab with an API token</h2><p class="hint">In iLab, open your core's Administration tab and the API Clients panel. Add a client, choose Grant Token, and copy the token. Your institution has to have API access switched on.</p>
   <div class="field-row" style="max-width:720px"><label>Region<select id="ilab-base">${ILAB_REGIONS.map(([u,l])=>`<option value="${u}" ${saved&&i.base===u?'selected':''}>${l}</option>`).join('')}</select></label><label>Core ID<input id="ilab-core" inputmode="numeric" placeholder="For example 5582" value="${esc(saved?i.coreId:(cx.guess&&cx.guess.coreId)||'')}"></label></div>
-  <label for="ilab-token">API token</label><input id="ilab-token" type="password" autocomplete="off" spellcheck="false" style="max-width:720px" placeholder="${saved&&i.hasToken?'A token is saved. Type a new one to replace it.':'Paste the token from iLab'}">
-  <p class="hint" style="margin-top:6px">The token is encrypted with this computer's keychain and is sent only to iLab. LaBro never shows it again${i.canStore===false?'. This computer has no keychain, so the token is kept only until you close LaBro':''}.</p>
+  <p class="hint" style="margin-top:6px">Enter the token in a separate secure window. It is encrypted with this computer's keychain and sent only to iLab${i.canStore===false?'. This computer has no keychain, so the token is kept only until you close LaBro':''}.</p>
   <p id="conn-error" class="error" role="alert">${esc(cx.error)}</p>
   <div class="actions"><button class="primary" id="ilab-save" type="button" ${cx.busy?'disabled':''}>${cx.busy?'Testing…':'Save and test'}</button>${saved?'<button class="link" id="conn-forget" type="button">Remove this connection</button>':''}</div>
   ${t?(t.ok?`<div class="banner" style="margin:14px 0 0;border-left-color:var(--ok)"><div><strong>Connected.</strong> iLab lists ${plural(t.count,'piece','pieces')} of equipment for this core.${t.equipment.length?`<div class="chips">${t.equipment.slice(0,24).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="actions" style="margin-top:10px"><button class="secondary" id="ilab-machines" type="button">Use these as my machines</button></div>`:''}</div></div>`:`<div class="banner warn" style="margin:14px 0 0"><div><strong>Not connected.</strong> ${esc(t.message)}</div></div>`):''}
@@ -495,8 +495,8 @@ function reportData(){
 }
 async function copyReport(){
   const text=I.buildReport(reportData());
-  try{await navigator.clipboard.writeText(text);toast('Test report copied. It has counts and column names only.')}
-  catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Test report copied. It has counts and column names only.')}catch{toast('Could not copy the report.')}ta.remove()}
+  try{await navigator.clipboard.writeText(text);toast('Test report copied. It has counts only; source labels are omitted.')}
+  catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Test report copied. It has counts only; source labels are omitted.')}catch{toast('Could not copy the report.')}ta.remove()}
 }
 
 /* ---------------------------------------------------------------- routing and events */
@@ -532,11 +532,10 @@ function bind(){
   if($('sys-apps'))$('sys-apps').onclick=async()=>{cx.guessText=$('sys-url').value.trim();cx.apps=await CONN.apps();if(cx.apps.length)chooseSystem(cx.apps[0].system);render(true)};
   on('[data-system]',b=>b.onclick=()=>{if($('sys-url'))cx.guessText=$('sys-url').value.trim();chooseSystem(b.dataset.system);render(true)});
   if($('ilab-save'))$('ilab-save').onclick=async()=>{
-    const d={system:'ilab',base:$('ilab-base').value,coreId:$('ilab-core').value.trim(),token:$('ilab-token').value};
+    const d={system:'ilab',base:$('ilab-base').value,coreId:$('ilab-core').value.trim()};
     if(!d.coreId){$('conn-error').textContent='Enter your core ID. It is the number in your iLab web address.';return}
-    if(!d.token&&!(cx.info&&cx.info.system==='ilab'&&cx.info.hasToken)){$('conn-error').textContent='Paste the API token from iLab.';return}
     cx.busy=true;cx.error='';cx.test=null;render(true);
-    try{cx.info=await CONN.save(d);cx.test=await CONN.test()}catch(e){cx.error=String(e.message||e).replace(/^Error invoking remote method '[^']+': (?:Error: )?/,'')}
+    try{const result=await CONN.save(d);if(result.saved){cx.info=result.info;cx.test=await CONN.test()}}catch(e){cx.error=String(e.message||e).replace(/^Error invoking remote method '[^']+': (?:Error: )?/,'')}
     cx.busy=false;render(true);
   };
   if($('conn-forget'))$('conn-forget').onclick=async()=>{cx.info=await CONN.forget();cx.test=null;cx.error='';toast('Connection removed');render(true)};

@@ -46,3 +46,8 @@ assert.ok(!bn.records.some(r=>r.user==='User F'&&r.instrument==='Confocal micros
 // Pricing is read, never invented: a machine with no price gets a flag, not a guessed rate
 const noPrice=H.policyFor({...profile,rate_card:[]},'Anything');assert.equal(noPrice.rateFor,undefined);
 console.log('month tests pass',rows.length,'sessions, $'+total.toFixed(2),'held',rows.filter(r=>r.flags.length).length);
+
+// Unreadable reservation rows must make the whole analysis incomplete.
+const invalid={head:['Resource','User','Start','End'],rows:[['Scope','Alice','2026-11-01 09:00','2026-11-01 10:00'],['Scope','Bob','bad','2026-11-01 10:00']]};
+const partial=M.checkTables(profile,invalid,[]);
+assert.equal(partial.incomplete,true);assert.equal(partial.issues.length,1);assert.match(partial.issues[0],/row 3/);assert.equal(M.summary(partial.rows,partial.issues).incomplete,true);

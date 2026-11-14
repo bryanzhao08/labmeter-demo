@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('labroFS',{
 });
 contextBridge.exposeInMainWorld('labroConn',{
   get:()=>ipcRenderer.invoke('labro:conn:get'),
-  save:d=>ipcRenderer.invoke('labro:conn:save',{system:String(d.system),base:d.base?String(d.base):'',coreId:String(d.coreId||''),token:d.token?String(d.token):''}),
+  save:d=>ipcRenderer.invoke('labro:conn:save',{system:String(d.system),base:d.base?String(d.base):'',coreId:String(d.coreId||'')}),
   forget:()=>ipcRenderer.invoke('labro:conn:forget'),
   test:()=>ipcRenderer.invoke('labro:conn:test'),
   apps:()=>ipcRenderer.invoke('labro:detect:apps'),

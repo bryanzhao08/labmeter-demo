@@ -1,0 +1,310 @@
+Instrument,User Full Name,Timestamp,Record
+Flow cytometer 2,User C,2026-10-01 08:05,Login
+Cell sorter,User F,2026-10-01 08:59,Login
+Flow cytometer 1,User C,2026-10-01 09:02,Login
+Flow cytometer 2,User C,2026-10-01 09:30,Logout
+Confocal microscope,User G,2026-10-01 10:04,Login
+Cell sorter,User F,2026-10-01 10:54,Logout
+Confocal microscope,User G,2026-10-01 11:51,Logout
+Flow cytometer 1,User C,2026-10-01 11:58,Logout
+Confocal microscope,User E,2026-10-01 13:05,Login
+Flow cytometer 2,User G,2026-10-01 14:03,Login
+Confocal microscope,User E,2026-10-01 14:54,Logout
+Flow cytometer 2,User G,2026-10-01 16:30,Logout
+Flow cytometer 2,User G,2026-10-02 09:03,Login
+Flow cytometer 1,User D,2026-10-02 09:57,Login
+Flow cytometer 1,User D,2026-10-02 10:29,Logout
+Flow cytometer 1,User D,2026-10-02 10:54,Login
+Flow cytometer 1,User D,2026-10-02 11:00,Logout
+Flow cytometer 2,User G,2026-10-02 11:57,Logout
+Cell sorter,User A,2026-10-02 15:01,Login
+Flow cytometer 1,John,2026-10-02 15:02,Login
+Flow cytometer 1,John,2026-10-02 15:08,Login
+Flow cytometer 1,John,2026-10-02 17:10,Logout
+Cell sorter,User A,2026-10-02 18:00,Logout
+Flow cytometer 2,User H,2026-10-03 09:59,Login
+Flow cytometer 2,User H,2026-10-03 11:52,Logout
+Flow cytometer 2,User F,2026-10-05 08:01,Login
+Cell sorter,User H,2026-10-05 09:59,Login
+Flow cytometer 2,User F,2026-10-05 10:04,Logout
+Confocal microscope,User A,2026-10-05 11:03,Login
+Cell sorter,User H,2026-10-05 11:55,Logout
+Confocal microscope,User E,2026-10-05 12:58,Login
+Flow cytometer 2,User F,2026-10-05 13:00,Login
+Confocal microscope,User A,2026-10-05 13:09,Logout
+Flow cytometer 1,John,2026-10-05 14:57,Login
+Flow cytometer 1,John,2026-10-05 15:03,Login
+Confocal microscope,User E,2026-10-05 16:01,Logout
+Flow cytometer 2,User F,2026-10-05 16:05,Logout
+Flow cytometer 1,John,2026-10-05 17:04,Logout
+Flow cytometer 2,User E,2026-10-05 18:28,Login
+Flow cytometer 2,User E,2026-10-05 21:03,Logout
+Flow cytometer 2,User A,2026-10-06 07:59,Login
+Flow cytometer 1,User H,2026-10-06 09:59,Login
+Cell sorter,User F,2026-10-06 10:00,Login
+Flow cytometer 1,User H,2026-10-06 10:05,Login
+Confocal microscope,User H,2026-10-06 10:05,Login
+Flow cytometer 2,User A,2026-10-06 10:10,Logout
+Flow cytometer 1,User H,2026-10-06 11:03,Logout
+Cell sorter,User F,2026-10-06 11:54,Logout
+Confocal microscope,User H,2026-10-06 12:08,Logout
+Flow cytometer 1,User F,2026-10-06 15:01,Login
+Flow cytometer 1,User F,2026-10-06 17:07,Logout
+Confocal microscope,User D,2026-10-06 18:35,Login
+Confocal microscope,User D,2026-10-06 21:06,Logout
+Cell sorter,User H,2026-10-07 07:57,Login
+Cell sorter,User H,2026-10-07 09:56,Logout
+Flow cytometer 1,User H,2026-10-07 11:05,Login
+Flow cytometer 1,User H,2026-10-07 12:51,Logout
+Flow cytometer 1,User A,2026-10-07 13:03,Login
+Flow cytometer 1,User A,2026-10-07 13:09,Login
+Flow cytometer 2,John,2026-10-07 14:03,Login
+Confocal microscope,User A,2026-10-07 14:04,Login
+Flow cytometer 1,User A,2026-10-07 14:51,Logout
+Confocal microscope,User A,2026-10-07 16:08,Logout
+Flow cytometer 2,John,2026-10-07 16:15,Logout
+Confocal microscope,User H,2026-10-08 09:02,Login
+Cell sorter,User D,2026-10-08 09:05,Login
+Flow cytometer 1,User D,2026-10-08 09:06,Login
+Flow cytometer 2,User G,2026-10-08 10:00,Login
+Cell sorter,User D,2026-10-08 11:15,Logout
+Flow cytometer 2,User G,2026-10-08 11:15,Logout
+Flow cytometer 1,User D,2026-10-08 12:07,Logout
+Confocal microscope,User H,2026-10-08 12:10,Logout
+Cell sorter,User A,2026-10-08 12:57,Login
+Flow cytometer 1,John,2026-10-08 13:00,Login
+Flow cytometer 1,John,2026-10-08 15:00,Logout
+Cell sorter,User A,2026-10-08 15:58,Logout
+Flow cytometer 1,User C,2026-10-09 07:57,Login
+Flow cytometer 2,User E,2026-10-09 09:01,Login
+Confocal microscope,User H,2026-10-09 09:04,Login
+Flow cytometer 1,User C,2026-10-09 09:54,Logout
+Cell sorter,User C,2026-10-09 09:56,Login
+Confocal microscope,User H,2026-10-09 11:04,Logout
+Cell sorter,User C,2026-10-09 12:05,Logout
+Flow cytometer 2,User E,2026-10-09 12:30,Logout
+Flow cytometer 2,User F,2026-10-09 12:58,Login
+Flow cytometer 2,User G,2026-10-09 14:59,Login
+Flow cytometer 1,User H,2026-10-09 15:00,Login
+Flow cytometer 2,User F,2026-10-09 15:15,Logout
+Flow cytometer 1,User H,2026-10-09 16:55,Logout
+Flow cytometer 2,User G,2026-10-09 16:58,Logout
+Confocal microscope,User A,2026-10-09 18:30,Login
+Confocal microscope,User A,2026-10-09 20:58,Logout
+Cell sorter,User F,2026-10-12 07:59,Login
+Confocal microscope,User C,2026-10-12 09:03,Login
+Cell sorter,User F,2026-10-12 09:50,Logout
+Flow cytometer 1,John,2026-10-12 11:01,Login
+Flow cytometer 2,User H,2026-10-12 11:01,Login
+Confocal microscope,User C,2026-10-12 11:45,Logout
+Flow cytometer 2,User H,2026-10-12 11:56,Logout
+Flow cytometer 2,User H,2026-10-12 12:21,Login
+Flow cytometer 2,User H,2026-10-12 12:51,Logout
+Flow cytometer 2,John,2026-10-12 12:57,Login
+Flow cytometer 2,John,2026-10-12 13:03,Login
+Flow cytometer 1,John,2026-10-12 13:09,Logout
+Flow cytometer 2,John,2026-10-12 15:57,Logout
+Confocal microscope,User D,2026-10-12 18:26,Login
+Confocal microscope,User D,2026-10-12 21:00,Logout
+Flow cytometer 2,User E,2026-10-13 07:58,Login
+Flow cytometer 2,User E,2026-10-13 08:04,Login
+Cell sorter,User A,2026-10-13 08:56,Login
+Flow cytometer 2,User E,2026-10-13 10:05,Logout
+Cell sorter,User A,2026-10-13 11:01,Logout
+Cell sorter,User A,2026-10-13 11:06,Login
+Cell sorter,User A,2026-10-13 11:12,Login
+Cell sorter,User A,2026-10-13 13:01,Logout
+Flow cytometer 1,John,2026-10-13 13:02,Login
+Flow cytometer 1,John,2026-10-13 13:08,Login
+Confocal microscope,User F,2026-10-13 15:02,Login
+Flow cytometer 1,User G,2026-10-13 15:04,Login
+Flow cytometer 1,John,2026-10-13 15:08,Logout
+Flow cytometer 1,User G,2026-10-13 17:03,Logout
+Confocal microscope,User F,2026-10-13 17:04,Logout
+Confocal microscope,User D,2026-10-13 18:35,Login
+Confocal microscope,User D,2026-10-13 21:06,Logout
+Cell sorter,User H,2026-10-14 07:59,Login
+Cell sorter,User H,2026-10-14 09:52,Logout
+Flow cytometer 1,User H,2026-10-14 10:00,Login
+Confocal microscope,User G,2026-10-14 10:00,Login
+Confocal microscope,User G,2026-10-14 10:57,Logout
+Flow cytometer 1,User H,2026-10-14 11:02,Logout
+Confocal microscope,User G,2026-10-14 11:22,Login
+Flow cytometer 1,User H,2026-10-14 11:27,Login
+Confocal microscope,User G,2026-10-14 11:53,Logout
+Flow cytometer 1,User H,2026-10-14 12:03,Logout
+Flow cytometer 2,John,2026-10-14 13:57,Login
+Flow cytometer 2,John,2026-10-14 14:03,Login
+Flow cytometer 1,User F,2026-10-14 14:57,Login
+Flow cytometer 2,John,2026-10-14 15:52,Logout
+Flow cytometer 1,User F,2026-10-14 17:06,Logout
+Confocal microscope,User E,2026-10-15 08:57,Login
+Cell sorter,John,2026-10-15 09:00,Login
+Flow cytometer 1,User E,2026-10-15 09:06,Login
+Confocal microscope,User E,2026-10-15 10:53,Logout
+Flow cytometer 2,User E,2026-10-15 10:58,Login
+Cell sorter,User C,2026-10-15 11:03,Login
+Cell sorter,User C,2026-10-15 11:09,Login
+Flow cytometer 1,User E,2026-10-15 11:30,Logout
+Cell sorter,John,2026-10-15 12:00,Logout
+Flow cytometer 2,User E,2026-10-15 12:50,Logout
+Cell sorter,User C,2026-10-15 13:02,Logout
+Cell sorter,User C,2026-10-15 14:00,Login
+Cell sorter,User C,2026-10-15 14:06,Login
+Cell sorter,User C,2026-10-15 16:09,Logout
+Cell sorter,User E,2026-10-16 09:00,Login
+Cell sorter,User E,2026-10-16 11:54,Logout
+Flow cytometer 1,User F,2026-10-16 13:03,Login
+Flow cytometer 2,User G,2026-10-16 13:03,Login
+Flow cytometer 2,User G,2026-10-16 13:09,Login
+Confocal microscope,User C,2026-10-16 15:02,Login
+Flow cytometer 2,User G,2026-10-16 15:52,Logout
+Flow cytometer 1,User F,2026-10-16 16:30,Logout
+Confocal microscope,User C,2026-10-16 17:03,Logout
+Flow cytometer 2,User C,2026-10-19 08:04,Login
+Confocal microscope,User C,2026-10-19 08:57,Login
+Cell sorter,User H,2026-10-19 09:01,Login
+Flow cytometer 2,User C,2026-10-19 09:57,Logout
+Cell sorter,User H,2026-10-19 10:53,Logout
+Flow cytometer 1,User A,2026-10-19 11:01,Login
+Cell sorter,User H,2026-10-19 11:01,Login
+Confocal microscope,User C,2026-10-19 11:30,Logout
+Flow cytometer 1,User A,2026-10-19 12:50,Logout
+Cell sorter,User H,2026-10-19 12:53,Logout
+Flow cytometer 2,User F,2026-10-19 12:57,Login
+Flow cytometer 1,User F,2026-10-19 13:59,Login
+Confocal microscope,User G,2026-10-19 14:00,Login
+Flow cytometer 2,User F,2026-10-19 15:52,Logout
+Confocal microscope,User G,2026-10-19 15:58,Logout
+Flow cytometer 1,User F,2026-10-19 16:04,Logout
+Cell sorter,User C,2026-10-20 08:59,Login
+Confocal microscope,User C,2026-10-20 09:00,Login
+Cell sorter,User C,2026-10-20 10:54,Logout
+Confocal microscope,User C,2026-10-20 11:01,Logout
+Flow cytometer 2,User D,2026-10-20 12:58,Login
+Confocal microscope,User F,2026-10-20 12:58,Login
+Flow cytometer 1,User G,2026-10-20 13:04,Login
+Cell sorter,User H,2026-10-20 13:58,Login
+Confocal microscope,User F,2026-10-20 14:01,Logout
+Flow cytometer 2,User D,2026-10-20 14:03,Logout
+Confocal microscope,User F,2026-10-20 14:26,Login
+Flow cytometer 2,User D,2026-10-20 14:28,Login
+Confocal microscope,User F,2026-10-20 15:04,Logout
+Flow cytometer 2,User D,2026-10-20 15:08,Logout
+Cell sorter,User H,2026-10-20 16:00,Logout
+Flow cytometer 1,User G,2026-10-20 16:03,Logout
+Flow cytometer 1,John,2026-10-21 07:58,Login
+Cell sorter,User F,2026-10-21 08:01,Login
+Confocal microscope,User H,2026-10-21 08:05,Login
+Flow cytometer 2,User A,2026-10-21 08:57,Login
+Confocal microscope,User H,2026-10-21 10:02,Logout
+Cell sorter,User H,2026-10-21 10:03,Login
+Flow cytometer 1,John,2026-10-21 10:05,Logout
+Cell sorter,User F,2026-10-21 10:30,Logout
+Flow cytometer 2,User A,2026-10-21 10:51,Logout
+Cell sorter,User H,2026-10-21 11:02,Logout
+Flow cytometer 2,User C,2026-10-21 11:04,Login
+Flow cytometer 2,User C,2026-10-21 13:00,Logout
+Flow cytometer 1,User G,2026-10-21 13:04,Login
+Flow cytometer 1,User G,2026-10-21 14:30,Logout
+Confocal microscope,John,2026-10-21 18:32,Login
+Confocal microscope,John,2026-10-21 20:59,Logout
+Flow cytometer 2,John,2026-10-22 08:00,Login
+Flow cytometer 2,User A,2026-10-22 08:59,Login
+Cell sorter,User D,2026-10-22 09:00,Login
+Flow cytometer 1,User A,2026-10-22 09:03,Login
+Flow cytometer 2,John,2026-10-22 09:57,Logout
+Cell sorter,User D,2026-10-22 09:58,Logout
+Flow cytometer 2,User G,2026-10-22 09:59,Login
+Cell sorter,User D,2026-10-22 10:23,Login
+Flow cytometer 1,User A,2026-10-22 10:30,Logout
+Cell sorter,User D,2026-10-22 10:55,Logout
+Flow cytometer 2,User A,2026-10-22 11:03,Logout
+Confocal microscope,User F,2026-10-22 11:05,Login
+Flow cytometer 2,User G,2026-10-22 11:08,Logout
+Confocal microscope,User F,2026-10-22 12:58,Logout
+Flow cytometer 1,User D,2026-10-22 13:57,Login
+Cell sorter,User A,2026-10-22 14:01,Login
+Flow cytometer 2,John,2026-10-22 14:03,Login
+Flow cytometer 2,John,2026-10-22 14:09,Login
+Flow cytometer 1,User D,2026-10-22 16:00,Logout
+Flow cytometer 2,John,2026-10-22 16:03,Logout
+Cell sorter,User A,2026-10-22 16:06,Logout
+Flow cytometer 2,User G,2026-10-23 08:57,Login
+Flow cytometer 1,John,2026-10-23 09:03,Login
+Confocal microscope,User F,2026-10-23 10:01,Login
+Confocal microscope,User F,2026-10-23 11:02,Logout
+Flow cytometer 2,User G,2026-10-23 11:15,Logout
+Flow cytometer 1,John,2026-10-23 12:08,Logout
+Flow cytometer 2,User G,2026-10-23 12:58,Login
+Confocal microscope,User G,2026-10-23 13:03,Login
+Cell sorter,User C,2026-10-23 14:03,Login
+Flow cytometer 1,John,2026-10-23 15:00,Login
+Flow cytometer 2,User H,2026-10-23 15:04,Login
+Flow cytometer 2,User G,2026-10-23 15:10,Logout
+Flow cytometer 1,John,2026-10-23 15:59,Logout
+Cell sorter,User C,2026-10-23 16:01,Logout
+Confocal microscope,User G,2026-10-23 16:07,Logout
+Flow cytometer 1,John,2026-10-23 16:24,Login
+Flow cytometer 2,User H,2026-10-23 16:50,Logout
+Flow cytometer 1,John,2026-10-23 16:58,Logout
+Confocal microscope,User D,2026-10-26 09:57,Login
+Confocal microscope,User D,2026-10-26 10:55,Logout
+Flow cytometer 1,User G,2026-10-26 10:57,Login
+Flow cytometer 1,John,2026-10-26 13:04,Login
+Cell sorter,John,2026-10-26 13:04,Login
+Flow cytometer 2,User D,2026-10-26 13:06,Login
+Flow cytometer 1,User G,2026-10-26 13:07,Logout
+Cell sorter,John,2026-10-26 14:54,Logout
+Flow cytometer 2,User D,2026-10-26 15:53,Logout
+Flow cytometer 1,John,2026-10-26 16:10,Logout
+Confocal microscope,User E,2026-10-27 10:05,Login
+Confocal microscope,User E,2026-10-27 12:08,Logout
+Flow cytometer 1,User C,2026-10-27 12:59,Login
+Flow cytometer 2,User D,2026-10-27 13:01,Login
+Cell sorter,User E,2026-10-27 15:00,Login
+Flow cytometer 1,User G,2026-10-27 16:00,Login
+Flow cytometer 2,User D,2026-10-27 16:09,Logout
+Flow cytometer 1,User C,2026-10-27 16:15,Logout
+Cell sorter,User E,2026-10-27 17:05,Logout
+Flow cytometer 1,User G,2026-10-27 17:30,Logout
+Flow cytometer 2,User D,2026-10-28 08:00,Login
+Confocal microscope,User E,2026-10-28 08:04,Login
+Confocal microscope,User E,2026-10-28 09:52,Logout
+Cell sorter,User F,2026-10-28 10:00,Login
+Flow cytometer 1,User A,2026-10-28 10:05,Login
+Flow cytometer 2,User D,2026-10-28 10:07,Logout
+Flow cytometer 2,User G,2026-10-28 11:01,Login
+Cell sorter,User F,2026-10-28 11:08,Logout
+Flow cytometer 1,User A,2026-10-28 11:54,Logout
+Flow cytometer 2,User G,2026-10-28 12:59,Logout
+Flow cytometer 1,User G,2026-10-29 07:58,Login
+Cell sorter,User E,2026-10-29 08:59,Login
+Flow cytometer 2,User E,2026-10-29 09:02,Login
+Flow cytometer 1,User G,2026-10-29 09:59,Logout
+Cell sorter,User E,2026-10-29 10:29,Logout
+Cell sorter,User E,2026-10-29 10:54,Login
+Flow cytometer 2,User E,2026-10-29 11:04,Logout
+Cell sorter,User E,2026-10-29 11:58,Logout
+Flow cytometer 2,John,2026-10-29 12:59,Login
+Confocal microscope,User E,2026-10-29 14:01,Login
+Flow cytometer 2,John,2026-10-29 15:10,Logout
+Confocal microscope,User E,2026-10-29 16:04,Logout
+Flow cytometer 1,User C,2026-10-30 08:00,Login
+Flow cytometer 2,User D,2026-10-30 09:00,Login
+Flow cytometer 1,User C,2026-10-30 10:02,Logout
+Flow cytometer 2,User D,2026-10-30 10:59,Logout
+Confocal microscope,User F,2026-10-30 11:01,Login
+Flow cytometer 2,User D,2026-10-30 12:59,Login
+Confocal microscope,User F,2026-10-30 13:02,Logout
+Cell sorter,John,2026-10-30 14:05,Login
+Flow cytometer 2,User D,2026-10-30 14:15,Logout
+Confocal microscope,User A,2026-10-30 15:05,Login
+Cell sorter,John,2026-10-30 15:30,Logout
+Confocal microscope,User A,2026-10-30 16:59,Logout
+Flow cytometer 1,User G,2026-10-30 18:35,Login
+Cell sorter,User A,2026-10-30 18:35,Login
+Flow cytometer 1,User G,2026-10-30 21:08,Logout
+Cell sorter,User A,2026-10-30 21:08,Logout
+Confocal microscope,User E,2026-10-31 09:00,Login
+Confocal microscope,User E,2026-10-31 23:00,Logout

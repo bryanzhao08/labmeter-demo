@@ -28,7 +28,7 @@ function classify(table){
     return {kind:'logs',rows:table.rows.length,layout:det.events?'events':'intervals',hasInstrument:det.map.instrument>=0,first:span&&span.first,last:span&&span.last};
   }
   const price=R.parseRates([table.head,...table.rows]);
-  if(price.items.length>=2)return {kind:'prices',items:price.items.length};
+  if(price.items.length>=2||(price.items.length===1&&table.head.some(h=>/^(?:instrument|resource|equipment|machine|service|item|name|description)$/i.test(String(h).trim()))&&table.head.some(h=>/^(?:rate|price|cost|fee|charge)(?:\s|$|\/)/i.test(String(h).trim()))))return {kind:'prices',items:price.items.length};
   return {kind:'unknown',reason:'Not a reservation export, usage log or price sheet'};
 }
 
@@ -56,22 +56,22 @@ function pickDefaults(entries,previous){
 
 /* Privacy-safe report a manager can send back: structure and counts only. */
 function buildReport(x){
-  const L=[];const add=s=>L.push(s);
-  add('LaBro test report');add('App '+(x.version||'')+' · '+(x.platform||'unknown platform')+' · '+(x.date||''));add('');
+  const L=[],add=s=>L.push(s),details=x.allowDetails===true;
+  add('LaBro test report');
   add('Folder connected: '+(x.folderConnected?'yes':'no'));
-  if(x.files&&x.files.length){add('Files found: '+x.files.length);x.files.forEach((f,i)=>add('  '+(i+1)+'. '+(KIND_LABEL[f.kind]||f.kind)+(f.include?' (in use)':'')+' · '+(f.rows!=null?f.rows+' rows':'')+(f.columns?' · columns: '+f.columns.join(' | '):'')+(f.layout?' · '+f.layout:'')+(f.unread?' · '+f.unread+' unreadable rows':'')))}
-  add('');
-  add('Reservations: '+(x.reservations?x.reservations.count+' read, '+x.reservations.cancelled+' cancelled, '+x.reservations.unread+' unreadable'+(x.reservations.columns?' · columns: '+x.reservations.columns.join(' | '):''):'none loaded'));
-  if(x.reservations&&x.reservations.issues&&x.reservations.issues.length)add('  First unreadable rows: '+x.reservations.issues.slice(0,3).join(' / '));
-  add('Usage logs: '+(x.logs&&x.logs.length?x.logs.map(l=>l.layout+', '+l.rows+' rows, '+(l.missing.length?'missing '+l.missing.join(','):'columns matched')+(l.columns?' · columns: '+l.columns.join(' | '):'')).join('; '):'none loaded'));
-  add('Prices: '+(x.prices?x.prices.items+' price rows, tiers: '+x.prices.tiers.join(', ')+(x.prices.afterHours?', after-hours rates found':'')+(x.prices.unplaced?', '+x.prices.unplaced+' lines not placed':''):'none'));
-  add('');
-  if(x.analysis){add('Analysis: '+x.analysis.sessions+' sessions, '+x.analysis.ready+' ready, '+x.analysis.needLook+' need a look, '+x.analysis.unreadable+' source rows unreadable');
-    Object.entries(x.analysis.flags||{}).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>add('  '+v+' × '+k))}
-  else add('Analysis: not run');
-  add('');add('Names, accounts, file names, folder paths and amounts are not included in this report.');
+  if(x.files&&x.files.length){add('Files found: '+x.files.length);x.files.forEach((f,i)=>add('  '+(i+1)+'. '+(Object.hasOwn(KIND_LABEL,f.kind)?KIND_LABEL[f.kind]:'Unknown')+(f.include?' (in use)':'')+' · '+(Number(f.rows)||0)+' rows'+(details&&f.columns?' · columns: '+f.columns.join(' | '):'')))}
+  add('Reservations: '+(x.reservations?(Number(x.reservations.count)||0)+' read, '+(Number(x.reservations.cancelled)||0)+' cancelled, '+(Number(x.reservations.unread)||0)+' unreadable'+(details&&x.reservations.columns?' · columns: '+x.reservations.columns.join(' | '):''):'none loaded'));
+  add('Usage logs: '+(x.logs&&x.logs.length?x.logs.map(l=>(details?l.layout:'log')+', '+(Number(l.rows)||0)+' rows'+(details&&l.columns?' · columns: '+l.columns.join(' | '):'')).join('; '):'none loaded'));
+  add('Prices: '+(x.prices?(Number(x.prices.items)||0)+' price rows, '+(x.prices.tiers||[]).length+' tiers'+(details?' ('+(x.prices.tiers||[]).join(', ')+')':'')+(x.prices.afterHours?', after-hours rates found':'')+(x.prices.unplaced?', '+Number(x.prices.unplaced)+' lines not placed':''):'none'));
+  if(x.analysis){add('Analysis: '+(Number(x.analysis.sessions)||0)+' sessions, '+(Number(x.analysis.ready)||0)+' ready, '+(Number(x.analysis.needLook)||0)+' need a look, '+(Number(x.analysis.unreadable)||0)+' source rows unreadable');
+    if(x.analysis.incomplete||x.analysis.unreadable)add('Analysis status: incomplete');
+    if(details)Object.entries(x.analysis.flags||{}).forEach(([k,v])=>add('  '+Number(v)+' × '+k));
+    else add('Review flags: '+Object.values(x.analysis.flags||{}).reduce((n,v)=>n+(Number(v)||0),0));
+  }else add('Analysis: not run');
+  add(details?'Detailed source labels may be sensitive.':'Source names, headings, and labels are omitted.');
   return L.join('\n');
 }
+
 /* Which booking system a web address belongs to. Only patterns we can explain; otherwise null. */
 const SYSTEMS={
   fbs:{label:'FBS',maker:'Priority Software',connect:'folder'},

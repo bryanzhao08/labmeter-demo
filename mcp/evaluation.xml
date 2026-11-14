@@ -1,0 +1,12 @@
+<evaluation>
+  <qa_pair><question>Using the bundled evaluation fixture, how many detected exports are in use?</question><answer>3</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, how many reservation rows were detected?</question><answer>146</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, how many usage log rows were detected?</question><answer>309</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, how many sessions need review?</question><answer>43</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, how many sessions are ready to bill?</question><answer>93</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, what is the ready-to-bill amount?</question><answer>26013.35</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, how many source rows are unreadable?</question><answer>0</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, how many pricing tiers were detected?</question><answer>3</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, how many minutes is the price sheet rounding step?</question><answer>30</answer></qa_pair>
+  <qa_pair><question>For the bundled evaluation fixture, what amount is billed for Machine 1 in the monthly totals?</question><answer>14314.5</answer></qa_pair>
+</evaluation>

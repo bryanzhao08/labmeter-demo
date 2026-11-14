@@ -155,11 +155,21 @@ function parseRates(input,machineTerm,opts){
 }
 
 /* Convert a rate card to what the engine needs for one machine. */
-const nameMatch=(a,b)=>{const x=lower(a),y=lower(b);return !!x&&!!y&&(x===y||x.includes(y)||y.includes(x))};
+const normalizeName=s=>lower(s).replace(/\s+/g,' ');
+function matchNames(names,machine){
+  const target=normalizeName(machine),unique=[...new Set(names.filter(Boolean))];
+  const exact=unique.filter(n=>normalizeName(n)===target);
+  if(exact.length)return {names:exact,ambiguous:exact.length>1};
+  // Only whole-token aliases are candidates: Scope 1 never matches Scope 10.
+  const contains=(a,b)=>(' '+a+' ').includes(' '+b+' ');
+  const aliases=target?unique.filter(n=>{const v=normalizeName(n);return contains(v,target)||contains(target,v)}):[];
+  return {names:aliases.length===1?aliases:[],ambiguous:aliases.length>1};
+}
 function itemsFor(card,machine){
   const all=(card||[]).filter(i=>i.hourly!==false);
-  const specific=all.filter(i=>i.machine&&nameMatch(i.machine,machine));
-  return specific.length?specific:all.filter(i=>!i.machine);
+  const match=matchNames(all.map(i=>i.machine),machine);
+  if(match.ambiguous)return [];
+  return match.names.length?all.filter(i=>match.names.includes(i.machine)):all.filter(i=>!i.machine);
 }
 function rateFor(items,mode,tier,after){
   const pick=items.find(i=>i.mode===mode)||items.find(i=>i.mode==='any');
@@ -182,6 +192,6 @@ function merge(list){
   if(out.after_hours)out.after_hours={...out.after_hours,guessed:false};
   return out;
 }
-const API={merge,parseRates,parseRateTable,parseRateText,itemsFor,rateFor,windowFrom,roundFrom,roleOf,modeOf,unitOf};
+const API={merge,parseRates,parseRateTable,parseRateText,itemsFor,matchNames,rateFor,windowFrom,roundFrom,roleOf,modeOf,unitOf};
 root.LBRates=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);

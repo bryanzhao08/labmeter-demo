@@ -34,3 +34,10 @@ assert.equal(S.dow(S.weekStart(S.dayFromYmd('2026-10-08'))),1);
 // Lanes split overlaps
 assert.deepEqual(S.lanes([{start:0,end:60},{start:30,end:90},{start:60,end:120}]),[0,1,0]);
 console.log('schedule tests pass');
+
+assert.equal(S.timeOf('2026-11-01 09:99'),'');
+
+for(const value of ['09:30:99','109:30','09:30:5','09:30:00:00','09:30junk','24:00','12:60 PM'])assert.equal(S.timeOf(value),'',value);
+for(const [value,expected] of [['09:30:59','09:30'],['2026-11-01T09:30:00','09:30'],['12:30 PM','12:30'],['12:00 AM','00:00']])assert.equal(S.timeOf(value),expected,value);
+const invalidClock=S.readReservations({head:['Resource','User','Start','End'],rows:[['Scope','User A','2026-11-01 09:30:99','2026-11-01 10:30:00']]});
+assert.equal(invalidClock.items.length,0);assert.equal(invalidClock.issues.length,1);

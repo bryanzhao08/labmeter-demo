@@ -33,7 +33,7 @@ function parseCSV(text){
 /* book: {name, table, detect}; logs: [{name, table, detect, machine}]; profile: saved billing rules. */
 function check(profile,book,logs){
   const bn=E.normalize(book.table,book.detect.map,{events:false,format:book.detect.format,source:book.name}),usage=[];
-  const issues=[...bn.issues];
+  const issues=[...(book.reservationIssues||[]).map(x=>book.name+': '+x),...bn.issues];
   for(const u of logs){
     let table=u.table,map={...u.detect.map};
     if(map.instrument<0&&!u.machine){
@@ -51,6 +51,7 @@ function check(profile,book,logs){
     const policy=H.policyFor(profile,g.name),part=E.reconcile(g.book,g.use,{...policy,aliases:{}});
     for(const r of part){
       r.policy=policy.basis;r.evidence=policy.evidence;
+      if(policy.machineMatchAmbiguous)r.flags.push('Ambiguous instrument pricing or rules; review the machine match.');
       // Ignore small overruns: logging in a few minutes early or out a few minutes late is normal. Billing still counts them.
       if(r.used-r.booked>=GRACE_MINUTES&&r.book.length&&r.use.length)r.flags.push('Use exceeded the booked time.');
       if(r.instrument==='Unidentified instrument')r.flags.push('Instrument could not be identified from the log.');
@@ -61,13 +62,13 @@ function check(profile,book,logs){
     rows.push(...part);
   }
   rows.sort((a,b)=>a.day-b.day||a.instrument.localeCompare(b.instrument)||a.user.localeCompare(b.user));
-  return {rows,issues};
+  return {rows,issues,incomplete:issues.length>0};
 }
 /* Convenience for callers that hold raw tables: reservations table + log tables + rules. */
 function checkTables(profile,reservationTable,logTables,names){
   const res=S.readReservations(reservationTable);
   const table=res?res.table:reservationTable;
-  const book={name:(names&&names.reservations)||'reservations',table,detect:H.detectColumns(table,'book')};
+  const book={name:(names&&names.reservations)||'reservations',table,detect:H.detectColumns(table,'book'),reservationIssues:res?res.issues:[]};
   if(book.detect.missing.length)return {error:'The reservation file is missing columns: '+book.detect.missing.join(', '),rows:[],issues:[],reservations:res};
   const logs=(logTables||[]).map((t,i)=>({name:(names&&names.logs&&names.logs[i])||'log '+(i+1),table:t,detect:H.detectColumns(t,'use'),machine:''}));
   const bad=logs.find(l=>l.detect.missing.length);
@@ -77,7 +78,7 @@ function checkTables(profile,reservationTable,logTables,names){
 function summary(rows,issues){
   const ready=rows.filter(r=>!r.flags.length),flags={};
   rows.forEach(r=>r.flags.forEach(f=>flags[f]=(flags[f]||0)+1));
-  return {sessions:rows.length,ready:ready.length,needLook:rows.length-ready.length,readyAmount:Math.round(ready.reduce((n,r)=>n+r.amount,0)*100)/100,unreadableRows:issues.length,flags};
+  return {sessions:rows.length,ready:ready.length,needLook:rows.length-ready.length,readyAmount:Math.round(ready.reduce((n,r)=>n+r.amount,0)*100)/100,unreadableRows:issues.length,incomplete:issues.length>0,flags};
 }
 const API={check,checkTables,summary,parseCSV,GRACE_MINUTES};
 root.LBMonth=API;if(typeof module!=='undefined')module.exports=API;

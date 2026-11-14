@@ -19,7 +19,7 @@ const again=I.pickDefaults([e('new.csv','reservations',{first:100,last:130}),e('
 assert.deepEqual(again.map(x=>x.include),[true,true]);
 // the report carries counts and column names only
 const rep=I.buildReport({version:'0.5.0',platform:'Win32',date:'2026-11-12',folderConnected:true,files:[{kind:'reservations',include:true,rows:10,columns:['Resource','Reserved By']}],reservations:{count:9,cancelled:1,unread:0,columns:['Resource']},logs:[{layout:'events',rows:20,missing:[]}],prices:{items:8,tiers:['Internal'],afterHours:true,unplaced:1},analysis:{sessions:9,ready:7,needLook:2,unreadable:0,flags:{'Booking without observed use; confirm no-show policy.':2}}});
-assert.match(rep,/9 read, 1 cancelled/);assert.match(rep,/2 × Booking without observed use/);assert.match(rep,/not included/);
+assert.match(rep,/9 read, 1 cancelled/);assert.match(rep,/Review flags: 2/);assert.doesNotMatch(rep,/Resource|Reserved By|Internal|Booking without observed use/);assert.match(rep,/omitted/);
 // which booking system a web address belongs to
 const d=x=>{const r=I.detectSystem(x);return r&&r.system};
 assert.equal(d('usc.fbs.io'),'fbs');assert.equal(d('https://fbs.usc.edu/?p=592'),'fbs');assert.equal(d('https://mh-fbs1.caltech.edu/'),'fbs');
@@ -29,3 +29,5 @@ assert.equal(d('ppms.us/university/login'),'ppms');assert.equal(d('https://core.
 assert.equal(d('https://lab.university.edu/booked/Web/schedule.php'),'booked');
 assert.equal(d('https://www.google.com'),null);assert.equal(d('fbsomething.example.com'),null);assert.equal(d(''),null);assert.equal(d('not a url at all'),null);
 console.log('intake tests pass');
+
+assert.equal(I.classify({head:['Instrument','Rate'],rows:[['Scope','50']]}).kind,'prices');
