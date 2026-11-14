@@ -50,3 +50,10 @@ Only ready rows export; missing source endpoints block export. Review reasons ac
 accepted exceptions. Rates and rounding are editable, but rates are currently per service
 for the batch, and rounding is per user/instrument/day. Source/review state is not restored
 after restart. See README.md for remaining limits.
+
+## 0.6: folder, connections and MCP
+- The app reads one folder the person chooses (read-only) and recognises reservation exports, usage logs and price sheets by content. New files are picked up while the app is open.
+- Connections page: identifies the booking system from its web address or installed software. iLab connects with an API token (stored encrypted in the main process, sent only to iLab's API servers). FBS connects through exported files because its web service is not publicly documented.
+- `mcp/labro-mcp.cjs` is a read-only MCP server over the same folder. The packaged app can run it with `ELECTRON_RUN_AS_NODE=1`; the Connections page prints the settings.
+- Network: the page itself still cannot reach the internet. Only the main process calls the iLab API hosts listed in `desktop/main.cjs`.
+- See `TESTING.md` for the steps to give a core manager.

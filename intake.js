@@ -72,6 +72,34 @@ function buildReport(x){
   add('');add('Names, accounts, file names, folder paths and amounts are not included in this report.');
   return L.join('\n');
 }
-const API={classify,pickDefaults,buildReport,KIND_LABEL};
+/* Which booking system a web address belongs to. Only patterns we can explain; otherwise null. */
+const SYSTEMS={
+  fbs:{label:'FBS',maker:'Priority Software',connect:'folder'},
+  ilab:{label:'iLab',maker:'Agilent',connect:'token'},
+  ppms:{label:'PPMS',maker:'Stratocore',connect:'folder'},
+  booked:{label:'Booked Scheduler',maker:'Twinkle Toes Software',connect:'folder'},
+  bookitlab:{label:'Bookitlab',maker:'Bookitlab',connect:'folder'},
+  qreserve:{label:'QReserve',maker:'QReserve',connect:'folder'},
+  infinity:{label:'Infinity',maker:'Idea Elan',connect:'folder'}
+};
+function detectSystem(input){
+  let text=String(input||'').trim();if(!text)return null;
+  if(!/^[a-z]+:\/\//i.test(text))text='https://'+text;
+  let u;try{u=new URL(text)}catch{return null}
+  const host=u.hostname.toLowerCase(),path=u.pathname.toLowerCase(),labels=host.split(/[.-]/);
+  let system=null;
+  if(labels.some(l=>/^fbs\d*$/.test(l)))system='fbs';
+  else if(labels.some(l=>/^ilab(solutions)?$/.test(l)))system='ilab';
+  else if(labels.some(l=>/^ppms$/.test(l))||/\/ppms(\/|$)/.test(path))system='ppms';
+  else if(/(^|\.)bookitlab\.com$/.test(host))system='bookitlab';
+  else if(/(^|\.)qreserve\.com$/.test(host))system='qreserve';
+  else if(/(^|\.)ideaelan\.com$/.test(host))system='infinity';
+  else if(/(^|\.)bookedscheduler\.com$/.test(host)||/\/web\/(schedule|dashboard|index)\.php/.test(path))system='booked';
+  if(!system)return null;
+  // An iLab web address often carries the core ID: .../service_center/show_external/5582 or /sc/5582/...
+  let coreId='';if(system==='ilab'){const m=path.match(/\/(?:service_center\/(?:show_external\/)?|sc\/)(\d{2,8})/);if(m)coreId=m[1]}
+  return {system,host,coreId,...SYSTEMS[system]};
+}
+const API={classify,pickDefaults,buildReport,KIND_LABEL,SYSTEMS,detectSystem};
 root.LBIntake=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);

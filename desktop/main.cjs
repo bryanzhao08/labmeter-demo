@@ -1,4 +1,4 @@
-const {app, BrowserWindow, protocol, net, session, shell, Menu, ipcMain, dialog} = require('electron');
+const {app, BrowserWindow, protocol, net, session, shell, Menu, ipcMain, dialog, safeStorage} = require('electron');
 const path = require('node:path');
 const {pathToFileURL} = require('node:url');
 const fs = require('node:fs');
@@ -9,6 +9,63 @@ const root = path.join(__dirname,'web');
 function local(url) { try { const u=new URL(url); return u.protocol==='labro:'&&u.host==='app'; } catch {return false;} }
 function external(url) { if (/^https:\/\//i.test(url)) shell.openExternal(url); }
 let main;
+// ---- Connections: booking-system API access ----
+// The token is typed by the manager, encrypted with the operating system's keychain, and used only
+// in this process. The page can ask "is a token saved" but can never read it back.
+const CONNECTORS={
+  ilab:{label:'iLab',hosts:['api.ilabsolutions.com','api-eu.ilabsolutions.com','au-api.ilab.agilent.com','stanford-api.ilabsolutions.com'], // iLab API Reference, June 2025
+    paths:{equipment:c=>'/v1/cores/'+c+'/equipment.json',services:c=>'/v1/cores/'+c+'/services.json'}}
+};
+const connPath=()=>path.join(app.getPath('userData'),'connection.json');
+let conn=null,memToken=null;
+function loadConn(){try{conn=JSON.parse(fs.readFileSync(connPath(),'utf8'))}catch{conn=null}return conn}
+function connToken(){
+  if(memToken)return memToken;
+  try{if(conn&&conn.token&&safeStorage.isEncryptionAvailable())return safeStorage.decryptString(Buffer.from(conn.token,'base64'))}catch{}
+  return null;
+}
+function connPublic(){const c=conn||{};return {system:c.system||null,base:c.base||null,coreId:c.coreId||null,hasToken:!!connToken(),canStore:safeStorage.isEncryptionAvailable()}}
+function connBase(system,base){
+  const def=CONNECTORS[system];if(!def)throw new Error('Unknown system');
+  if(smoke&&process.env.LABRO_TEST_API)return process.env.LABRO_TEST_API;
+  const u=new URL(base||('https://'+def.hosts[0]));
+  if(u.protocol!=='https:'||!def.hosts.includes(u.hostname))throw new Error('That address is not a known '+def.label+' API server.');
+  return u.origin;
+}
+// First array of objects with a name, wherever the vendor nests it.
+function findList(v,depth){
+  if(depth>5||v==null)return null;
+  if(Array.isArray(v)){if(v.length&&v.every(x=>x&&typeof x==='object'&&!Array.isArray(x)))return v;return null}
+  if(typeof v==='object')for(const k of Object.keys(v)){const r=findList(v[k],(depth||0)+1);if(r)return r}
+  return null;
+}
+async function connFetch(kind){
+  const c=conn||{},def=CONNECTORS[c.system];if(!def)throw new Error('No connection is set up.');
+  const token=connToken();if(!token)throw new Error('No API token is saved.');
+  if(!/^[A-Za-z0-9_-]{1,40}$/.test(String(c.coreId||'')))throw new Error('Enter the core ID from your '+def.label+' web address.');
+  const url=connBase(c.system,c.base)+def.paths[kind](c.coreId),ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);
+  try{
+    // redirect:'error' so the token can never follow a redirect to another host.
+    const r=await fetch(url,{headers:{Authorization:'bearer '+token,Accept:'application/json'},redirect:'error',signal:ctl.signal});
+    if(r.status===401||r.status===403)throw new Error(def.label+' refused the token (status '+r.status+'). Check the token and that API access is switched on for your core.');
+    if(r.status===404)throw new Error(def.label+' did not find core '+c.coreId+' (status 404). Check the core ID.');
+    if(!r.ok)throw new Error(def.label+' answered with status '+r.status+'.');
+    const text=await r.text();let json;try{json=JSON.parse(text)}catch{throw new Error(def.label+' did not answer with JSON.')}
+    return findList(json,0)||[];
+  }catch(e){if(e.name==='AbortError')throw new Error(def.label+' did not answer within 15 seconds.');if(/fetch failed/i.test(e.message))throw new Error('Could not reach '+def.label+'. Check the internet connection.');throw e}
+  finally{clearTimeout(t)}
+}
+const nameOf=x=>String(x.name||x.equipment_name||x.title||x.label||'').trim();
+// Installed software that hints at the booking system. Folder names only; nothing is opened.
+function findApps(){
+  const dirs=process.platform==='win32'?[process.env['ProgramFiles'],process.env['ProgramFiles(x86)'],process.env['ProgramData'],process.env['LOCALAPPDATA']&&path.join(process.env['LOCALAPPDATA'],'Programs')]
+    :process.platform==='darwin'?['/Applications',path.join(app.getPath('home'),'Applications')]:['/opt','/usr/share/applications'];
+  const rx=[['fbs',/\bfbs\b|facility billing|softlock|soft lock|priority software/i],['ilab',/\bilab\b|crosslab/i],['ppms',/\bppms\b|stratocore/i],['bookitlab',/bookitlab/i]];
+  const out=[];
+  for(const d of dirs.filter(Boolean)){let items;try{items=fs.readdirSync(d)}catch{continue}
+    for(const n of items)for(const [system,r] of rx)if(r.test(n)&&!/^labro/i.test(n))out.push({system,name:n})}
+  return out.slice(0,20);
+}
 // ---- Folder access: one folder chosen by the person, read-only, spreadsheets and text only ----
 const FILE_RX=/\.(csv|tsv|txt|xlsx|xls)$/i, MAX_BYTES=20*1024*1024;
 let folder=null, watcher=null, timer=null;
@@ -45,6 +102,36 @@ function listFiles(){
   return out.sort((a,b)=>b.mtime-a.mtime).slice(0,200);
 }
 const trusted=e=>{try{return new URL(e.senderFrame.url).protocol==='labro:'}catch{return false}};
+ipcMain.handle('labro:conn:get',e=>trusted(e)?connPublic():null);
+ipcMain.handle('labro:conn:save',(e,d)=>{
+  if(!trusted(e)||!d||typeof d!=='object')return connPublic();
+  if(!CONNECTORS[d.system])throw new Error('Unknown system');
+  const base=connBase(d.system,d.base),coreId=String(d.coreId||'').trim().slice(0,40),next={system:d.system,base,coreId,token:conn&&conn.system===d.system?conn.token:undefined};
+  const token=typeof d.token==='string'?d.token.trim():'';
+  if(token){if(token.length>4000)throw new Error('That token is too long.');
+    if(safeStorage.isEncryptionAvailable()){next.token=safeStorage.encryptString(token).toString('base64');memToken=null}else{memToken=token;next.token=undefined}}
+  conn=next;fs.writeFileSync(connPath(),JSON.stringify(conn),{mode:0o600});
+  if(token&&fs.readFileSync(connPath(),'utf8').includes(token)){fs.rmSync(connPath(),{force:true});throw new Error('Refusing to store a token unencrypted.')}
+  return connPublic();
+});
+ipcMain.handle('labro:conn:forget',e=>{if(!trusted(e))return null;conn=null;memToken=null;try{fs.rmSync(connPath(),{force:true})}catch{}return connPublic()});
+ipcMain.handle('labro:conn:test',async e=>{
+  if(!trusted(e))return {ok:false,message:'Not allowed'};
+  try{const list=await connFetch('equipment');return {ok:true,count:list.length,equipment:[...new Set(list.map(nameOf).filter(Boolean))].slice(0,100)}}
+  catch(err){return {ok:false,message:err.message}}
+});
+ipcMain.handle('labro:detect:apps',e=>trusted(e)?findApps():[]);
+const rulesPath=()=>path.join(app.getPath('userData'),'rules.json');
+ipcMain.handle('labro:rules:save',(e,json)=>{
+  if(!trusted(e)||typeof json!=='string'||json.length>2*1024*1024)return false;
+  try{JSON.parse(json);fs.writeFileSync(rulesPath(),json,{mode:0o600});return true}catch{return false}
+});
+ipcMain.handle('labro:mcp:info',e=>{
+  if(!trusted(e))return null;
+  const script=path.join(root,'mcp','labro-mcp.cjs');
+  const args=[script,'--folder',folder||'<your exports folder>'];if(fs.existsSync(rulesPath()))args.push('--rules',rulesPath());
+  return {available:fs.existsSync(script),command:process.execPath,args,env:{ELECTRON_RUN_AS_NODE:'1'},folder};
+});
 ipcMain.handle('labro:folder:get',e=>trusted(e)?folder:null);
 ipcMain.handle('labro:folder:pick',async e=>{
   if(!trusted(e))return folder;
@@ -143,13 +230,47 @@ async function createWindow() {
         const old=[...document.querySelectorAll('.frow')].find(r=>r.innerText.includes('Export 2026-10-31'));
         if(old.querySelector('input').checked)throw Error('Old reservation export still in use');
         return true})()`);
+      // Connections: a stand-in iLab server on this machine checks that the token travels only in the header.
+      const seen=[];
+      const api=require('node:http').createServer((q,r)=>{seen.push({url:q.url,auth:q.headers.authorization||''});
+        if(q.headers.authorization!=='bearer test-token-123'){r.writeHead(401);r.end('{}');return}
+        r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({ilab_response:{equipment:[{id:1,name:'Aria III sorter'},{id:2,name:'LSM 980 confocal'}]}}))});
+      await new Promise(ok=>api.listen(0,'127.0.0.1',ok));process.env.LABRO_TEST_API='http://127.0.0.1:'+api.address().port;
+      const connected=await main.webContents.executeJavaScript(String.raw`(async()=>{
+        const pause=ms=>new Promise(r=>setTimeout(r,ms));
+        const wait=async fn=>{for(let i=0;i<300;i++){if(fn())return;await pause(50)}throw Error('Timed out waiting for connections page')};
+        location.hash='connect';await wait(()=>document.getElementById('sys-url'));
+        document.getElementById('sys-url').value='usc.fbs.io';document.getElementById('sys-find').click();
+        await wait(()=>/Connect to FBS through its exports/.test(document.body.innerText));
+        if(!/Folder connected/.test(document.body.innerText))throw Error('FBS card does not show the connected folder');
+        document.getElementById('sys-url').value='https://my.ilabsolutions.com/service_center/show_external/5582';document.getElementById('sys-find').click();
+        await wait(()=>document.getElementById('ilab-token'));
+        if(document.getElementById('ilab-core').value!=='5582')throw Error('Core ID not read from the web address');
+        document.getElementById('ilab-token').value='wrong-token';document.getElementById('ilab-save').click();
+        await wait(()=>/Not connected/.test(document.body.innerText));
+        if(!/refused the token/.test(document.body.innerText))throw Error('Bad token not explained');
+        document.getElementById('ilab-token').value='test-token-123';document.getElementById('ilab-save').click();
+        await wait(()=>/Connected\./.test(document.body.innerText));
+        if(!/Aria III sorter/.test(document.body.innerText))throw Error('Equipment list missing');
+        if(document.getElementById('ilab-token').value!=='')throw Error('Token left in the page');
+        const info=await window.labroConn.get();
+        if(!info.hasToken||JSON.stringify(info).includes('test-token'))throw Error('Token readable from the page');
+        if(document.documentElement.innerHTML.includes('test-token-123'))throw Error('Token present in the page');
+        const cfg=document.getElementById('mcp-config');if(!cfg||!/labro-mcp\.cjs/.test(cfg.value)||!/--rules/.test(cfg.value)||!/ELECTRON_RUN_AS_NODE/.test(cfg.value))throw Error('MCP settings incomplete');
+        document.getElementById('ilab-machines').click();
+        document.getElementById('conn-forget').click();await wait(()=>!document.getElementById('conn-forget'));
+        return true})()`);
+      api.close();
+      if(!seen.length||seen.some(x=>!/^\/v1\/cores\/5582\/equipment\.json$/.test(x.url)))throw new Error('Unexpected API calls: '+JSON.stringify(seen.map(x=>x.url)));
+      if(seen[seen.length-1].auth!=='bearer test-token-123')throw new Error('Token not sent as a bearer header');
+      if(fs.existsSync(connPath()))throw new Error('Connection file left behind after removal');
       fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-app.png'),(await main.webContents.capturePage()).toPNG());
-      console.log('DESKTOP PASS '+JSON.stringify({...result,watched}));app.exit(0);
+      console.log('DESKTOP PASS '+JSON.stringify({...result,watched,connected}));app.exit(0);
     } catch(e){console.error(e);app.exit(1);}
   }
 }
 app.whenReady().then(async()=>{
-  folder=loadFolder();startWatch();
+  folder=loadFolder();startWatch();loadConn();
   protocol.handle('labro',request=>{
     try {
       const u=new URL(request.url);

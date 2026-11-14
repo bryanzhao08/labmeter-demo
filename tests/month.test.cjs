@@ -20,8 +20,12 @@ const lt=parse(mock('usage-log.csv')),ld=H.detectColumns(lt,'use');
 assert.ok(ld.events);assert.deepEqual(ld.missing,[]);
 const un=E.normalize(lt,ld.map,{events:true,format:ld.format,source:'log'});
 assert.equal(un.issues.length,0,'log issues: '+un.issues.slice(0,3).join(' | '));
-const groups=new Map();for(const [k,recs] of [['book',bn.records],['use',un.records]])for(const r of recs){const g=groups.get(r.instrument.toLowerCase())||groups.set(r.instrument.toLowerCase(),{name:r.instrument,book:[],use:[]}).get(r.instrument.toLowerCase());g[k].push(r)}
-let rows=[];for(const g of groups.values()){const pol=H.policyFor(profile,g.name);rows.push(...E.reconcile(g.book,g.use,{...pol,aliases:{}}))}
+const M=require('../month.js');
+const out=M.check(profile,{name:'fbs',table:book,detect:det},[{name:'log',table:lt,detect:ld,machine:''}]);
+const rows=out.rows;assert.equal(out.issues.length,0);
+const viaTables=M.checkTables(profile,parse(mock('fbs-reservations.csv')),[lt]);assert.equal(viaTables.rows.length,rows.length);
+assert.equal(M.summary(rows,[]).sessions,rows.length);
+assert.deepEqual(M.parseCSV('a,b\n"x,1",2\n').rows,[['x,1','2']]);
 const total=rows.reduce((n,r)=>n+r.amount,0);
 assert.ok(rows.length>100,'rows '+rows.length);
 // tiers: User E is External, User H is Commercial

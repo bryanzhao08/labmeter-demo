@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn,spawnSync}=require('node:child_process'),readline=require('node:readline');
+const root=path.resolve(__dirname,'..'),server=path.join(root,'mcp/labro-mcp.cjs'),folder=fs.mkdtempSync(path.join(os.tmpdir(),'labro-mcp-'));
+for(const [a,b] of [['fbs-reservations.csv','Export (3).csv'],['usage-log.csv','Logs all.csv'],['price-sheet.csv','Rates.csv']])fs.copyFileSync(path.join(root,'data/mock',a),path.join(folder,b));
+fs.writeFileSync(path.join(folder,'notes.txt'),'Unrelated text\n');
+async function exercise(details){const child=spawn(process.execPath,[server,'--folder',folder,...(details?['--allow-details']:[])]),lines=readline.createInterface({input:child.stdout}),pending=new Map();let id=0,stderr='';child.stderr.on('data',x=>stderr+=x);lines.on('line',line=>{const msg=JSON.parse(line),p=pending.get(msg.id);if(p){pending.delete(msg.id);p(msg)}});child.on('exit',()=>{for(const p of pending.values())p({error:{message:stderr||'Server exited'}});pending.clear()});
+ const call=(method,params)=>new Promise(resolve=>{const n=++id;pending.set(n,resolve);child.stdin.write(JSON.stringify({jsonrpc:'2.0',id:n,method,params})+'\n')});
+ try{let r=await call('initialize',{protocolVersion:'2025-03-26'});assert.equal(r.result.protocolVersion,'2025-03-26');child.stdin.write(JSON.stringify({jsonrpc:'2.0',method:'notifications/initialized'})+'\n');r=await call('tools/list',{});assert.equal(r.result.tools.length,5);for(const t of r.result.tools){assert.equal(t.annotations.readOnlyHint,true);assert.ok(!Object.keys(t.inputSchema.properties).some(k=>/path|folder|file/i.test(k)))}
+ const results={};for(const t of r.result.tools){const out=await call('tools/call',{name:t.name,arguments:{}});assert.ok(!out.result.isError,JSON.stringify(out));results[t.name]=out.result;}
+ const kinds=results.find_exports.structuredContent.files.map(f=>f.kind);for(const kind of ['reservations','logs','prices'])assert.ok(kinds.includes(kind));const month=results.check_month.structuredContent;assert.ok(month.sessions>100);assert.ok(month.needLook>0);
+ if(details)assert.ok(month.session_details.some(s=>s.user==='John'));else assert.doesNotMatch(JSON.stringify(results),/User [A-H]\b|John|PTA-\d|Lab \d/);
+ }finally{child.stdin.end();await new Promise(resolve=>child.on('close',resolve));}}
+(async()=>{try{const missing=spawnSync(process.execPath,[server],{encoding:'utf8'});assert.equal(missing.status,2);await exercise(false);await exercise(true);console.log('mcp tests pass')}finally{fs.rmSync(folder,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exitCode=1});

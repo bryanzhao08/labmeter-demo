@@ -3,14 +3,13 @@
 'use strict';
 if(typeof document==='undefined')return;
 const H=root.LBHelpers,R=root.LBRates,S=root.LBSchedule,E=root.LBReconcile,I=root.LBIntake,FS=root.labroFS||null;
-const APP_VERSION='0.5.0';
+const APP_VERSION='0.6.0',CONN=root.labroConn||null;
 const {choices,detectColumns,keywordParser,validateModel,extractMachines,machineRulesFrom,policyFor,outliers,flagKind,applyRateCard,setBilling,tierKey,MODE_NAME}=H;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n);
 const plural=(n,one,many)=>n+' '+(n===1?one:many);
 const key=s=>String(s||'').trim().toLowerCase();
-const GRACE_MINUTES=15;
 const PALETTE=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)'];
 
 const defaults=()=>({lab_name:'Your lab',description:'',booking_system:'FBS',basis:'union',round_minutes:30,evidence:'login',
@@ -21,6 +20,7 @@ let draft=profile?structuredClone(profile):defaults();
 let review=!!profile,badge='',priceSrc=null;
 let res=null,sources={},logs=[],rows=null,rowIndex=new Map(),issues=[],approved={},routeToken=0;
 let sched={view:'day',day:null,sel:null,hidden:new Set()},resFilter='all';
+let cx={info:null,system:null,guess:null,guessText:'',apps:null,test:null,busy:false,mcp:null,loaded:false,error:''};
 let folder={path:null,entries:[],busy:false,error:'',cache:new Map(),sig:'',scanned:false},sampleMode=false;
 
 /* ---------------------------------------------------------------- rules (setup) */
@@ -296,35 +296,8 @@ async function loadMock(target){
 }
 function progress(){return `<div class="page-head"><div><h1>Analyzing your month</h1><p class="sub">Checking the logs against the reservations and your billing rules.</p></div></div><div class="card"><div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"><div id="bar"></div></div><ol class="steps">${['Reading files','Matching logins to reservations','Applying your rules','Checking for exceptions'].map((s,i)=>`<li id="step-${i}"><span>${i+1}</span>${s}</li>`).join('')}</ol></div>`}
 function calculate(){
-  const b=sources.book,bn=E.normalize(b.table,b.detect.map,{events:false,format:b.detect.format,source:b.name}),usage=[];
-  issues=[...bn.issues];
-  for(const u of logs){
-    let table=u.table,map={...u.detect.map};
-    if(map.instrument<0&&!u.machine){
-      const head=[...table.head,'Inferred instrument'],records=bn.records;
-      table={head,rows:table.rows.map(r=>{const user=String(r[map.user]||'').trim().toLowerCase(),stamp=E.time(r[u.detect.events?map.timestamp:map.start],u.detect.format),day=Math.floor(stamp/1440),matches=[...new Set(records.filter(x=>x.user.toLowerCase()===user&&Math.floor(x.s/1440)===day).map(x=>x.instrument))];return [...r,matches.length===1?matches[0]:'Unidentified instrument']})};
-      map.instrument=head.length-1;
-    }
-    const un=E.normalize(table,map,{events:u.detect.events,format:u.detect.format,source:u.name,instrument:u.machine||''});usage.push(...un.records);issues.push(...un.issues);
-  }
-  const groups=new Map();
-  for(const [kind,records] of [['book',bn.records],['use',usage]])for(const r of records){const k=key(r.instrument);if(!groups.has(k))groups.set(k,{name:r.instrument,book:[],use:[]});groups.get(k)[kind].push(r)}
-  rows=[];
-  for(const g of groups.values()){
-    const policy=policyFor(profile,g.name),part=E.reconcile(g.book,g.use,{...policy,aliases:{}});
-    for(const r of part){
-      r.policy=policy.basis;r.evidence=policy.evidence;
-      // Ignore small overruns: logging in a few minutes early or out a few minutes late is normal. Billing still counts them.
-      if(r.used-r.booked>=GRACE_MINUTES&&r.book.length&&r.use.length)r.flags.push('Use exceeded the booked time.');
-      if(r.instrument==='Unidentified instrument')r.flags.push('Instrument could not be identified from the log.');
-      if(Number(profile.alert_over)>0&&r.amount>Number(profile.alert_over))r.flags.push(`Charge is over your alert amount (${money(Number(profile.alert_over))}).`);
-    }
-    // A plain statistical check on session length within the month. It is not a trained model.
-    for(const r of outliers(part))r.flags.push('Unusually long for this machine this month.');
-    rows.push(...part);
-  }
-  rows.sort((a,b)=>a.day-b.day||a.instrument.localeCompare(b.instrument)||a.user.localeCompare(b.user));
-  rowIndex=new Map(rows.map(r=>[r.id,r]));approved={};
+  const out=root.LBMonth.check(profile,sources.book,logs);
+  rows=out.rows;issues=out.issues;rowIndex=new Map(rows.map(r=>[r.id,r]));approved={};
 }
 async function run(){
   location.hash='progress';await new Promise(r=>setTimeout(r,220));
@@ -404,6 +377,7 @@ async function connectFolder(){
   const before=folder.path;await FS.pick();await refreshFolder();
   if(profile&&folder.path)applyFolder();
   if(folder.path&&folder.path!==before)toast('Folder connected');
+  if(CONN){try{cx.mcp=await CONN.mcp()}catch{}}
   render(true);
 }
 let folderTimer=null;
@@ -450,6 +424,63 @@ async function useSample(){
   profile={...defaults(),...d};draft=structuredClone(profile);sampleMode=true;
 }
 
+/* ---------------------------------------------------------------- connections: which system, and how LaBro reaches it */
+const ILAB_REGIONS=[['https://api.ilabsolutions.com','United States and general'],['https://api-eu.ilabsolutions.com','Europe'],['https://au-api.ilab.agilent.com','Australia'],['https://stanford-api.ilabsolutions.com','Stanford']];
+const SYS_GUESS={FBS:'fbs',iLab:'ilab',PPMS:'ppms','Booked Scheduler':'booked'};
+async function loadConnections(){
+  if(CONN){try{cx.info=await CONN.get();cx.mcp=await CONN.mcp()}catch(e){cx.error=e.message}}
+  if(!cx.system)cx.system=(cx.info&&cx.info.system)||SYS_GUESS[profile&&profile.booking_system]||'fbs';
+  cx.loaded=true;
+}
+function systemCard(){
+  const list=Object.entries(I.SYSTEMS),g=cx.guess;
+  return `<section class="card"><h2>Find my booking system</h2><p class="hint">Paste the web address you open to book an instrument. LaBro reads the address only; it does not open the page or sign in.</p>
+  <div class="add-machine" style="max-width:640px"><input id="sys-url" placeholder="For example usc.fbs.io or my.ilabsolutions.com/…" value="${esc(cx.guessText)}" aria-label="Booking system web address"><button class="primary" id="sys-find" type="button">Find it</button>${CONN?'<button class="secondary" id="sys-apps" type="button">Look on this computer</button>':''}</div>
+  ${g===false?'<p class="hint" style="margin-top:10px">That address does not match a booking system LaBro knows. Pick yours below.</p>':g?`<p style="margin-top:10px"><span class="pill ok">Found</span> This is <strong>${esc(g.label)}</strong> by ${esc(g.maker)}.</p>`:''}
+  ${cx.apps?`<p class="hint" style="margin-top:10px">${cx.apps.length?'Installed on this computer: '+cx.apps.map(a=>`<strong>${esc(a.name)}</strong> (${esc(I.SYSTEMS[a.system].label)})`).join(', ')+'.':'No booking-system software is installed on this computer. That is normal: most cores use these systems in a web browser.'}</p>`:''}
+  <label>My core uses</label><div class="chips">${list.map(([k,v])=>`<button type="button" class="chip" data-system="${k}" aria-pressed="${cx.system===k}">${esc(v.label)}</button>`).join('')}</div></section>`;
+}
+function folderStatus(){
+  if(!FS)return '<p class="hint">Folder reading works in the desktop app. In the browser, add files on the Upload page.</p>';
+  return folder.path?`<div class="file-ok"><span class="tick">&#10003;</span><div><strong>Folder connected</strong><small class="hint pathline" style="display:block" title="${esc(folder.path)}">${esc(folder.path)}</small></div><button class="link" id="pick-folder" type="button" style="margin-left:auto">Change</button></div>`
+    :`<div class="actions" style="margin-top:10px"><button class="primary" id="pick-folder" type="button">Choose the exports folder</button></div>`;
+}
+function ilabCard(){
+  const i=cx.info||{},saved=i.system==='ilab',t=cx.test;
+  if(!CONN)return `<section class="card"><h2>iLab</h2><p class="hint">Connecting with an iLab API token works in the desktop app, where the token can be stored encrypted. In the browser, export from iLab and add the files on the Upload page.</p></section>`;
+  return `<section class="card"><h2>Connect to iLab with an API token</h2><p class="hint">In iLab, open your core's Administration tab and the API Clients panel. Add a client, choose Grant Token, and copy the token. Your institution has to have API access switched on.</p>
+  <div class="field-row" style="max-width:720px"><label>Region<select id="ilab-base">${ILAB_REGIONS.map(([u,l])=>`<option value="${u}" ${saved&&i.base===u?'selected':''}>${l}</option>`).join('')}</select></label><label>Core ID<input id="ilab-core" inputmode="numeric" placeholder="For example 5582" value="${esc(saved?i.coreId:(cx.guess&&cx.guess.coreId)||'')}"></label></div>
+  <label for="ilab-token">API token</label><input id="ilab-token" type="password" autocomplete="off" spellcheck="false" style="max-width:720px" placeholder="${saved&&i.hasToken?'A token is saved. Type a new one to replace it.':'Paste the token from iLab'}">
+  <p class="hint" style="margin-top:6px">The token is encrypted with this computer's keychain and is sent only to iLab. LaBro never shows it again${i.canStore===false?'. This computer has no keychain, so the token is kept only until you close LaBro':''}.</p>
+  <p id="conn-error" class="error" role="alert">${esc(cx.error)}</p>
+  <div class="actions"><button class="primary" id="ilab-save" type="button" ${cx.busy?'disabled':''}>${cx.busy?'Testing…':'Save and test'}</button>${saved?'<button class="link" id="conn-forget" type="button">Remove this connection</button>':''}</div>
+  ${t?(t.ok?`<div class="banner" style="margin:14px 0 0;border-left-color:var(--ok)"><div><strong>Connected.</strong> iLab lists ${plural(t.count,'piece','pieces')} of equipment for this core.${t.equipment.length?`<div class="chips">${t.equipment.slice(0,24).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="actions" style="margin-top:10px"><button class="secondary" id="ilab-machines" type="button">Use these as my machines</button></div>`:''}</div></div>`:`<div class="banner warn" style="margin:14px 0 0"><div><strong>Not connected.</strong> ${esc(t.message)}</div></div>`):''}
+  <div class="form-section"><h3>Reservations and usage</h3><p class="hint">${ILAB_RESERVATIONS_NOTE}</p>${folderStatus()}</div></section>`;
+}
+const ILAB_RESERVATIONS_NOTE='The token confirms the connection and brings in your equipment list. iLab\'s API manual (June 2025) covers equipment, services, prices and service requests, but not equipment reservations. For the month\'s reservations and usage, export the reports from iLab into your folder; LaBro picks them up from there.';
+function fbsCard(){
+  return `<section class="card"><h2>Connect to FBS through its exports</h2><p class="hint">FBS runs in the browser, and Priority Software does not publish documentation for its web service, so LaBro reads the files FBS lets you download.</p>
+  <ol class="how-list" style="margin-top:12px"><li>In FBS, download your reservations for the month as Excel or CSV.</li><li>Save the file in one folder. Put your instrument usage logs and price sheet there too.</li><li>LaBro reads the folder, works out which file is which, and updates when a new file arrives.</li></ol>${folderStatus()}
+  <p class="hint" style="margin-top:12px">If your FBS administrator can give you API details, send us the test report from the sidebar and say so. A direct FBS connection can be added once those details exist.</p></section>`;
+}
+function otherCard(){
+  const v=I.SYSTEMS[cx.system]||{label:'your booking system'};
+  return `<section class="card"><h2>Connect to ${esc(v.label)} through its exports</h2><p class="hint">Download the month's reservations from ${esc(v.label)} as Excel or CSV into one folder, along with your usage logs and price sheet. LaBro works out which file is which.</p>${folderStatus()}</section>`;
+}
+function mcpCard(){
+  const m=cx.mcp,cfg=m&&m.available?JSON.stringify({mcpServers:{labro:{command:m.command,args:m.args,env:m.env}}},null,2):'';
+  return `<section class="card"><h2>Let an AI agent run LaBro</h2><p class="hint">LaBro includes an MCP server, the standard way for an AI agent to use a tool. An agent such as Claude Desktop can find your exports, read the price sheet and run the month check. By default it receives counts and totals, not names or account codes.</p>
+  ${cfg?`<label for="mcp-config">Add this to your agent's MCP settings</label><textarea id="mcp-config" rows="9" readonly spellcheck="false" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">${esc(cfg)}</textarea><div class="actions" style="margin-top:8px"><button class="secondary" id="mcp-copy" type="button">Copy settings</button>${m.folder?'':'<span class="hint">Connect a folder first so the settings point at it.</span>'}</div>`:`<p class="hint" style="margin-top:8px">${CONN?'The MCP server is not included in this build.':'Available in the desktop app.'}</p>`}</section>`;
+}
+function connections(){
+  if(!cx.loaded){loadConnections().then(()=>{if(location.hash==='#connect')render(true)});return `<div class="page-head"><div><h1>Connections</h1></div></div><div class="card"><p class="hint">Loading…</p></div>`}
+  const sys=cx.system;
+  return `<div class="page-head"><div><h1>Connections</h1><p class="sub">Tell LaBro which booking system your core uses and how to reach it.</p></div></div>
+  ${systemCard()}${sys==='ilab'?ilabCard():sys==='fbs'?fbsCard():otherCard()}${mcpCard()}`;
+}
+const SYSTEM_TO_PROFILE={fbs:'FBS',ilab:'iLab',ppms:'PPMS',booked:'Booked Scheduler'};
+function chooseSystem(k){cx.system=k;cx.test=null;cx.error='';if(profile){profile.booking_system=SYSTEM_TO_PROFILE[k]||'Other';draft.booking_system=profile.booking_system;try{localStorage.setItem('labro-profile',JSON.stringify(profile))}catch{}}}
+
 /* ---------------------------------------------------------------- test report (counts and column names only) */
 function reportData(){
   const entries=folder.entries||[];
@@ -469,13 +500,13 @@ async function copyReport(){
 }
 
 /* ---------------------------------------------------------------- routing and events */
-const TITLES={start:'Welcome',schedule:'Schedule',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
+const TITLES={connect:'Connections',start:'Welcome',schedule:'Schedule',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
 function render(keep){
   let route=location.hash.slice(1)||(profile?'schedule':'start');
   if(route==='dashboard')route='schedule';
-  if(!profile&&route!=='setup'&&route!=='start'){location.hash='start';return}
+  if(!profile&&route!=='setup'&&route!=='start'&&route!=='connect'){location.hash='start';return}
   const vp=$('viewport'),top=keep?vp.scrollTop:0,oldCal=document.querySelector('.cal'),sl=keep&&oldCal?oldCal.scrollLeft:0;
-  $('screen').innerHTML=route==='start'?startPage():route==='setup'?setup():route==='schedule'?schedule():route==='upload'?upload():route==='progress'?progress():route==='results'?results():schedule();
+  $('screen').innerHTML=route==='start'?startPage():route==='connect'?connections():route==='setup'?setup():route==='schedule'?schedule():route==='upload'?upload():route==='progress'?progress():route==='results'?results():schedule();
   $('lab-title').textContent=(profile?.lab_name||'Your lab')+(sampleMode?' (simulated)':'');$('page-title').textContent=TITLES[route]||'';
   document.querySelectorAll('#sidebar nav a').forEach(a=>{if(a.hash==='#'+(route==='progress'?'upload':route))a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   if(keep){vp.scrollTop=top;const c=document.querySelector('.cal');if(c)c.scrollLeft=sl}
@@ -495,6 +526,27 @@ function bind(){
   if($('start-continue'))$('start-continue').onclick=async()=>{const pr=priceFromFolder();draft=defaults();priceSrc=pr;review=false;location.hash='setup';if(pr){await new Promise(r=>setTimeout(r,200));await assistant()}};
   if($('sample-start'))$('sample-start').onclick=async()=>{try{await useSample();await loadMock('schedule')}catch(e){toast(e.message)}};
   on('[data-report]',b=>b.onclick=copyReport);
+  /* connections */
+  if($('sys-find'))$('sys-find').onclick=()=>{cx.guessText=$('sys-url').value.trim();const g=I.detectSystem(cx.guessText);cx.guess=g||false;if(g)chooseSystem(g.system);render(true)};
+  if($('sys-url'))$('sys-url').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('sys-find').click()}};
+  if($('sys-apps'))$('sys-apps').onclick=async()=>{cx.guessText=$('sys-url').value.trim();cx.apps=await CONN.apps();if(cx.apps.length)chooseSystem(cx.apps[0].system);render(true)};
+  on('[data-system]',b=>b.onclick=()=>{if($('sys-url'))cx.guessText=$('sys-url').value.trim();chooseSystem(b.dataset.system);render(true)});
+  if($('ilab-save'))$('ilab-save').onclick=async()=>{
+    const d={system:'ilab',base:$('ilab-base').value,coreId:$('ilab-core').value.trim(),token:$('ilab-token').value};
+    if(!d.coreId){$('conn-error').textContent='Enter your core ID. It is the number in your iLab web address.';return}
+    if(!d.token&&!(cx.info&&cx.info.system==='ilab'&&cx.info.hasToken)){$('conn-error').textContent='Paste the API token from iLab.';return}
+    cx.busy=true;cx.error='';cx.test=null;render(true);
+    try{cx.info=await CONN.save(d);cx.test=await CONN.test()}catch(e){cx.error=String(e.message||e).replace(/^Error invoking remote method '[^']+': (?:Error: )?/,'')}
+    cx.busy=false;render(true);
+  };
+  if($('conn-forget'))$('conn-forget').onclick=async()=>{cx.info=await CONN.forget();cx.test=null;cx.error='';toast('Connection removed');render(true)};
+  if($('ilab-machines'))$('ilab-machines').onclick=()=>{
+    const names=(cx.test&&cx.test.equipment)||[];if(!names.length)return;
+    const target=profile||draft;target.machines=H.dedupeMachines([...(target.machines||[]),...names]);target.machines_on=[...new Set([...(target.machines_on||[]),...names.filter(n=>target.machines.includes(n))])];
+    if(profile){draft=structuredClone(profile);try{localStorage.setItem('labro-profile',JSON.stringify(profile))}catch{}}
+    toast(plural(names.length,'machine','machines')+' added to your billing rules');
+  };
+  if($('mcp-copy'))$('mcp-copy').onclick=async()=>{const t=$('mcp-config').value;try{await navigator.clipboard.writeText(t)}catch{$('mcp-config').select();try{document.execCommand('copy')}catch{}}toast('MCP settings copied')};
   /* setup */
   on('[data-group]',b=>b.onclick=()=>{try{readDraft()}catch(e){$('setup-error').textContent=e.message;return}const k=b.dataset.group,v=b.dataset.value;if(k==='billing')setBilling(draft,v);else draft[k]=k==='round_minutes'?+v:v;render(true)});
   if($('assistant'))$('assistant').onclick=assistant;
@@ -517,7 +569,7 @@ function bind(){
   });
   on('[data-rm]',b=>b.onclick=()=>{try{readDraft()}catch{}draft.rate_card.splice(+b.dataset.rm,1);render(true)});
   if($('add-price'))$('add-price').onclick=()=>{try{readDraft()}catch(e){$('setup-error').textContent=e.message;return}draft.rate_card=draft.rate_card||[];if(!(draft.tiers||[]).length)draft.tiers=[{key:'internal',label:'Internal'}];draft.rate_card.push({machine:'',mode:'self',unit:'hour',hourly:true,rates:{},after:{},line:''});render(true)};
-  if($('save-profile'))$('save-profile').onclick=()=>{try{readDraft();syncMachines();profile={...defaults(),...structuredClone(draft)};delete profile.unplaced;localStorage.setItem('labro-profile',JSON.stringify(profile));review=true;rows=null;rowIndex=new Map();sampleMode=false;if(FS&&folder.entries.length)applyFolder();location.hash='schedule'}catch(e){$('setup-error').textContent=e.message}};
+  if($('save-profile'))$('save-profile').onclick=()=>{try{readDraft();syncMachines();profile={...defaults(),...structuredClone(draft)};delete profile.unplaced;localStorage.setItem('labro-profile',JSON.stringify(profile));if(CONN)CONN.saveRules(JSON.stringify(profile)).then(()=>CONN.mcp()).then(m=>{cx.mcp=m}).catch(()=>{});review=true;rows=null;rowIndex=new Map();sampleMode=false;if(FS&&folder.entries.length)applyFolder();location.hash='schedule'}catch(e){$('setup-error').textContent=e.message}};
   on('[data-mrule]',el=>el.onchange=()=>{const name=(draft.machines_on||[])[+el.dataset.mrule];if(!name)return;draft.machine_rules=draft.machine_rules||{};const rule=draft.machine_rules[name]||{},field=el.dataset.field,value=el.value;if(value==='')delete rule[field];else rule[field]=field==='round_minutes'?+value:value;if(Object.keys(rule).length)draft.machine_rules[name]=rule;else delete draft.machine_rules[name]});
   /* schedule */
   on('[data-res]',b=>b.onclick=()=>{sched.sel=sched.sel===b.dataset.res?null:b.dataset.res;render(true)});
