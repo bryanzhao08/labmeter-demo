@@ -1,4 +1,10 @@
-# LaBro demo (formerly LaBro)
+# LaBro demo (formerly LabMeter)
+
+## Current desktop app (0.6)
+
+Start with `npm run desktop:start` or `app.html`. LaBro reads a chosen folder of reservation exports, usage logs and prices, compares the records locally, and presents exceptions before CSV export. The desktop runtime is Electron and JavaScript; no backend server or database is required. Optional iLab equipment access runs in the desktop main process, and `mcp/labro-mcp.cjs` exposes the same workflow through five read-only tools. See `desktop/README.md`, `TESTING.md` and `mcp/README.md`.
+
+The sensor, campus and FastAPI/SQLite descriptions below document earlier simulations and prototypes. They do not describe live sensor deployment or the current desktop runtime. All bundled demo data is synthetic.
 
 ## Start here (2026-11-06)
 - `index.html`: landing page.

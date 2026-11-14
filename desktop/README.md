@@ -1,4 +1,7 @@
 # LaBro desktop preview
+The current 0.6 app starts at `app.html`: a local folder feeds reservation, usage and price-sheet readers, the manager reviews exceptions, and LaBro exports charges. No backend server or database is required. Optional iLab equipment access and a local read-only MCP server are described below. Earlier preview descriptions are retained as historical context.
+
+## Historical previews (0.1–0.3)
 Local desktop edition of the existing demo. No account or server is required.
 Requests, rules and decisions persist in this application's storage, separately from your browser.
 Uploaded source files still need to be imported when reopening. Roles remain views, not access control.
@@ -55,5 +58,8 @@ after restart. See README.md for remaining limits.
 - The app reads one folder the person chooses (read-only) and recognises reservation exports, usage logs and price sheets by content. New files are picked up while the app is open.
 - Connections page: identifies the booking system from its web address or installed software. iLab connects with an API token (stored encrypted in the main process, sent only to iLab's API servers). FBS connects through exported files because its web service is not publicly documented.
 - `mcp/labro-mcp.cjs` is a read-only MCP server over the same folder. The packaged app can run it with `ELECTRON_RUN_AS_NODE=1`; the Connections page prints the settings.
-- Network: the page itself still cannot reach the internet. Only the main process calls the iLab API hosts listed in `desktop/main.cjs`.
+- Network: iLab requests are restricted to the main process and the API hosts listed in `desktop/main.cjs`. The renderer can optionally use the local Ollama endpoint; this is not a required hosted service.
+- Token entry uses a separate sandboxed credential window; the application page receives status only. Tokens are encrypted with safeStorage when available, otherwise retained in memory only.
+- Default diagnostic reports omit source labels. MCP uses opaque machine/tier IDs; details require `--allow-details`. Unreadable source rows block billing export.
+- Folder reads reject symlink components and validate a single opened descriptor. Portable APIs leave a concurrent parent-directory replacement race; use a trusted folder during analysis.
 - See `TESTING.md` for the steps to give a core manager.
