@@ -267,3 +267,19 @@ dd{margin:0;font-weight:500;overflow-wrap:anywhere}
   #topbar{padding:0 16px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Folder, welcome and test report */
+.side-link{margin:auto 8px 12px;background:none;border:1px solid rgba(255,255,255,.18);color:var(--nav-text);border-radius:6px;padding:7px 10px;font-weight:550;text-align:left}
+.side-link:hover{background:rgba(255,255,255,.07);color:#fff}
+.side-link+.local{margin-top:0}
+.pathline{max-width:60ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.flist{list-style:none;margin:10px 0 0;padding:0;border:1px solid var(--line);border-radius:6px}
+.frow{display:grid;grid-template-columns:minmax(0,1.6fr) auto minmax(0,2fr);gap:12px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.frow:last-child{border-bottom:0}
+.frow label{display:flex;align-items:center;margin:0;font-weight:500;min-width:0}
+.frow input[type=checkbox]{margin:0 10px 0 0;flex:none}
+.fname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow.dim{color:var(--faint)}
+.how-list{margin:0;padding-left:20px;display:grid;gap:10px;max-width:70ch}
+.how-list li::marker{color:var(--primary);font-weight:700}
+@media (max-width:760px){.frow{grid-template-columns:1fr}.side-link{margin:0}}

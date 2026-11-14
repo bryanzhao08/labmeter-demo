@@ -1,5 +1,5 @@
 {
-  "name": "labro-desktop", "version": "0.3.0", "private": true,
+  "name": "labro-desktop", "version": "0.5.0", "private": true,
   "description": "Local-first core facility requests, billing review and campus reporting",
   "author": "LaBro", "main": "desktop/main.cjs",
   "scripts": {
@@ -13,7 +13,7 @@
   "build": {
     "appId": "org.labro.desktop", "productName": "LaBro",
     "directories": {"output": "release"},
-    "files": ["desktop/main.cjs", "desktop/web/**/*", "package.json"],
+    "files": ["desktop/main.cjs", "desktop/preload.cjs", "desktop/web/**/*", "package.json"],
     "mac": {"category": "public.app-category.productivity", "identity": null},
     "win": {"target": "nsis"},
     "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true},

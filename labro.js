@@ -2,7 +2,8 @@
 (function(root){
 'use strict';
 if(typeof document==='undefined')return;
-const H=root.LBHelpers,R=root.LBRates,S=root.LBSchedule,E=root.LBReconcile;
+const H=root.LBHelpers,R=root.LBRates,S=root.LBSchedule,E=root.LBReconcile,I=root.LBIntake,FS=root.labroFS||null;
+const APP_VERSION='0.5.0';
 const {choices,detectColumns,keywordParser,validateModel,extractMachines,machineRulesFrom,policyFor,outliers,flagKind,applyRateCard,setBilling,tierKey,MODE_NAME}=H;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -20,6 +21,7 @@ let draft=profile?structuredClone(profile):defaults();
 let review=!!profile,badge='',priceSrc=null;
 let res=null,sources={},logs=[],rows=null,rowIndex=new Map(),issues=[],approved={},routeToken=0;
 let sched={view:'day',day:null,sel:null,hidden:new Set()},resFilter='all';
+let folder={path:null,entries:[],busy:false,error:'',cache:new Map(),sig:'',scanned:false},sampleMode=false;
 
 /* ---------------------------------------------------------------- rules (setup) */
 function billingLabel(p){return p.evidence==='acquisition'?'Acquisition time':p.basis==='actual'?'Used only':p.basis==='booked'?'Booked only':'Booked plus used'}
@@ -85,15 +87,18 @@ function readDraft(){
   if($('ah-start')){const a=Math.min(23,Math.max(0,+$('ah-start').value||0)),b=Math.min(23,Math.max(0,+$('ah-end').value||0));draft.after_hours={start:a,end:b,weekends:$('ah-weekends').checked}}
   for(const k of ['self','assisted','training']){if(!$('rate-'+k))continue;const v=$('rate-'+k).value;if(v===''||!Number.isFinite(+v)||+v<0)throw Error('Enter a non-negative hourly rate for each service.');draft.rates[k]=+v}
 }
+// One tab per instrument is common: a tab name that is not generic becomes the machine name.
+function pricesFromSheets(sheets){
+  const many=sheets.length>1,generic=/^(?:sheet\d*|rates?|pricing|prices?|price list|rate card|fees?)$/i;
+  return R.merge(sheets.map(sh=>R.parseRates(sh.rows,extractMachineTerm,{section:many&&!generic.test(sh.name.trim())?sh.name.trim():''})));
+}
 async function readPriceFile(f){
   if(f.size>20*1024*1024)throw Error('Choose a file smaller than 20 MB.');
   if(/\.pdf$/i.test(f.name))throw Error('PDF files cannot be read yet. Copy the price table out of the PDF and paste it into the box below.');
   if(/\.xlsx?$/i.test(f.name)){
     const wb=XLSX.read(await f.arrayBuffer(),{cellDates:true,dateNF:'yyyy-mm-dd hh:mm:ss'});
     if(!wb.SheetNames.length)throw Error('The file is empty.');
-    const many=wb.SheetNames.length>1,generic=/^(?:sheet\d*|rates?|pricing|prices?|price list|rate card|fees?)$/i;
-    const parts=wb.SheetNames.map(n=>R.parseRates(XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''}),extractMachineTerm,{section:many&&!generic.test(n.trim())?n.trim():''}));
-    return {name:f.name,result:R.merge(parts)};
+    return {name:f.name,result:pricesFromSheets(wb.SheetNames.map(n=>({name:n,rows:XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''})})))};
   }
   const text=await f.text();
   if(/\.(?:csv|tsv)$/i.test(f.name)){const t=LMAuditCore.parseCSV(text);return {name:f.name,result:R.parseRates([t.head,...t.rows],extractMachineTerm)}}
@@ -107,9 +112,10 @@ async function loadPrice(files){
   catch(e){render();if($('setup-error'))$('setup-error').textContent=e.message}
 }
 async function assistant(){
-  try{readDraft()}catch(e){$('setup-error').textContent=e.message;return}
-  if(!priceSrc&&!draft.description&&!draft.context){$('setup-error').textContent='Add a price sheet, paste your prices, or describe your lab.';return}
-  const button=$('assistant');button.disabled=true;button.textContent='Reading your pricing…';
+  const say=m=>{const el=$('setup-error');if(el)el.textContent=m};
+  try{readDraft()}catch(e){say(e.message);return}
+  if(!priceSrc&&!draft.description&&!draft.context){say('Add a price sheet, paste your prices, or describe your lab.');return}
+  const button=$('assistant');if(button){button.disabled=true;button.textContent='Reading your pricing…'}
   const original=structuredClone(draft),allText=[original.description,original.context].filter(Boolean).join('\n');
   let modelUsed=false;
   if(allText){
@@ -213,6 +219,7 @@ function drawer(it){
 }
 function billingLabelFor(it){const p=policyFor(profile,it.resource);return (p.evidence==='acquisition'?'Acquisition time':p.basis==='actual'?'Used only':p.basis==='booked'?'Booked only':'Booked plus used')+', rounded up to '+p.round+' min'}
 function emptySchedule(){
+  if(FS&&folder.path)return `<div class="page-head"><div><h1>Schedule</h1><p class="sub">Reservations from your booking system, with what was actually used.</p></div></div>${folderCard({})}<div class="card empty"><h2>No reservation export in this folder yet</h2><p class="hint" style="max-width:56ch;margin:0 auto">Export reservations from ${esc(profile.booking_system)} into the folder above. The schedule fills in as soon as the file appears.</p><div class="curious" style="margin-top:22px;text-align:left"><strong>Just curious?</strong><span>Try it with simulated data: a made-up month from a small core.</span><button class="secondary" id="mock" type="button">Try it with simulated data</button></div></div>`;
   return `<div class="page-head"><div><h1>Schedule</h1><p class="sub">Reservations from your booking system, with what was actually used.</p></div></div>
   <div class="card empty"><h2>Import your reservations</h2><p class="hint" style="max-width:56ch;margin:0 auto">Export your reservations from ${esc(profile.booking_system)} as a CSV or Excel file and add it here. LaBro reads the export, so nothing needs to be connected.</p>
   <label class="drop" data-drop="book"><strong>Drop your reservation export here</strong><span>or click to choose a CSV or Excel file</span><input id="book-file" type="file" accept=".csv,.xlsx,.xls"></label>
@@ -253,8 +260,9 @@ function bookSection(){
 }
 function upload(){
   const names=res?S.resources(res.items):(profile.machines_on||[]);
-  return `<div class="page-head"><div><h1>Upload a month</h1><p class="sub">Add the reservations and the instrument logs for the month. CSV and Excel files stay on this computer.</p></div></div>
-  <div class="sources">${bookSection()}<section class="card"><h2>Instrument logs</h2><p class="hint">Add one log per machine if your machines export different formats.</p>${logs.map((s,i)=>`<div class="logcard"><p><strong>${esc(s.name)}</strong> · ${s.table.rows.length} rows, ${s.detect.missing.length?'some columns need matching':'columns matched'}</p><label>Instrument<select data-logmachine="${i}"><option value="">The log has an instrument column</option>${[...new Set([...names,...(s.machine?[s.machine]:[])])].map(n=>`<option value="${esc(n)}" ${s.machine===n?'selected':''}>${esc(n)}</option>`).join('')}</select></label>${s.detect.missing.length?mappingView('use',i):''}<button class="link" data-removelog="${i}">Remove</button></div>`).join('')}<label class="drop" data-drop="log"><strong>Add an instrument log</strong><span>or click to choose a CSV or Excel file</span><input id="log-file" type="file" accept=".csv,.xlsx,.xls" multiple></label></section></div>
+  const fcard=FS?folderCard({actions:`<div class="actions"><button class="primary" id="analyze-folder" type="button" ${canAnalyze()?'':'disabled'}>Check this month</button></div>`}):'';
+  return `<div class="page-head"><div><h1>Upload a month</h1><p class="sub">${FS?'Use the files LaBro found in your folder, or add files by hand.':'Add the reservations and the instrument logs for the month.'} CSV and Excel files stay on this computer.</p></div></div>
+  ${fcard}${FS?'<h2 style="margin:20px 0 8px">Or add files by hand</h2>':''}<div class="sources">${bookSection()}<section class="card"><h2>Instrument logs</h2><p class="hint">Add one log per machine if your machines export different formats.</p>${logs.map((s,i)=>`<div class="logcard"><p><strong>${esc(s.name)}</strong> · ${s.table.rows.length} rows, ${s.detect.missing.length?'some columns need matching':'columns matched'}</p><label>Instrument<select data-logmachine="${i}"><option value="">The log has an instrument column</option>${[...new Set([...names,...(s.machine?[s.machine]:[])])].map(n=>`<option value="${esc(n)}" ${s.machine===n?'selected':''}>${esc(n)}</option>`).join('')}</select></label>${s.detect.missing.length?mappingView('use',i):''}<button class="link" data-removelog="${i}">Remove</button></div>`).join('')}<label class="drop" data-drop="log"><strong>Add an instrument log</strong><span>or click to choose a CSV or Excel file</span><input id="log-file" type="file" accept=".csv,.xlsx,.xls" multiple></label></section></div>
   <p class="hint" style="margin-top:12px">If a log has no instrument column, a unique reservation for the same person and day identifies it. Unmatched entries stay unidentified.</p><p id="upload-error" class="error" role="alert"></p>
   <div class="actions"><button id="analyze" class="primary" ${canAnalyze()?'':'disabled'}>Analyze the month</button></div>
   <div class="curious"><strong>Just curious?</strong><span>Try it with simulated data: a made-up month from a small core.</span><button class="secondary" id="mock" type="button">Try it with simulated data</button></div>`;
@@ -332,7 +340,7 @@ function results(){
   const ready=rows.filter(eligible),held=rows.length-ready.length;
   const shown=rows.map((r,i)=>({r,i})).filter(({r})=>resFilter==='all'||(resFilter==='look'?!eligible(r):eligible(r)));
   const tab=(k,l,n)=>`<button type="button" data-filter="${k}" aria-pressed="${resFilter===k}">${l} <span class="hint">${n}</span></button>`;
-  return `<div class="result-head"><div><h1>Ready to bill <span class="figure">${money(ready.reduce((s,r)=>s+r.amount,0))}</span></h1><p class="sub">${plural(ready.length,'session','sessions')} ready · ${held} ${held===1?'session needs':'sessions need'} a look</p></div><button id="export" class="secondary" ${!ready.length||issues.length?'disabled':''}>Export spreadsheet</button></div>
+  return `<div class="result-head"><div><h1>Ready to bill <span class="figure">${money(ready.reduce((s,r)=>s+r.amount,0))}</span></h1><p class="sub">${plural(ready.length,'session','sessions')} ready · ${held} ${held===1?'session needs':'sessions need'} a look</p></div><div class="head-actions"><button id="export" class="secondary" ${!ready.length||issues.length?'disabled':''}>Export spreadsheet</button></div></div>
   ${issues.length?`<div class="banner warn" role="alert"><div><strong>Some source rows could not be read. Correct the files and analyze again before exporting.</strong><ul>${issues.slice(0,10).map(x=>`<li>${esc(x)}</li>`).join('')}${issues.length>10?`<li>and ${issues.length-10} more</li>`:''}</ul></div></div>`:''}
   <div class="tabs" role="group" aria-label="Filter sessions">${tab('all','All',rows.length)}${tab('look','Needs a look',held)}${tab('ready','Ready',ready.length)}</div>
   <p class="legend"><span class="flag k-time">Time</span><span class="flag k-who">Who pays</span><span class="flag k-unusual">Unusual</span><span class="flag k-data">Data</span></p>
@@ -349,15 +357,126 @@ function toast(message){
   try{const a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.frequency.value=660;g.gain.setValueAtTime(.025,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.12);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.12);o.onended=()=>a.close()}catch{}
 }
 
+/* ---------------------------------------------------------------- folder: find the exports without naming them */
+const decoder=new TextDecoder('utf-8');
+const dateShort=d=>S.fmtShortDay(d);
+async function readEntry(file){
+  const bytes=await FS.read(file.name),sheets=[];
+  if(/\.xlsx?$/i.test(file.name)){
+    const wb=XLSX.read(bytes,{type:'array',cellDates:true,dateNF:'yyyy-mm-dd hh:mm:ss'});
+    for(const n of wb.SheetNames)sheets.push({name:n,table:LMAuditCore.parseCSV(XLSX.utils.sheet_to_csv(wb.Sheets[n],{rawNumbers:false})),rows:XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''})});
+  }else{const t=LMAuditCore.parseCSV(decoder.decode(bytes));sheets.push({name:'',table:t,rows:[t.head,...t.rows]})}
+  let pick=null;
+  for(const sh of sheets){const c=I.classify(sh.table);if(c.kind==='reservations'||c.kind==='logs'){pick={sh,c};break}if(c.kind==='prices'&&!pick)pick={sh,c}}
+  if(!pick)return {...file,kind:'unknown',info:{},columns:(sheets[0]&&sheets[0].table.head)||[]};
+  const e={...file,kind:pick.c.kind,info:pick.c,table:pick.sh.table,columns:pick.sh.table.head};
+  if(pick.c.kind==='prices'){e.price=pricesFromSheets(sheets.map(sh=>({name:sh.name||'Sheet',rows:sh.rows})));e.info={...pick.c,items:e.price.items.length}}
+  return e;
+}
+async function refreshFolder(){
+  if(!FS)return;folder.busy=true;
+  try{
+    folder.path=await FS.get();
+    if(!folder.path){folder.entries=[];folder.sig='';return}
+    const files=await FS.scan(),entries=[];
+    for(const f of files.slice(0,60)){
+      const k=f.name+'|'+f.mtime+'|'+f.size;let e=folder.cache.get(k);
+      if(!e){try{e=await readEntry(f)}catch(err){e={...f,kind:'error',info:{error:err.message}}}folder.cache.set(k,e)}
+      entries.push({...e,include:undefined});
+    }
+    I.pickDefaults(entries,folder.entries);folder.entries=entries;folder.error='';
+    folder.sig=entries.map(e=>e.name+e.mtime+e.size).join('|');
+  }catch(e){folder.error=e.message}
+  finally{folder.busy=false;folder.scanned=true}
+}
+// Load the chosen reservation export and logs into the app, keeping the day the person was looking at.
+function applyFolder(){
+  const r=folder.entries.find(e=>e.kind==='reservations'&&e.include),ls=folder.entries.filter(e=>e.kind==='logs'&&e.include);
+  const keep={day:sched.day,sel:sched.sel,view:sched.view};
+  if(r){setReservations(r.table,r.name);if(res&&keep.day!=null&&res.items.some(i=>i.day===keep.day)){sched.day=keep.day;sched.sel=keep.sel;sched.view=keep.view}}
+  logs=ls.map(e=>({name:e.name,table:e.table,detect:detectColumns(e.table,'use'),machine:''}));
+  if(r&&ls.length&&profile&&sources.book&&!sources.book.detect.missing.length&&logs.every(l=>!l.detect.missing.length))calculate();
+  return {reservations:r,logs:ls};
+}
+function priceFromFolder(){const e=folder.entries.find(x=>x.kind==='prices'&&x.include);return e?{name:e.name,result:e.price}:null}
+async function connectFolder(){
+  if(!FS)return;
+  const before=folder.path;await FS.pick();await refreshFolder();
+  if(profile&&folder.path)applyFolder();
+  if(folder.path&&folder.path!==before)toast('Folder connected');
+  render(true);
+}
+let folderTimer=null;
+function watchFolder(){
+  if(!FS)return;
+  FS.onChange(()=>{clearTimeout(folderTimer);folderTimer=setTimeout(async()=>{
+    const old=folder.sig;await refreshFolder();if(folder.sig===old)return;
+    if(profile&&folder.entries.length){const got=applyFolder();if(got.reservations||got.logs.length)toast('Updated from your folder');}
+    if(!document.querySelector('input:focus,textarea:focus,select:focus'))render(true);
+  },400)});
+}
+function folderEntryRow(e,i){
+  const info=e.info||{},label=I.KIND_LABEL[e.kind]||e.kind;
+  const detail=e.kind==='reservations'?`${plural(info.rows,'reservation','reservations')}, ${dateShort(info.first)} to ${dateShort(info.last)}${info.cancelled?`, ${info.cancelled} cancelled`:''}`
+    :e.kind==='logs'?`${plural(info.rows,'row','rows')}${info.first!=null?', '+dateShort(info.first)+' to '+dateShort(info.last):''}, ${info.layout==='events'?'login and logout events':'start and end times'}`
+    :e.kind==='prices'?`${plural(info.items||0,'price','prices')}`:e.kind==='error'?esc(info.error||''):'We could not tell what this file is';
+  const usable=['reservations','logs','prices'].includes(e.kind);
+  return `<li class="frow ${usable?'':'dim'}"><label><input type="checkbox" data-inc="${i}" ${e.include?'checked':''} ${usable?'':'disabled'} aria-label="Use ${esc(e.name)}"><span class="fname">${esc(e.name)}</span></label><span class="pill ${usable?(e.kind==='reservations'?'ok':''):'warn'}">${esc(label)}</span><span class="hint">${detail}</span></li>`;
+}
+function folderCard(opts){
+  if(!FS)return '';
+  const when=folder.entries.length?'':'';
+  if(!folder.path)return `<section class="card"><h2>Connect a folder</h2><p class="hint">Choose the folder where you save exports from ${esc((profile&&profile.booking_system)||'your booking system')}. LaBro reads it, never changes it, and picks up new files on its own.</p><div class="actions"><button class="primary" id="pick-folder" type="button">Choose a folder</button></div></section>`;
+  const list=folder.entries;
+  return `<section class="card"><div class="page-head" style="margin:0 0 6px"><div><h2>Your folder</h2><p class="hint pathline" title="${esc(folder.path)}">${esc(folder.path)}</p></div><div class="head-actions"><button class="secondary" id="rescan" type="button">${folder.busy?'Checking…':'Check again'}</button><button class="secondary" id="pick-folder" type="button">Change folder</button></div></div>
+  ${folder.error?`<p class="error">${esc(folder.error)}</p>`:''}
+  ${list.length?`<ul class="flist">${list.map(folderEntryRow).join('')}</ul><p class="hint" style="margin-top:8px">LaBro chose the newest reservation export and price sheet, and the logs that cover the same dates. Tick or untick to change that.</p>`:`<p class="hint" style="margin:10px 0">${folder.scanned?'No spreadsheets or text files were found in this folder yet. Export reservations from your booking system into it and they appear here.':'Looking…'}</p>`}
+  ${opts&&opts.actions?opts.actions:''}</section>`;
+}
+function startPage(){
+  const hasFolder=!!FS,list=folder.entries,priceFound=list.some(e=>e.kind==='prices'),resvFound=list.some(e=>e.kind==='reservations');
+  const next=hasFolder&&folder.path?`<div class="actions"><button class="primary" id="start-continue" type="button">${priceFound?'Read my pricing and continue':'Continue'}</button>${!priceFound?'<span class="hint">No price sheet was found. You can add one on the next screen.</span>':''}</div>`:'';
+  return `<div class="page-head"><div><h1>Welcome to LaBro</h1><p class="sub">LaBro checks your core's month against its bookings. It reads the exports your booking system already saves, compares them with the instrument logs, and shows what is ready to bill and what needs a look.</p></div></div>
+  <div class="card"><ol class="how-list"><li><strong>Point LaBro at a folder.</strong> The one where you save exports from ${hasFolder?'your booking system (for example FBS)':'FBS, iLab or your booking system'}.</li><li><strong>It finds your files.</strong> Reservations, instrument usage logs and your price sheet, even if the files have odd names.</li><li><strong>Check the pricing, then look at the month.</strong> You see the schedule, the charges, and anything that needs your approval.</li></ol></div>
+  ${hasFolder?folderCard({actions:next}):`<section class="card"><h2>Add your files</h2><p class="hint">This version works with files you add by hand. The desktop app can also watch a folder.</p><div class="actions"><a class="primary" href="#setup">Add my price sheet</a></div></section>`}
+  <div class="curious"><strong>Just curious?</strong><span>Try it with simulated data: a made-up month from a small core, with a sample price sheet. Nothing is saved.</span><button class="secondary" id="sample-start" type="button">Try it with simulated data</button></div>
+  ${hasFolder&&!folder.path?'<p class="hint" style="margin-top:14px">Prefer to type your rules or add files yourself? <a href="#setup">Set up by hand</a>.</p>':''}
+  ${hasFolder&&folder.path&&!priceFound&&!resvFound&&folder.scanned?'<p class="hint" style="margin-top:14px">Nothing recognisable yet. Save a reservation export, usage log or price sheet into the folder and this page updates.</p>':''}`;
+}
+// A throwaway profile built from the sample price sheet, so the app can be tried before any setup.
+async function useSample(){
+  const t=LMAuditCore.parseCSV(await fetch('data/mock/price-sheet.csv').then(r=>r.text()));
+  const d=defaults();d.lab_name='Simulated core';d.booking_system='FBS';applyRateCard(d,R.parseRates([t.head,...t.rows],extractMachineTerm));
+  profile={...defaults(),...d};draft=structuredClone(profile);sampleMode=true;
+}
+
+/* ---------------------------------------------------------------- test report (counts and column names only) */
+function reportData(){
+  const entries=folder.entries||[];
+  const flags={};if(rows)rows.forEach(r=>r.flags.forEach(f=>flags[f]=(flags[f]||0)+1));
+  return {version:APP_VERSION,platform:(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||'unknown',date:new Date().toISOString().slice(0,10),
+    folderConnected:!!folder.path,
+    files:entries.map(e=>({kind:e.kind,include:!!e.include,rows:e.info&&(e.info.rows??e.info.items),columns:e.columns,layout:e.info&&e.info.layout,unread:e.info&&e.info.unread})),
+    reservations:res?{count:res.items.length-res.cancelled,cancelled:res.cancelled,unread:res.issues.length,columns:sources.book&&sources.book.table?folder.entries.find(e=>e.kind==='reservations'&&e.include)?.columns:undefined,issues:res.issues}:null,
+    logs:logs.map(l=>({layout:l.detect.events?'events':'intervals',rows:l.table.rows.length,missing:l.detect.missing,columns:l.table.head})),
+    prices:profile&&(profile.rate_card||[]).length?{items:profile.rate_card.length,tiers:(profile.tiers||[]).map(t=>t.label),afterHours:(profile.rate_card||[]).some(i=>Object.keys(i.after||{}).length),unplaced:(draft.unplaced||[]).length}:null,
+    analysis:rows?{sessions:rows.length,ready:rows.filter(eligible).length,needLook:rows.filter(r=>!eligible(r)).length,unreadable:issues.length,flags}:null};
+}
+async function copyReport(){
+  const text=I.buildReport(reportData());
+  try{await navigator.clipboard.writeText(text);toast('Test report copied. It has counts and column names only.')}
+  catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Test report copied. It has counts and column names only.')}catch{toast('Could not copy the report.')}ta.remove()}
+}
+
 /* ---------------------------------------------------------------- routing and events */
-const TITLES={schedule:'Schedule',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
+const TITLES={start:'Welcome',schedule:'Schedule',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
 function render(keep){
-  let route=location.hash.slice(1)||(profile?'schedule':'setup');
+  let route=location.hash.slice(1)||(profile?'schedule':'start');
   if(route==='dashboard')route='schedule';
-  if(!profile&&route!=='setup'){location.hash='setup';return}
+  if(!profile&&route!=='setup'&&route!=='start'){location.hash='start';return}
   const vp=$('viewport'),top=keep?vp.scrollTop:0,oldCal=document.querySelector('.cal'),sl=keep&&oldCal?oldCal.scrollLeft:0;
-  $('screen').innerHTML=route==='setup'?setup():route==='schedule'?schedule():route==='upload'?upload():route==='progress'?progress():route==='results'?results():schedule();
-  $('lab-title').textContent=profile?.lab_name||'Your lab';$('page-title').textContent=TITLES[route]||'';
+  $('screen').innerHTML=route==='start'?startPage():route==='setup'?setup():route==='schedule'?schedule():route==='upload'?upload():route==='progress'?progress():route==='results'?results():schedule();
+  $('lab-title').textContent=(profile?.lab_name||'Your lab')+(sampleMode?' (simulated)':'');$('page-title').textContent=TITLES[route]||'';
   document.querySelectorAll('#sidebar nav a').forEach(a=>{if(a.hash==='#'+(route==='progress'?'upload':route))a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   if(keep){vp.scrollTop=top;const c=document.querySelector('.cal');if(c)c.scrollLeft=sl}
   bind();
@@ -369,6 +488,13 @@ function bindDrop(kind,handler){
   if(drop){drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};drop.ondragleave=()=>drop.classList.remove('over');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');handler(Array.from(e.dataTransfer.files))}}
 }
 function bind(){
+  /* folder */
+  if($('pick-folder'))$('pick-folder').onclick=connectFolder;
+  if($('rescan'))$('rescan').onclick=async()=>{await refreshFolder();if(profile)applyFolder();render(true)};
+  on('[data-inc]',el=>el.onchange=()=>{const e=folder.entries[+el.dataset.inc];e.include=el.checked;if(el.checked&&(e.kind==='reservations'||e.kind==='prices'))folder.entries.forEach(o=>{if(o!==e&&o.kind===e.kind)o.include=false});if(profile)applyFolder();render(true)});
+  if($('start-continue'))$('start-continue').onclick=async()=>{const pr=priceFromFolder();draft=defaults();priceSrc=pr;review=false;location.hash='setup';if(pr){await new Promise(r=>setTimeout(r,200));await assistant()}};
+  if($('sample-start'))$('sample-start').onclick=async()=>{try{await useSample();await loadMock('schedule')}catch(e){toast(e.message)}};
+  on('[data-report]',b=>b.onclick=copyReport);
   /* setup */
   on('[data-group]',b=>b.onclick=()=>{try{readDraft()}catch(e){$('setup-error').textContent=e.message;return}const k=b.dataset.group,v=b.dataset.value;if(k==='billing')setBilling(draft,v);else draft[k]=k==='round_minutes'?+v:v;render(true)});
   if($('assistant'))$('assistant').onclick=assistant;
@@ -391,7 +517,7 @@ function bind(){
   });
   on('[data-rm]',b=>b.onclick=()=>{try{readDraft()}catch{}draft.rate_card.splice(+b.dataset.rm,1);render(true)});
   if($('add-price'))$('add-price').onclick=()=>{try{readDraft()}catch(e){$('setup-error').textContent=e.message;return}draft.rate_card=draft.rate_card||[];if(!(draft.tiers||[]).length)draft.tiers=[{key:'internal',label:'Internal'}];draft.rate_card.push({machine:'',mode:'self',unit:'hour',hourly:true,rates:{},after:{},line:''});render(true)};
-  if($('save-profile'))$('save-profile').onclick=()=>{try{readDraft();syncMachines();profile={...defaults(),...structuredClone(draft)};delete profile.unplaced;localStorage.setItem('labro-profile',JSON.stringify(profile));review=true;rows=null;rowIndex=new Map();location.hash='schedule'}catch(e){$('setup-error').textContent=e.message}};
+  if($('save-profile'))$('save-profile').onclick=()=>{try{readDraft();syncMachines();profile={...defaults(),...structuredClone(draft)};delete profile.unplaced;localStorage.setItem('labro-profile',JSON.stringify(profile));review=true;rows=null;rowIndex=new Map();sampleMode=false;if(FS&&folder.entries.length)applyFolder();location.hash='schedule'}catch(e){$('setup-error').textContent=e.message}};
   on('[data-mrule]',el=>el.onchange=()=>{const name=(draft.machines_on||[])[+el.dataset.mrule];if(!name)return;draft.machine_rules=draft.machine_rules||{};const rule=draft.machine_rules[name]||{},field=el.dataset.field,value=el.value;if(value==='')delete rule[field];else rule[field]=field==='round_minutes'?+value:value;if(Object.keys(rule).length)draft.machine_rules[name]=rule;else delete draft.machine_rules[name]});
   /* schedule */
   on('[data-res]',b=>b.onclick=()=>{sched.sel=sched.sel===b.dataset.res?null:b.dataset.res;render(true)});
@@ -404,7 +530,7 @@ function bind(){
   on('[data-goto]',a=>a.onclick=()=>{sched.day=+a.dataset.goto;sched.view='day';const r=res.items.find(i=>i.day===sched.day&&key(i.resource)===key(a.dataset.gotoRes));sched.sel=r?r.id:null});
   /* upload and results */
   if($('mock'))$('mock').onclick=()=>loadMock(location.hash==='#upload'?'results':'schedule');
-  if($('analyze'))$('analyze').onclick=run;
+  if($('analyze'))$('analyze').onclick=run;if($('analyze-folder'))$('analyze-folder').onclick=run;
   if($('export'))$('export').onclick=exportCSV;
   on('[data-filter]',b=>b.onclick=()=>{resFilter=b.dataset.filter;render(true)});
   on('[data-approve]',b=>b.onclick=()=>{approved[rows[+b.dataset.approve].id]=document.querySelector(`[data-note="${b.dataset.approve}"]`).value.trim();render(true)});
@@ -415,5 +541,6 @@ function bind(){
   on('[data-map]',el=>el.onchange=()=>{const kind=el.dataset.map,d=(kind==='book'?sources.book:logs[+el.dataset.idx]).detect;d.map[el.dataset.field]=+el.value;d.missing=['user',...(d.events?['timestamp','event']:['start','end']),...(kind==='book'?['instrument']:[])].filter(k=>d.map[k]<0);$('analyze').disabled=!canAnalyze();if(kind==='book'&&el.dataset.field==='instrument')render(true)});
 }
 window.addEventListener('hashchange',()=>{const token=++routeToken;$('screen').classList.add('changing');setTimeout(()=>{if(token!==routeToken)return;$('viewport').scrollTop=0;render();$('screen').classList.remove('changing')},140)});
-if(!location.hash)location.hash=profile?'schedule':'setup';else render();
+if(!location.hash)location.hash=profile?'schedule':'start';else render();
+if(FS){refreshFolder().then(()=>{if(profile&&folder.entries.length){const got=applyFolder();if(got.reservations&&!location.hash.match(/#(setup|progress)/))render(true);return}if(!location.hash.match(/#(setup|progress)/))render(true)});watchFolder()}
 })(typeof window!=='undefined'?window:globalThis);
