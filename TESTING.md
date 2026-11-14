@@ -1,37 +1,46 @@
 # Trying LaBro on a core's computer
 
-This is for a core facility manager who agreed to try LaBro. It takes about ten minutes. LaBro only reads files; it never changes them and never posts anything to FBS, iLab or a finance system.
+Use the [getting-started guide](docs/GETTING_STARTED.md) for installation and navigation. The current verified build is for Apple silicon Mac; Windows execution is not verified. The app is unsigned.
 
-## What you need
-- A Windows PC or an Apple Silicon Mac.
-- One folder, for example `Documents\LaBro month`, containing:
-  1. the month's **reservations**, downloaded from your booking system (FBS, iLab, PPMS...) as Excel or CSV;
-  2. the **usage log** from each instrument (login and logout times, or start and end times);
-  3. your **price sheet** (Excel, CSV, or a text file with the prices).
+## Pilot inputs
 
-The files can have any names. LaBro works out which is which from what is inside them.
+Use one agreed month of reservations, instrument usage logs and prices, exported as CSV or Excel. De-identified files are suitable. Keep the source folder stable while checking it.
 
-## Steps
-1. Install and open LaBro. The app is not signed yet, so Windows may show "Windows protected your PC" (choose More info, then Run anyway) and macOS may ask you to open it from System Settings, Privacy & Security.
-2. On the welcome page choose **Choose a folder** and pick the folder above. LaBro lists what it found.
-3. Choose **Read my pricing and continue**. Check the price table, fix anything wrong, and save.
-4. The **Schedule** fills in from your reservations. Green bars show logged use. Click any reservation for its rate and charge.
-5. **Results** lists every session, with the ones that need a look first.
-6. Choose **Copy test report** in the sidebar and paste it into an email to us.
+## Manager walkthrough
 
-No files to hand yet? Choose **Try it with simulated data** on the welcome page.
+1. Open LaBro. Verify that Home shows a calendar, with uploads underneath.
+2. Choose **Use my spreadsheets** in setup, then select your exports folder or upload reservations/logs on Home.
+3. Confirm the dates, instruments and booking durations against a known source record. Switch day/week views and open a reservation.
+4. Add your price sheet under **Billing rules**. Check prices, user tiers, rounding, after-hours policy and evidence type before saving.
+5. Analyze the month. Compare several charges with the original records and your manual bill. Record useful flags and false positives.
+6. Confirm that unreadable source rows block export. Approving other exceptions must not bypass that block.
+7. If useful, copy the diagnostic report and inspect it before sharing. Sending a report is a separate manual action.
 
-## What the test report contains
-Counts and aggregate review-flag totals. Source headings, names, account or funding codes, file names, folder paths and dollar amounts are omitted. Read it before sending; it is plain text.
+Computer login duration is not necessarily experimental duration. Time spent copying files must not be represented as measured experiment time without the appropriate evidence.
 
-## What leaves the computer
-Nothing, by default. Two things are optional and off until you turn them on:
-- **iLab API token** (Connections page): enter the token in a separate credential window. LaBro calls iLab's API server to confirm the connection and list your equipment. The token is encrypted with the computer's keychain when available; otherwise it stays in memory until the app closes.
-- **AI agent (MCP)**: if you add LaBro to an agent such as Claude Desktop, that agent receives counts and totals. It receives names only if you start the server with `--allow-details`.
+## Optional connectors
 
-## Known limits
-- Unreadable source rows block billing export until the files are corrected and analyzed again; approving other exceptions does not bypass this.
-- FBS has no documented public API, so FBS data comes from the files you download.
-- The iLab connection lists equipment. Reservations still come from an exported report.
-- PDF price sheets are not read; paste the table as text instead.
-- After-hours rates, user-type rates and rounding are applied; cancellation and no-show fees are flagged for you, not calculated.
+- **iLab API:** the secure token window supports equipment retrieval. Real scheduling reports still come from exports.
+- **MCP:** Connections generates separate Claude/Codex settings for an explicitly selected folder. Default responses contain counts and totals without names or account codes. Enabling detailed responses changes what the client receives.
+- **Scheduling agent:** independent FBS/iLab practice systems use synthetic data. Test normal, temporary-rate-limit and invalid-row scenarios. Check retries, duplicate removal, cancellations and blocked import. This does not validate live scheduling access.
+
+## Diagnostic report
+
+The copied report omits source headings, names, account/funding codes, filenames, folder paths and dollar amounts. It contains counts and aggregate review-flag totals.
+
+## Developer checks
+
+```sh
+npm ci
+npm run agent:test
+node tests/agent-mcp.test.cjs
+npm run desktop:test:home
+npm run desktop:test
+npm run desktop:mac
+```
+
+The home smoke covers onboarding, calendar date/month interaction, upload into the calendar, week view, unique element IDs and blocking charges before billing setup. Full desktop smoke covers import/pricing/reconciliation, folder watching, token failure/cancellation/success and both practice agent sources.
+
+## Remaining validation
+
+Live FBS/iLab scheduling, real customer exports, Windows, release signing and model generalization remain unverified. PDF prices require pasted text. Cancellation/no-show fees require manager review. Source-file reads have a documented residual concurrent parent-directory replacement race.

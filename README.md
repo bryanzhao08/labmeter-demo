@@ -4,6 +4,8 @@
 
 Download the `LaBro-0.8.0-mac-arm64.zip` file under **Assets**, unzip it and move LaBro to Applications. The build is unsigned. Windows execution has not been verified.
 
+[Getting started](docs/GETTING_STARTED.md) · [Desktop/build guide](desktop/README.md) · [MCP setup](mcp/README.md) · [Pilot testing](TESTING.md)
+
 ## Calendar-first desktop (0.8.0)
 
 Home opens directly to an interactive calendar, with reservation and instrument-log uploads below. First-time setup offers the scheduling agent or your own spreadsheets. Connections has two sections: **API key or exported files** and **MCP connector**, with separate Claude Desktop JSON and Codex TOML settings. Choose an exports folder, copy the settings, restart your AI client, and ask it to review your sheets. No client configuration is overwritten automatically.

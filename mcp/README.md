@@ -16,6 +16,22 @@ The five read-only tools are `find_exports`, `read_prices`, `check_month`, `sess
 
 Opaque machine and tier IDs are consistent between tools while the selected inputs remain unchanged; they may change when inputs change. Rates are numeric and identify their opaque tier. `mcp/evaluation.xml` contains ten read-only questions for the synthetic `mcp/eval-fixture` data; run the server with `--folder mcp/eval-fixture` to use it.
 
+## Claude Desktop and Codex setup (0.8.0)
+
+In **Connections → 2. MCP connector**, choose Claude Desktop or Codex. Select an exports folder, then copy the generated configuration. The app fills the actual executable, bundled server, folder, optional saved-rules path and `ELECTRON_RUN_AS_NODE` environment setting.
+
+- **Claude Desktop:** Settings → Developer → Edit Config. Merge the generated LaBro entry into `mcpServers` in `claude_desktop_config.json` without replacing unrelated entries. Restart Claude Desktop.
+- **Codex:** merge the generated `[mcp_servers.labro]` and environment table into `~/.codex/config.toml`. Restart Codex.
+- The optional practice-agent checkbox generates a second server entry. It uses synthetic data and a separate in-memory runtime.
+
+LaBro prints/copies settings; it does not change client permissions or configuration automatically. A passing server test does not establish that a particular client's installation is connected.
+
+Suggested prompt:
+
+> Use LaBro to find my exports, read my prices, and check this month. Summarize missing data and sessions needing review. Do not submit charges.
+
+Client references: [MCP local servers / Claude Desktop](https://modelcontextprotocol.io/docs/develop/connect-local-servers), [Codex MCP configuration](https://developers.openai.com/codex/mcp/).
+
 ## Scheduling practice agent (0.7.0)
 
 The five billing tools remain unchanged. A separate bundled `agent/mcp.cjs` server exposes `labro_pull_practice_schedule` and `labro_practice_run_status` for synthetic FBS/iLab sources. The desktop Connections page supplies its settings. It creates its own in-memory runtime and does not import into the app automatically. See [architecture, model training, limits and test instructions](../agent/README.md).
