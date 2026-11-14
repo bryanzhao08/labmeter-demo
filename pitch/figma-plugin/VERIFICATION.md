@@ -5,5 +5,5 @@
 - The mock uses approximate text heights; it cannot establish visual fit, verify actual Figma font availability, or test the Figma API. Font metrics, wrapping, rotated elements, z-order, and every slide require an in-Figma visual review.
 - Figma's documented SlideNode API has no writable speaker-note field. Notes are hidden text layers and need manual transfer. They are not automatically presenter notes.
 - On failure after creation begins, a partial new row may remain; existing rows are not removed. Review the result before running again.
-- No verified microscope photo or product screenshot is bundled. Both visual stand-ins are visibly labeled schematics. The timeline and product data are simulated.
+- A USC Optical Imaging Facility photograph and current app captures are embedded at build time. Photo reuse rights remain unverified; see asset provenance. The timeline and product data are simulated. The embedded screenshots are raster images, while their containing shapes and all other annotations are editable.
 - The plugin has no network access. It requests the named fonts from Figma and falls back to locally available fonts if needed.
