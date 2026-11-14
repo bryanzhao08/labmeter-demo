@@ -1,3 +1,7 @@
+## Scheduling agent prototype (0.7.0)
+
+The desktop app now includes a **Scheduling agent** workspace for independent FBS and iLab practice systems. It fetches paginated synthetic reports, retries temporary failures, maps columns with a small locally trained model, validates records and stages them for manager review. It also exposes a separate scheduling-practice MCP server. Live vendor scheduling access is not claimed. See [agent architecture, training and demo instructions](agent/README.md).
+
 # LaBro demo (formerly LabMeter)
 
 ## Current desktop app (0.6)

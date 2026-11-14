@@ -1,22 +1,51 @@
 {
-  "name": "labro-desktop", "version": "0.6.0", "private": true,
+  "name": "labro-desktop",
+  "version": "0.7.0",
+  "private": true,
   "description": "Local-first core facility requests, billing review and campus reporting",
-  "author": "LaBro", "main": "desktop/main.cjs",
+  "author": "LaBro",
+  "main": "desktop/main.cjs",
   "scripts": {
     "desktop:prepare": "node desktop/prepare.cjs",
     "desktop:start": "npm run desktop:prepare && electron .",
     "desktop:test": "npm run desktop:prepare && electron . --smoke-test",
     "desktop:mac": "npm run desktop:prepare && electron-builder --mac zip --arm64 --publish never",
-    "desktop:win": "npm run desktop:prepare && electron-builder --win nsis --x64 --publish never"
+    "desktop:win": "npm run desktop:prepare && electron-builder --win nsis --x64 --publish never",
+    "agent:train": "node agent/train.cjs",
+    "agent:test": "node tests/agent.test.cjs",
+    "agent:practice": "node agent/practice.cjs"
   },
-  "devDependencies": {"electron": "45.2.3", "electron-builder": "26.18.0"},
+  "devDependencies": {
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0"
+  },
   "build": {
-    "appId": "org.labro.desktop", "productName": "LaBro",
-    "directories": {"output": "release"},
-    "files": ["desktop/main.cjs", "desktop/preload.cjs", "desktop/credential-preload.cjs", "desktop/credential.html", "desktop/credential.js", "desktop/credential.css", "desktop/web/**/*", "package.json"],
-    "mac": {"category": "public.app-category.productivity", "identity": null},
-    "win": {"target": "nsis"},
-    "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true},
+    "appId": "org.labro.desktop",
+    "productName": "LaBro",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/main.cjs",
+      "desktop/preload.cjs",
+      "desktop/credential-preload.cjs",
+      "desktop/credential.html",
+      "desktop/credential.js",
+      "desktop/credential.css",
+      "desktop/web/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "identity": null
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
     "artifactName": "LaBro-${version}-${os}-${arch}.${ext}"
   }
 }

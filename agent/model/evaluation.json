@@ -1,0 +1,9 @@
+{
+  "scope": "Synthetic headers only; no vendor access or real-data validation",
+  "trainingSamples": 80,
+  "heldoutSamples": 20,
+  "correct": 20,
+  "accuracy": 1,
+  "split": "Held-out header phrases; familiar vocabulary, not unseen institutions",
+  "failures": []
+}

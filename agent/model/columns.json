@@ -1,0 +1,205 @@
+{
+  "type": "multinomial-naive-bayes",
+  "version": 1,
+  "samples": 80,
+  "vocabulary": [
+    "account",
+    "affiliation",
+    "at",
+    "begin",
+    "billing",
+    "booked",
+    "booking",
+    "by",
+    "code",
+    "current",
+    "customer",
+    "date",
+    "end",
+    "ends",
+    "equipment",
+    "event",
+    "facility",
+    "finish",
+    "full",
+    "funding",
+    "grant",
+    "group",
+    "id",
+    "identifier",
+    "instrument",
+    "investigator",
+    "lab",
+    "machine",
+    "membership",
+    "mode",
+    "name",
+    "number",
+    "owner",
+    "pi",
+    "pricing",
+    "principal",
+    "project",
+    "rate",
+    "record",
+    "requested",
+    "res",
+    "research",
+    "reservation",
+    "reserved",
+    "resource",
+    "service",
+    "start",
+    "starts",
+    "state",
+    "status",
+    "tier",
+    "time",
+    "timestamp",
+    "training",
+    "type",
+    "usage",
+    "user"
+  ],
+  "classes": {
+    "id": {
+      "docs": 8,
+      "total": 16,
+      "words": {
+        "reservation": 3,
+        "id": 4,
+        "booking": 3,
+        "number": 2,
+        "identifier": 2,
+        "res": 1,
+        "event": 1
+      }
+    },
+    "resource": {
+      "docs": 8,
+      "total": 13,
+      "words": {
+        "resource": 3,
+        "name": 4,
+        "equipment": 2,
+        "instrument": 2,
+        "facility": 1,
+        "machine": 1
+      }
+    },
+    "user": {
+      "docs": 8,
+      "total": 17,
+      "words": {
+        "reserved": 1,
+        "by": 3,
+        "booked": 1,
+        "user": 2,
+        "name": 3,
+        "full": 1,
+        "customer": 1,
+        "requested": 1,
+        "reservation": 1,
+        "owner": 2,
+        "booking": 1
+      }
+    },
+    "start": {
+      "docs": 8,
+      "total": 17,
+      "words": {
+        "start": 5,
+        "date": 1,
+        "time": 3,
+        "timestamp": 2,
+        "begin": 2,
+        "booking": 1,
+        "reservation": 1,
+        "starts": 1,
+        "at": 1
+      }
+    },
+    "end": {
+      "docs": 8,
+      "total": 17,
+      "words": {
+        "end": 5,
+        "date": 1,
+        "time": 3,
+        "timestamp": 2,
+        "finish": 2,
+        "booking": 1,
+        "reservation": 1,
+        "ends": 1,
+        "at": 1
+      }
+    },
+    "status": {
+      "docs": 8,
+      "total": 15,
+      "words": {
+        "reservation": 2,
+        "status": 6,
+        "booking": 2,
+        "state": 2,
+        "event": 1,
+        "record": 1,
+        "current": 1
+      }
+    },
+    "lab": {
+      "docs": 8,
+      "total": 15,
+      "words": {
+        "lab": 5,
+        "name": 2,
+        "research": 2,
+        "group": 2,
+        "principal": 1,
+        "investigator": 1,
+        "pi": 1,
+        "customer": 1
+      }
+    },
+    "account": {
+      "docs": 8,
+      "total": 15,
+      "words": {
+        "account": 5,
+        "code": 4,
+        "billing": 2,
+        "funding": 2,
+        "grant": 1,
+        "project": 1
+      }
+    },
+    "service": {
+      "docs": 8,
+      "total": 15,
+      "words": {
+        "service": 5,
+        "type": 4,
+        "reservation": 1,
+        "usage": 1,
+        "booking": 1,
+        "mode": 1,
+        "training": 1,
+        "instrument": 1
+      }
+    },
+    "tier": {
+      "docs": 8,
+      "total": 16,
+      "words": {
+        "user": 2,
+        "type": 4,
+        "rate": 1,
+        "tier": 3,
+        "customer": 2,
+        "membership": 1,
+        "affiliation": 2,
+        "pricing": 1
+      }
+    }
+  }
+}

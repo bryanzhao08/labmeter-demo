@@ -9,7 +9,7 @@ protocol.registerSchemesAsPrivileged([{scheme:'labro',privileges:{standard:true,
 const root = path.join(__dirname,'web');
 function local(url) { try { const u=new URL(url); return u.protocol==='labro:'&&u.host==='app'; } catch {return false;} }
 function external(url) { if (/^https:\/\//i.test(url)) shell.openExternal(url); }
-let main, credentialWindow;
+let main, credentialWindow, schedulingAgent;
 // ---- Connections: booking-system API access ----
 // The token is typed by the manager, encrypted with the operating system's keychain, and used only
 // in this process. The page can ask "is a token saved" but can never read it back.
@@ -103,6 +103,16 @@ function listFiles(){
   return out.sort((a,b)=>b.mtime-a.mtime).slice(0,200);
 }
 const trusted=e=>{try{return new URL(e.senderFrame.url).protocol==='labro:'}catch{return false}};
+// Scheduling agent is local-only. The renderer never supplies a network URL or script.
+const agentTrusted=e=>trusted(e)&&e.sender===main?.webContents&&e.senderFrame===main.webContents.mainFrame;
+for(const action of ['info','start','get','cancel'])ipcMain.handle('labro:agent:'+action,(e,input)=>{
+  if(!agentTrusted(e)||!schedulingAgent)throw Error('Scheduling agent is unavailable.');
+  return schedulingAgent[action](input);
+});
+ipcMain.handle('labro:agent:practice',async(e,system)=>{
+  if(!agentTrusted(e)||!schedulingAgent)throw Error('Scheduling agent is unavailable.');
+  await shell.openExternal(schedulingAgent.practiceURL(system));return true;
+});
 ipcMain.handle('labro:conn:get',e=>trusted(e)?connPublic():null);
 ipcMain.handle('labro:conn:save',async(e,d)=>{
   if(!trusted(e)||e.sender!==main.webContents||!d||typeof d!=='object')throw new Error('Not allowed');
@@ -152,7 +162,7 @@ ipcMain.handle('labro:mcp:info',e=>{
   if(!trusted(e))return null;
   const script=path.join(root,'mcp','labro-mcp.cjs');
   const args=[script,'--folder',folder||'<your exports folder>'];if(fs.existsSync(rulesPath()))args.push('--rules',rulesPath());
-  return {available:fs.existsSync(script),command:process.execPath,args,env:{ELECTRON_RUN_AS_NODE:'1'},folder};
+  return {available:fs.existsSync(script),command:process.execPath,args,env:{ELECTRON_RUN_AS_NODE:'1'},folder,agentArgs:[path.join(root,'agent','mcp.cjs')]};
 });
 ipcMain.handle('labro:folder:get',e=>trusted(e)?folder:null);
 ipcMain.handle('labro:folder:pick',async e=>{
@@ -308,8 +318,24 @@ async function createWindow() {
       if(seen.length!==2||seen.some(x=>!/^\/v1\/cores\/5582\/equipment\.json$/.test(x.url)))throw new Error('Unexpected API calls: '+JSON.stringify(seen.map(x=>x.url)));
       if(seen[0].auth!=='bearer wrong-token'||seen[seen.length-1].auth!=='bearer test-token-123')throw new Error('Token not sent as a bearer header');
       if(fs.existsSync(connPath()))throw new Error('Connection file left behind after removal');
+      const agentResult=await main.webContents.executeJavaScript(String.raw`(async()=>{
+        const wait=async fn=>{for(let i=0;i<300;i++){if(fn())return;await new Promise(r=>setTimeout(r,30))}throw Error('Agent UI timed out')};
+        location.hash='agent';await wait(()=>document.getElementById('agent-run'));
+        const btn=id=>document.getElementById(id);
+        btn('agent-scenario').value='invalid';btn('agent-scenario').dispatchEvent(new Event('change'));btn('agent-run').click();
+        await wait(()=>btn('agent-import'));if(!btn('agent-import').disabled||!document.body.innerText.includes('Import blocked'))throw Error('Invalid source row did not block import');
+        btn('agent-system').value='fbs';btn('agent-system').dispatchEvent(new Event('change'));btn('agent-scenario').value='retry';btn('agent-scenario').dispatchEvent(new Event('change'));btn('agent-run').click();
+        await wait(()=>btn('agent-import')&&!btn('agent-import').disabled);
+        if(!document.body.innerText.includes('Source returned 429'))throw Error('Retry trace missing');
+        btn('agent-import').click();await wait(()=>location.hash==='#schedule'&&document.querySelector('.blk'));
+        if(!document.body.innerText.includes('John'))throw Error('Agent reservations missing from schedule');
+        location.hash='agent';await wait(()=>btn('agent-system'));btn('agent-system').value='ilab';btn('agent-system').dispatchEvent(new Event('change'));btn('agent-scenario').value='normal';btn('agent-scenario').dispatchEvent(new Event('change'));btn('agent-run').click();
+        await wait(()=>btn('agent-import')&&!btn('agent-import').disabled);
+        if(!document.body.innerText.includes('24 unique bookings'))throw Error('iLab normalized count wrong');
+        return {fbs:true,ilab:true,invalidBlocked:true,retry:true,import:true};
+      })()`);
       fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-app.png'),(await main.webContents.capturePage()).toPNG());
-      console.log('DESKTOP PASS '+JSON.stringify({...result,watched,connected}));app.exit(0);
+      console.log('DESKTOP PASS '+JSON.stringify({...result,watched,connected,agent:agentResult}));app.exit(0);
     } catch(e){console.error(e);app.exit(1);}
   }
 }
@@ -334,7 +360,9 @@ app.whenReady().then(async()=>{
     {label:'File',submenu:[{role:'close'}]},
     {role:'editMenu'},{role:'viewMenu'},{role:'windowMenu'}
   ]));
+  schedulingAgent=await require('./web/agent/runtime.cjs').createRuntime({directory:path.join(app.getPath('userData'),'agent-runs')});
   await createWindow();
 });
+app.on('before-quit',()=>{if(schedulingAgent)void schedulingAgent.close()});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin'||smoke)app.quit();});
 app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)createWindow();});

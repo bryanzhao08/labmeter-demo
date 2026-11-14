@@ -3,7 +3,7 @@
 'use strict';
 if(typeof document==='undefined')return;
 const H=root.LBHelpers,R=root.LBRates,S=root.LBSchedule,E=root.LBReconcile,I=root.LBIntake,FS=root.labroFS||null;
-const APP_VERSION='0.6.0',CONN=root.labroConn||null;
+const APP_VERSION='0.7.0',CONN=root.labroConn||null;
 const {choices,detectColumns,keywordParser,validateModel,extractMachines,machineRulesFrom,policyFor,outliers,flagKind,applyRateCard,setBilling,tierKey,MODE_NAME}=H;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -468,15 +468,15 @@ function otherCard(){
   return `<section class="card"><h2>Connect to ${esc(v.label)} through its exports</h2><p class="hint">Download the month's reservations from ${esc(v.label)} as Excel or CSV into one folder, along with your usage logs and price sheet. LaBro works out which file is which.</p>${folderStatus()}</section>`;
 }
 function mcpCard(){
-  const m=cx.mcp,cfg=m&&m.available?JSON.stringify({mcpServers:{labro:{command:m.command,args:m.args,env:m.env}}},null,2):'';
-  return `<section class="card"><h2>Let an AI agent run LaBro</h2><p class="hint">LaBro includes an MCP server, the standard way for an AI agent to use a tool. An agent such as Claude Desktop can find your exports, read the price sheet and run the month check. By default it receives counts and totals, not names or account codes.</p>
+  const m=cx.mcp,cfg=m&&m.available?JSON.stringify({mcpServers:{labro:{command:m.command,args:m.args,env:m.env},...(m.agentArgs?{'labro-scheduling-practice':{command:m.command,args:m.agentArgs,env:m.env}}:{})}},null,2):'';
+  return `<section class="card"><h2>Let an AI agent run LaBro</h2><p class="hint">LaBro includes an MCP server, the standard way for an AI agent to use a tool. An agent such as Claude Desktop can find your exports, read the price sheet and run the month check. By default it receives counts and totals, not names or account codes. The separate scheduling-practice server can summon the new agent against synthetic FBS and iLab sources; its runs are separate from this desktop workspace.</p>
   ${cfg?`<label for="mcp-config">Add this to your agent's MCP settings</label><textarea id="mcp-config" rows="9" readonly spellcheck="false" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">${esc(cfg)}</textarea><div class="actions" style="margin-top:8px"><button class="secondary" id="mcp-copy" type="button">Copy settings</button>${m.folder?'':'<span class="hint">Connect a folder first so the settings point at it.</span>'}</div>`:`<p class="hint" style="margin-top:8px">${CONN?'The MCP server is not included in this build.':'Available in the desktop app.'}</p>`}</section>`;
 }
 function connections(){
   if(!cx.loaded){loadConnections().then(()=>{if(location.hash==='#connect')render(true)});return `<div class="page-head"><div><h1>Connections</h1></div></div><div class="card"><p class="hint">Loading…</p></div>`}
   const sys=cx.system;
   return `<div class="page-head"><div><h1>Connections</h1><p class="sub">Tell LaBro which booking system your core uses and how to reach it.</p></div></div>
-  ${systemCard()}${sys==='ilab'?ilabCard():sys==='fbs'?fbsCard():otherCard()}${mcpCard()}`;
+  <div class="banner"><div><strong>Try the scheduling agent.</strong> Pull bookings from the FBS and iLab practice systems, then review them before importing. <a href="#agent">Open scheduling agent</a></div></div>${systemCard()}${sys==='ilab'?ilabCard():sys==='fbs'?fbsCard():otherCard()}${mcpCard()}`;
 }
 const SYSTEM_TO_PROFILE={fbs:'FBS',ilab:'iLab',ppms:'PPMS',booked:'Booked Scheduler'};
 function chooseSystem(k){cx.system=k;cx.test=null;cx.error='';if(profile){profile.booking_system=SYSTEM_TO_PROFILE[k]||'Other';draft.booking_system=profile.booking_system;try{localStorage.setItem('labro-profile',JSON.stringify(profile))}catch{}}}
@@ -500,13 +500,13 @@ async function copyReport(){
 }
 
 /* ---------------------------------------------------------------- routing and events */
-const TITLES={connect:'Connections',start:'Welcome',schedule:'Schedule',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
+const TITLES={agent:'Scheduling agent',connect:'Connections',start:'Welcome',schedule:'Schedule',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
 function render(keep){
   let route=location.hash.slice(1)||(profile?'schedule':'start');
   if(route==='dashboard')route='schedule';
-  if(!profile&&route!=='setup'&&route!=='start'&&route!=='connect'){location.hash='start';return}
+  if(!profile&&route!=='setup'&&route!=='start'&&route!=='connect'&&route!=='agent'){location.hash='start';return}
   const vp=$('viewport'),top=keep?vp.scrollTop:0,oldCal=document.querySelector('.cal'),sl=keep&&oldCal?oldCal.scrollLeft:0;
-  $('screen').innerHTML=route==='start'?startPage():route==='connect'?connections():route==='setup'?setup():route==='schedule'?schedule():route==='upload'?upload():route==='progress'?progress():route==='results'?results():schedule();
+  $('screen').innerHTML=route==='agent'?root.LBAgentUI.render():route==='start'?startPage():route==='connect'?connections():route==='setup'?setup():route==='schedule'?schedule():route==='upload'?upload():route==='progress'?progress():route==='results'?results():schedule();
   $('lab-title').textContent=(profile?.lab_name||'Your lab')+(sampleMode?' (simulated)':'');$('page-title').textContent=TITLES[route]||'';
   document.querySelectorAll('#sidebar nav a').forEach(a=>{if(a.hash==='#'+(route==='progress'?'upload':route))a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   if(keep){vp.scrollTop=top;const c=document.querySelector('.cal');if(c)c.scrollLeft=sl}
@@ -518,7 +518,19 @@ function bindDrop(kind,handler){
   if(input)input.onchange=()=>{handler(Array.from(input.files));input.value=''};
   if(drop){drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};drop.ondragleave=()=>drop.classList.remove('over');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');handler(Array.from(e.dataTransfer.files))}}
 }
+function importAgentRun(run){
+  // Explicit manager action replaces this workspace's records; never pushes charges upstream.
+  setReservations(run.result.table,run.system.toUpperCase()+' agent · '+run.month+' (synthetic)');
+  logs=[{name:'Synthetic computer usage',table:run.result.usage,detect:detectColumns(run.result.usage,'use')}];
+  if(!profile){profile=defaults();draft=structuredClone(profile)}
+  const names=run.result.resources.map(r=>r.name);
+  profile.machines=names;profile.machines_on=names;profile.booking_system=run.system==='fbs'?'FBS':'iLab';
+  draft=structuredClone(profile);sampleMode=true;
+  // Practice configuration is temporary; reload restores the manager's saved rules.
+  location.hash='schedule';render();
+}
 function bind(){
+  if(location.hash==='#agent')root.LBAgentUI.bind({render,toast,importRun:importAgentRun});
   /* folder */
   if($('pick-folder'))$('pick-folder').onclick=connectFolder;
   if($('rescan'))$('rescan').onclick=async()=>{await refreshFolder();if(profile)applyFolder();render(true)};

@@ -17,3 +17,11 @@ contextBridge.exposeInMainWorld('labroConn',{
   mcp:()=>ipcRenderer.invoke('labro:mcp:info'),
   saveRules:json=>ipcRenderer.invoke('labro:rules:save',String(json))
 });
+
+contextBridge.exposeInMainWorld('labroAgent',{
+  info:()=>ipcRenderer.invoke('labro:agent:info'),
+  start:input=>ipcRenderer.invoke('labro:agent:start',{system:String(input.system),month:String(input.month),scenario:String(input.scenario||'normal')}),
+  get:id=>ipcRenderer.invoke('labro:agent:get',String(id)),
+  cancel:id=>ipcRenderer.invoke('labro:agent:cancel',String(id)),
+  openPractice:system=>ipcRenderer.invoke('labro:agent:practice',String(system))
+});

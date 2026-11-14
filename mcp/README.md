@@ -15,3 +15,7 @@ Files with symbolic-link components inside the selected folder are rejected. Eac
 The five read-only tools are `find_exports`, `read_prices`, `check_month`, `sessions_needing_review`, and `test_report`. JSON results are available as both text and structured content. `check_month` returns the session count as `sessions` and, when details are enabled, individual records as `session_details`. The server reads the folder afresh on each call and does not write to it.
 
 Opaque machine and tier IDs are consistent between tools while the selected inputs remain unchanged; they may change when inputs change. Rates are numeric and identify their opaque tier. `mcp/evaluation.xml` contains ten read-only questions for the synthetic `mcp/eval-fixture` data; run the server with `--folder mcp/eval-fixture` to use it.
+
+## Scheduling practice agent (0.7.0)
+
+The five billing tools remain unchanged. A separate bundled `agent/mcp.cjs` server exposes `labro_pull_practice_schedule` and `labro_practice_run_status` for synthetic FBS/iLab sources. The desktop Connections page supplies its settings. It creates its own in-memory runtime and does not import into the app automatically. See [architecture, model training, limits and test instructions](../agent/README.md).

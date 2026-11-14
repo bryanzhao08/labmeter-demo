@@ -4,7 +4,7 @@ fs.mkdirSync(out, { recursive: true });
 for (const name of fs.readdirSync(root)) {
   if (/\.(js|cjs|html|css)$/.test(name)) fs.copyFileSync(path.join(root,name),path.join(out,name));
 }
-for (const name of ['data','collector','vendor','media','fonts','mcp'])
+for (const name of ['data','collector','vendor','media','fonts','mcp','agent'])
   if (fs.existsSync(path.join(root,name))) fs.cpSync(path.join(root,name), path.join(out,name), {recursive:true});
 // The MCP server reads its version from the package file one level up.
 fs.copyFileSync(path.join(root,'package.json'), path.join(out,'package.json'));
