@@ -1,0 +1,8 @@
+{
+  "name": "LaBro v6 Slides",
+  "id": "labro-v6-native-slides-local",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["slides"],
+  "networkAccess": { "allowedDomains": ["none"] }
+}
