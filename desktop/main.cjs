@@ -3,7 +3,8 @@ const path = require('node:path');
 const {pathToFileURL} = require('node:url');
 const fs = require('node:fs');
 const {readSafeFile}=require('./web/safe-read.cjs');
-const smoke = process.argv.includes('--smoke-test');
+const homeSmoke=process.argv.includes('--home-smoke-test');
+const smoke = process.argv.includes('--smoke-test')||homeSmoke;
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(),'labro-desktop-test-')));
 protocol.registerSchemesAsPrivileged([{scheme:'labro',privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
 const root = path.join(__dirname,'web');
@@ -72,6 +73,7 @@ const FILE_RX=/\.(csv|tsv|txt|xlsx|xls)$/i, MAX_BYTES=20*1024*1024;
 let folder=null, watcher=null, timer=null;
 const cfgPath=()=>path.join(app.getPath('userData'),'folder.json');
 function loadFolder(){
+  if(homeSmoke)return null;
   if(smoke){
     // A throwaway folder with oddly named exports, as a real manager's Downloads folder would have.
     const d=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'labro-folder-test-')),m=path.join(root,'data','mock');
@@ -188,12 +190,42 @@ async function createWindow() {
     external(url); return {action:'deny'};
   });
   await main.loadURL('labro://app/app.html');
+  if(homeSmoke){
+    try{
+      const home=await main.webContents.executeJavaScript(String.raw`(async()=>{
+        const wait=async fn=>{for(let i=0;i<250;i++){if(fn())return;await new Promise(r=>setTimeout(r,30))}throw Error('Home UI timed out')};
+        await wait(()=>document.getElementById('setup-welcome')?.open);
+        if(!document.querySelector('.month-grid')||!document.getElementById('home-uploads'))throw Error('Initial calendar/upload missing');
+        document.querySelector('[data-welcome="agent"]').click();await wait(()=>document.getElementById('agent-run'));
+        location.hash='schedule';await wait(()=>document.querySelector('[data-home-day]'));
+        if(document.getElementById('setup-welcome'))throw Error('Welcome popup returned after dismissal');
+        document.querySelector('[data-home-day]').click();
+        if(!document.querySelector('[data-home-day][aria-pressed="true"]'))throw Error('Calendar date selection failed');
+        const month=document.querySelector('.datebox h2').textContent;document.querySelector('[data-home-month="1"]').click();
+        if(document.querySelector('.datebox h2').textContent===month)throw Error('Calendar month navigation failed');
+        document.getElementById('home-today').click();
+        const input=document.getElementById('book-file'),dt=new DataTransfer();
+        dt.items.add(new File(['Reservation ID,Resource,Owner,Start,End,Reservation type\nR1,Confocal microscope,John,2026-10-02 09:00,2026-10-02 11:00,Self-service'], 'home-reservations.csv',{type:'text/csv'}));input.files=dt.files;input.dispatchEvent(new Event('change'));
+        await wait(()=>document.querySelector('.blk'));
+        const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);if(new Set(ids).size!==ids.length)throw Error('Home has duplicate element IDs');
+        if(!document.getElementById('book-file')||!document.getElementById('log-file'))throw Error('Uploads missing below imported calendar');
+        document.querySelector('[data-view="week"]').click();if(!document.querySelector('.week'))throw Error('Week view failed');
+        if(!document.getElementById('analyze').disabled)throw Error('Billing enabled before rules are configured');
+        return {calendar:true,onboarding:true,dateSelection:true,monthNavigation:true,upload:true,week:true,uniqueIds:true};
+      })()`);
+      console.log('HOME PASS '+JSON.stringify(home));app.exit(0);return;
+    }catch(e){console.error(e);app.exit(1);return}
+  }
   if(smoke) {
     try {
       const result=await main.webContents.executeJavaScript(String.raw`(async()=>{
         const pause=ms=>new Promise(r=>setTimeout(r,ms));
         const wait=async fn=>{for(let i=0;i<300;i++){if(fn())return;await pause(50)}throw Error('Timed out waiting for app state')};
-        await wait(()=>document.querySelector('.how-list'));
+        await wait(()=>document.getElementById('setup-welcome'));
+        if(location.hash!=='#schedule'||!document.getElementById('home-uploads'))throw Error('Home is not calendar-first');
+        document.querySelector('[data-welcome="skip"]').click();
+        // Empty calendars are interactive before any scheduling data exists.
+        location.hash='start';await wait(()=>document.querySelector('.how-list'));
         const sidebar=document.getElementById('sidebar');
         if(typeof require!=='undefined')throw Error('Node exposed');
         if(!window.XLSX)throw Error('Offline spreadsheet reader missing');
@@ -289,7 +321,7 @@ async function createWindow() {
         const wait=async fn=>{for(let i=0;i<300;i++){if(fn())return;await pause(50)}throw Error('Timed out waiting for connections page')};
         location.hash='connect';await wait(()=>document.getElementById('sys-url'));
         document.getElementById('sys-url').value='usc.fbs.io';document.getElementById('sys-find').click();
-        await wait(()=>/Connect to FBS through its exports/.test(document.body.innerText));
+        await wait(()=>document.getElementById('api-section')&&/FBS: no API key needed/.test(document.body.innerText));
         if(!/Folder connected/.test(document.body.innerText))throw Error('FBS card does not show the connected folder');
         document.getElementById('sys-url').value='https://my.ilabsolutions.com/service_center/show_external/5582';document.getElementById('sys-find').click();
         await wait(()=>document.getElementById('ilab-save'));
@@ -309,6 +341,10 @@ async function createWindow() {
         if(!info.hasToken||JSON.stringify(info).includes('test-token'))throw Error('Token readable from the page');
         if(document.documentElement.innerHTML.includes('test-token-123'))throw Error('Token present in the page');
         const cfg=document.getElementById('mcp-config');if(!cfg||!/labro-mcp\.cjs/.test(cfg.value)||!/--rules/.test(cfg.value)||!/ELECTRON_RUN_AS_NODE/.test(cfg.value))throw Error('MCP settings incomplete');
+        document.querySelector('[data-mcp-client="codex"]').click();
+        if(!document.getElementById('mcp-config').value.includes('[mcp_servers.labro]'))throw Error('Codex TOML config missing');
+        document.querySelector('[data-mcp-client="claude"]').click();
+        if(!JSON.parse(document.getElementById('mcp-config').value).mcpServers.labro)throw Error('Claude JSON config missing');
         document.getElementById('ilab-machines').click();
         document.getElementById('conn-forget').click();await wait(()=>!document.getElementById('conn-forget'));
         return true})()`);

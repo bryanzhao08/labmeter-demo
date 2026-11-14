@@ -1,10 +1,22 @@
+# LaBro
+
+[**Download LaBro for Mac (Apple silicon)**](https://github.com/bryanzhao08/labmeter-demo/releases/latest) · [Source code](https://github.com/bryanzhao08/labmeter-demo)
+
+Download the `LaBro-0.8.0-mac-arm64.zip` file under **Assets**, unzip it and move LaBro to Applications. The build is unsigned. Windows execution has not been verified.
+
+## Calendar-first desktop (0.8.0)
+
+Home opens directly to an interactive calendar, with reservation and instrument-log uploads below. First-time setup offers the scheduling agent or your own spreadsheets. Connections has two sections: **API key or exported files** and **MCP connector**, with separate Claude Desktop JSON and Codex TOML settings. Choose an exports folder, copy the settings, restart your AI client, and ask it to review your sheets. No client configuration is overwritten automatically.
+
+For development: `npm install`, then `npm run desktop:start`. Verify with `npm run desktop:test:home` and `npm run desktop:test`.
+
 ## Scheduling agent prototype (0.7.0)
 
 The desktop app now includes a **Scheduling agent** workspace for independent FBS and iLab practice systems. It fetches paginated synthetic reports, retries temporary failures, maps columns with a small locally trained model, validates records and stages them for manager review. It also exposes a separate scheduling-practice MCP server. Live vendor scheduling access is not claimed. See [agent architecture, training and demo instructions](agent/README.md).
 
-# LaBro demo (formerly LabMeter)
+## Earlier prototypes (formerly LabMeter)
 
-## Current desktop app (0.6)
+### Desktop foundation (0.6)
 
 Start with `npm run desktop:start` or `app.html`. LaBro reads a chosen folder of reservation exports, usage logs and prices, compares the records locally, and presents exceptions before CSV export. The desktop runtime is Electron and JavaScript; no backend server or database is required. Optional iLab equipment access runs in the desktop main process, and `mcp/labro-mcp.cjs` exposes the same workflow through five read-only tools. See `desktop/README.md`, `TESTING.md` and `mcp/README.md`.
 

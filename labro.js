@@ -3,7 +3,7 @@
 'use strict';
 if(typeof document==='undefined')return;
 const H=root.LBHelpers,R=root.LBRates,S=root.LBSchedule,E=root.LBReconcile,I=root.LBIntake,FS=root.labroFS||null;
-const APP_VERSION='0.7.0',CONN=root.labroConn||null;
+const APP_VERSION='0.8.0',CONN=root.labroConn||null;
 const {choices,detectColumns,keywordParser,validateModel,extractMachines,machineRulesFrom,policyFor,outliers,flagKind,applyRateCard,setBilling,tierKey,MODE_NAME}=H;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -16,11 +16,14 @@ const defaults=()=>({lab_name:'Your lab',description:'',booking_system:'FBS',bas
   rates:{self:60,assisted:125,training:125},machines:[],machines_on:[],machine_rules:{},rate_card:[],tiers:[],default_tier:'internal',
   after_hours:null,price_notes:[],alert_over:'',context:'',notes:''});
 let profile=null;try{const p=JSON.parse(localStorage.getItem('labro-profile'));if(p&&typeof p==='object')profile={...defaults(),...p}}catch{}
-let draft=profile?structuredClone(profile):defaults();
-let review=!!profile,badge='',priceSrc=null;
+let configured=!!profile;profile=profile||defaults();
+let onboarding=!configured&&!localStorage.getItem('labro-onboarded');
+let homeMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),homeDay=null;
+let draft=structuredClone(profile);
+let review=configured,badge='',priceSrc=null;
 let res=null,sources={},logs=[],rows=null,rowIndex=new Map(),issues=[],approved={},routeToken=0;
 let sched={view:'day',day:null,sel:null,hidden:new Set()},resFilter='all';
-let cx={info:null,system:null,guess:null,guessText:'',apps:null,test:null,busy:false,mcp:null,loaded:false,error:''};
+let cx={info:null,system:null,guess:null,guessText:'',apps:null,test:null,busy:false,mcp:null,loaded:false,error:'',client:'claude',practice:false};
 let folder={path:null,entries:[],busy:false,error:'',cache:new Map(),sig:'',scanned:false},sampleMode=false;
 
 /* ---------------------------------------------------------------- rules (setup) */
@@ -219,15 +222,16 @@ function drawer(it){
 }
 function billingLabelFor(it){const p=policyFor(profile,it.resource);return (p.evidence==='acquisition'?'Acquisition time':p.basis==='actual'?'Used only':p.basis==='booked'?'Booked only':'Booked plus used')+', rounded up to '+p.round+' min'}
 function emptySchedule(){
-  if(FS&&folder.path)return `<div class="page-head"><div><h1>Schedule</h1><p class="sub">Reservations from your booking system, with what was actually used.</p></div></div>${folderCard({})}<div class="card empty"><h2>No reservation export in this folder yet</h2><p class="hint" style="max-width:56ch;margin:0 auto">Export reservations from ${esc(profile.booking_system)} into the folder above. The schedule fills in as soon as the file appears.</p><div class="curious" style="margin-top:22px;text-align:left"><strong>Just curious?</strong><span>Try it with simulated data: a made-up month from a small core.</span><button class="secondary" id="mock" type="button">Try it with simulated data</button></div></div>`;
-  return `<div class="page-head"><div><h1>Schedule</h1><p class="sub">Reservations from your booking system, with what was actually used.</p></div></div>
-  <div class="card empty"><h2>Import your reservations</h2><p class="hint" style="max-width:56ch;margin:0 auto">Export your reservations from ${esc(profile.booking_system)} as a CSV or Excel file and add it here. LaBro reads the export, so nothing needs to be connected.</p>
-  <label class="drop" data-drop="book"><strong>Drop your reservation export here</strong><span>or click to choose a CSV or Excel file</span><input id="book-file" type="file" accept=".csv,.xlsx,.xls"></label>
-  <div class="how"><span>1. Export from ${esc(profile.booking_system)}</span><span>2. Drop it here</span><span>3. See the schedule and the bill</span></div>
-  <div class="curious" style="margin-top:22px;text-align:left"><strong>Just curious?</strong><span>Try it with simulated data: a made-up month from a small core.</span><button class="secondary" id="mock" type="button">Try it with simulated data</button></div></div>`;
+  const y=homeMonth.getFullYear(),m=homeMonth.getMonth(),first=new Date(y,m,1),offset=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate();
+  const today=S.ymd(Math.floor(Date.now()/86400000));
+  const cells=Array.from({length:42},(_,i)=>{const d=i-offset+1;if(d<1||d>days)return '<div class="month-blank" aria-hidden="true"></div>';const date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');return `<button class="month-day" data-home-day="${date}" aria-pressed="${homeDay===date}" aria-label="${date}${date===today?', today':''}"><strong>${d}</strong>${date===today?'<span>Today</span>':''}${homeDay===date?'<small>No bookings imported</small>':''}</button>`}).join('');
+  return `<div class="page-head"><div><h1>Schedule</h1><p class="sub">Choose a day to explore your calendar. Add reservations below to fill it.</p></div><button class="secondary" data-open-setup>Set up LaBro</button></div>
+  <section class="card home-calendar"><div class="toolbar"><div class="datebox"><button class="btn" data-home-month="-1" aria-label="Previous month">‹</button><h2>${first.toLocaleString('en-US',{month:'long',year:'numeric'})}</h2><button class="btn" data-home-month="1" aria-label="Next month">›</button></div><button class="secondary" id="home-today">Today</button></div><div class="month-grid" role="group" aria-label="Schedule calendar">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="month-label">${d}</div>`).join('')}${cells}</div><p class="hint" role="status" style="margin-top:12px">${homeDay?esc(homeDay)+': no bookings imported yet.':'Your calendar is ready. Upload a reservation export or run the scheduling agent.'}</p></section>`;
 }
+function setupWelcome(){return `<dialog id="setup-welcome" aria-labelledby="welcome-title"><div class="welcome-body"><h2 id="welcome-title">How would you like to start?</h2><p>Let LaBro collect a practice schedule, or use the files you already have.</p><button class="welcome-option" data-welcome="agent"><strong>Try the scheduling agent</strong><span>Pull a month from FBS or iLab practice systems. Synthetic data; no account needed.</span></button><button class="welcome-option" data-welcome="upload"><strong>Use my spreadsheets</strong><span>Add reservations, instrument logs and prices from your lab.</span></button><button class="link" data-welcome="skip">Explore the calendar first</button></div></dialog>`}
+function home(){return (res&&res.items.length?schedule():emptySchedule())+`<section class="home-uploads" id="home-uploads"><div class="page-head"><div><h2>Add your lab's data</h2><p class="sub">Reservations fill the calendar. Instrument logs let LaBro compare bookings with use.</p></div><a class="secondary" href="#setup">${configured?'Edit billing rules':'Add prices and billing rules'}</a></div>${!configured?'<div class="banner"><div>Set your prices and billing rules before checking charges. <a href="#setup">Set billing rules</a></div></div>':''}${upload(true)}</section>`}
 function schedule(){
-  if(!res){
+  if(!res||!res.items.length){
     if(sources.book&&!res)return `<div class="page-head"><div><h1>Schedule</h1></div></div><div class="banner warn"><div><strong>${esc(sources.book.name)} was not read as a reservation export.</strong><br>LaBro needs columns for the resource, the person, and the start and end. You can still match columns for billing on the Upload page.<div class="actions" style="margin-top:8px"><a class="secondary" href="#upload">Match columns</a><label class="secondary filebtn">Choose a different file<input id="book-file" type="file" accept=".csv,.xlsx,.xls"></label></div></div></div>`;
     return emptySchedule();
   }
@@ -239,7 +243,7 @@ function schedule(){
   const step=sched.view==='week'?7:1;
   const title=sched.view==='week'?`${S.fmtShortDay(S.weekStart(sched.day))} – ${S.fmtShortDay(S.weekStart(sched.day)+6)}`:S.fmtDay(sched.day);
   const sel=open||null;
-  return `<div class="page-head"><div><h1>Schedule</h1><p class="sub">${esc(res.name)} · ${S.fmtShortDay(first)} to ${S.fmtShortDay(last)}</p></div><div class="head-actions"><label class="secondary filebtn">Replace reservations<input id="book-file" type="file" accept=".csv,.xlsx,.xls"></label><a class="primary" href="#upload">${rows?'Open results':'Upload instrument logs'}</a></div></div>
+  return `<div class="page-head"><div><h1>Schedule</h1><p class="sub">${esc(res.name)} · ${S.fmtShortDay(first)} to ${S.fmtShortDay(last)}</p></div><div class="head-actions"><a class="secondary" href="#home-uploads" id="jump-uploads">Add data</a><button class="secondary" data-open-setup>Set up LaBro</button>${rows?'<a class="primary" href="#results">Open results</a>':''}</div></div>
   ${res.issues.length?`<div class="banner warn"><div><strong>${plural(res.issues.length,'row','rows')} in the export could not be read.</strong><ul>${res.issues.slice(0,5).map(x=>`<li>${esc(x)}</li>`).join('')}${res.issues.length>5?`<li>and ${res.issues.length-5} more</li>`:''}</ul></div></div>`:''}
   <div class="stats"><div class="stat"><span>Reservations</span><strong>${active.length}</strong><small>${res.cancelled?plural(res.cancelled,'cancelled','cancelled')+', not billed':'None cancelled'}</small></div><div class="stat"><span>Hours booked</span><strong>${bookedH.toFixed(0)}</strong><small>${plural(S.resources(res.items).length,'resource','resources')}</small></div>${rows?`<div class="stat"><span>Ready to bill</span><strong>${money(rows.filter(eligible).reduce((n,r)=>n+r.amount,0))}</strong><small>from logged use</small></div><div class="stat"><span>Need a look</span><strong>${look}</strong><small><a href="#results">Open results</a></small></div>`:`<div class="stat"><span>Use and billing</span><strong>Not checked</strong><small>Add instrument logs</small></div>`}</div>
   <div class="toolbar"><div class="datebox"><button type="button" class="btn" data-nav="-${step}" aria-label="Previous ${sched.view}">&lsaquo;</button><h2>${esc(title)}</h2><button type="button" class="btn" data-nav="${step}" aria-label="Next ${sched.view}">&rsaquo;</button></div><div class="seg" role="group" aria-label="View"><button type="button" data-view="day" aria-pressed="${sched.view==='day'}">Day</button><button type="button" data-view="week" aria-pressed="${sched.view==='week'}">Week</button></div><div class="grow"></div><div class="mchips" role="group" aria-label="Show resources">${S.resources(res.items).map(n=>`<button type="button" class="mchip" style="--c:${machineColor(n)}" data-mtoggle="${esc(n)}" aria-pressed="${!sched.hidden.has(n)}"><i></i>${esc(n)}</button>`).join('')}</div></div>
@@ -258,16 +262,16 @@ function bookSection(){
    :`<label class="drop" data-drop="book"><strong>Drop your reservation export here</strong><span>or click to choose a CSV or Excel file</span><input id="book-file" type="file" accept=".csv,.xlsx,.xls"></label><p class="hint" style="margin-top:8px">${s?esc(s.name)+' · '+s.table.rows.length+' rows, '+(s.detect.missing.length?'some columns need matching':'columns matched'):'No file selected'}</p>${s&&s.detect.missing.length?mappingView('book'):''}`;
   return `<section class="card"><h2>Reservations from ${esc(profile.booking_system)}</h2><p class="hint">The month to bill. This is the same file the schedule uses.</p>${body}</section>`;
 }
-function upload(){
+function upload(embedded=false){
   const names=res?S.resources(res.items):(profile.machines_on||[]);
   const fcard=FS?folderCard({actions:`<div class="actions"><button class="primary" id="analyze-folder" type="button" ${canAnalyze()?'':'disabled'}>Check this month</button></div>`}):'';
-  return `<div class="page-head"><div><h1>Upload a month</h1><p class="sub">${FS?'Use the files LaBro found in your folder, or add files by hand.':'Add the reservations and the instrument logs for the month.'} CSV and Excel files stay on this computer.</p></div></div>
+  return `${embedded?'':`<div class="page-head"><div><h1>Upload a month</h1><p class="sub">${FS?'Use the files LaBro found in your folder, or add files by hand.':'Add the reservations and the instrument logs for the month.'} CSV and Excel files stay on this computer.</p></div></div>`}
   ${fcard}${FS?'<h2 style="margin:20px 0 8px">Or add files by hand</h2>':''}<div class="sources">${bookSection()}<section class="card"><h2>Instrument logs</h2><p class="hint">Add one log per machine if your machines export different formats.</p>${logs.map((s,i)=>`<div class="logcard"><p><strong>${esc(s.name)}</strong> · ${s.table.rows.length} rows, ${s.detect.missing.length?'some columns need matching':'columns matched'}</p><label>Instrument<select data-logmachine="${i}"><option value="">The log has an instrument column</option>${[...new Set([...names,...(s.machine?[s.machine]:[])])].map(n=>`<option value="${esc(n)}" ${s.machine===n?'selected':''}>${esc(n)}</option>`).join('')}</select></label>${s.detect.missing.length?mappingView('use',i):''}<button class="link" data-removelog="${i}">Remove</button></div>`).join('')}<label class="drop" data-drop="log"><strong>Add an instrument log</strong><span>or click to choose a CSV or Excel file</span><input id="log-file" type="file" accept=".csv,.xlsx,.xls" multiple></label></section></div>
   <p class="hint" style="margin-top:12px">If a log has no instrument column, a unique reservation for the same person and day identifies it. Unmatched entries stay unidentified.</p><p id="upload-error" class="error" role="alert"></p>
   <div class="actions"><button id="analyze" class="primary" ${canAnalyze()?'':'disabled'}>Analyze the month</button></div>
   <div class="curious"><strong>Just curious?</strong><span>Try it with simulated data: a made-up month from a small core.</span><button class="secondary" id="mock" type="button">Try it with simulated data</button></div>`;
 }
-function canAnalyze(){return !!(sources.book&&!sources.book.detect.missing.length&&logs.length&&logs.every(s=>!s.detect.missing.length))}
+function canAnalyze(){return !!(configured&&sources.book&&!sources.book.detect.missing.length&&logs.length&&logs.every(s=>!s.detect.missing.length))}
 async function fileText(f){
   if(/\.xlsx?$/i.test(f.name)){const wb=XLSX.read(await f.arrayBuffer(),{cellDates:true,dateNF:'yyyy-mm-dd hh:mm:ss'});if(!wb.SheetNames.length)throw Error('The file is empty.');return XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]],{rawNumbers:false})}
   return f.text();
@@ -369,7 +373,7 @@ function applyFolder(){
   const keep={day:sched.day,sel:sched.sel,view:sched.view};
   if(r){setReservations(r.table,r.name);if(res&&keep.day!=null&&res.items.some(i=>i.day===keep.day)){sched.day=keep.day;sched.sel=keep.sel;sched.view=keep.view}}
   logs=ls.map(e=>({name:e.name,table:e.table,detect:detectColumns(e.table,'use'),machine:''}));
-  if(r&&ls.length&&profile&&sources.book&&!sources.book.detect.missing.length&&logs.every(l=>!l.detect.missing.length))calculate();
+  if(r&&ls.length&&configured&&sources.book&&!sources.book.detect.missing.length&&logs.every(l=>!l.detect.missing.length))calculate();
   return {reservations:r,logs:ls};
 }
 function priceFromFolder(){const e=folder.entries.find(x=>x.kind==='prices'&&x.include);return e?{name:e.name,result:e.price}:null}
@@ -422,7 +426,7 @@ function startPage(){
 async function useSample(){
   const t=LMAuditCore.parseCSV(await fetch('data/mock/price-sheet.csv').then(r=>r.text()));
   const d=defaults();d.lab_name='Simulated core';d.booking_system='FBS';applyRateCard(d,R.parseRates([t.head,...t.rows],extractMachineTerm));
-  profile={...defaults(),...d};draft=structuredClone(profile);sampleMode=true;
+  profile={...defaults(),...d};draft=structuredClone(profile);sampleMode=true;configured=true;
 }
 
 /* ---------------------------------------------------------------- connections: which system, and how LaBro reaches it */
@@ -435,7 +439,7 @@ async function loadConnections(){
 }
 function systemCard(){
   const list=Object.entries(I.SYSTEMS),g=cx.guess;
-  return `<section class="card"><h2>Find my booking system</h2><p class="hint">Paste the web address you open to book an instrument. LaBro reads the address only; it does not open the page or sign in.</p>
+  return `<section class="card"><h2>Find your scheduling system</h2><p class="hint">Paste the web address you open to book an instrument. LaBro reads the address only; it does not open the page or sign in.</p>
   <div class="add-machine" style="max-width:640px"><input id="sys-url" placeholder="For example usc.fbs.io or my.ilabsolutions.com/…" value="${esc(cx.guessText)}" aria-label="Booking system web address"><button class="primary" id="sys-find" type="button">Find it</button>${CONN?'<button class="secondary" id="sys-apps" type="button">Look on this computer</button>':''}</div>
   ${g===false?'<p class="hint" style="margin-top:10px">That address does not match a booking system LaBro knows. Pick yours below.</p>':g?`<p style="margin-top:10px"><span class="pill ok">Found</span> This is <strong>${esc(g.label)}</strong> by ${esc(g.maker)}.</p>`:''}
   ${cx.apps?`<p class="hint" style="margin-top:10px">${cx.apps.length?'Installed on this computer: '+cx.apps.map(a=>`<strong>${esc(a.name)}</strong> (${esc(I.SYSTEMS[a.system].label)})`).join(', ')+'.':'No booking-system software is installed on this computer. That is normal: most cores use these systems in a web browser.'}</p>`:''}
@@ -449,37 +453,42 @@ function folderStatus(){
 function ilabCard(){
   const i=cx.info||{},saved=i.system==='ilab',t=cx.test;
   if(!CONN)return `<section class="card"><h2>iLab</h2><p class="hint">Connecting with an iLab API token works in the desktop app, where the token can be stored encrypted. In the browser, export from iLab and add the files on the Upload page.</p></section>`;
-  return `<section class="card"><h2>Connect to iLab with an API token</h2><p class="hint">In iLab, open your core's Administration tab and the API Clients panel. Add a client, choose Grant Token, and copy the token. Your institution has to have API access switched on.</p>
+  return `<section class="card"><h2>iLab API token</h2><p class="hint">Connect your core's equipment list. You'll need a core ID and an API token from your iLab administrator.</p><details><summary>Where do I find my API token?</summary><p class="hint">In iLab: Administration → API Clients → Add client → Grant Token. Your institution must have API access enabled. This connection reads equipment; reservations still come from exports.</p></details>
   <div class="field-row" style="max-width:720px"><label>Region<select id="ilab-base">${ILAB_REGIONS.map(([u,l])=>`<option value="${u}" ${saved&&i.base===u?'selected':''}>${l}</option>`).join('')}</select></label><label>Core ID<input id="ilab-core" inputmode="numeric" placeholder="For example 5582" value="${esc(saved?i.coreId:(cx.guess&&cx.guess.coreId)||'')}"></label></div>
   <p class="hint" style="margin-top:6px">Enter the token in a separate secure window. It is encrypted with this computer's keychain and sent only to iLab${i.canStore===false?'. This computer has no keychain, so the token is kept only until you close LaBro':''}.</p>
   <p id="conn-error" class="error" role="alert">${esc(cx.error)}</p>
   <div class="actions"><button class="primary" id="ilab-save" type="button" ${cx.busy?'disabled':''}>${cx.busy?'Testing…':'Save and test'}</button>${saved?'<button class="link" id="conn-forget" type="button">Remove this connection</button>':''}</div>
   ${t?(t.ok?`<div class="banner" style="margin:14px 0 0;border-left-color:var(--ok)"><div><strong>Connected.</strong> iLab lists ${plural(t.count,'piece','pieces')} of equipment for this core.${t.equipment.length?`<div class="chips">${t.equipment.slice(0,24).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="actions" style="margin-top:10px"><button class="secondary" id="ilab-machines" type="button">Use these as my machines</button></div>`:''}</div></div>`:`<div class="banner warn" style="margin:14px 0 0"><div><strong>Not connected.</strong> ${esc(t.message)}</div></div>`):''}
-  <div class="form-section"><h3>Reservations and usage</h3><p class="hint">${ILAB_RESERVATIONS_NOTE}</p>${folderStatus()}</div></section>`;
+  <details><summary>Reservations and usage</summary><p class="hint">${ILAB_RESERVATIONS_NOTE}</p>${folderStatus()}</details></section>`;
 }
 const ILAB_RESERVATIONS_NOTE='The token confirms the connection and brings in your equipment list. iLab\'s API manual (June 2025) covers equipment, services, prices and service requests, but not equipment reservations. For the month\'s reservations and usage, export the reports from iLab into your folder; LaBro picks them up from there.';
 function fbsCard(){
-  return `<section class="card"><h2>Connect to FBS through its exports</h2><p class="hint">FBS runs in the browser, and Priority Software does not publish documentation for its web service, so LaBro reads the files FBS lets you download.</p>
-  <ol class="how-list" style="margin-top:12px"><li>In FBS, download your reservations for the month as Excel or CSV.</li><li>Save the file in one folder. Put your instrument usage logs and price sheet there too.</li><li>LaBro reads the folder, works out which file is which, and updates when a new file arrives.</li></ol>${folderStatus()}
-  <p class="hint" style="margin-top:12px">If your FBS administrator can give you API details, send us the test report from the sidebar and say so. A direct FBS connection can be added once those details exist.</p></section>`;
+  return `<section class="card"><h3>FBS: no API key needed</h3><p class="hint">Save your FBS reservation export, instrument logs and price sheet in one folder. LaBro reads the files and watches for new exports.</p>${folderStatus()}<details><summary>Where do I get the files?</summary><p class="hint">In FBS, export the month's reservations as CSV or Excel. Add your instrument's usage report and your prices to the same folder. Live FBS API access is not configured in this app.</p></details></section>`;
 }
 function otherCard(){
   const v=I.SYSTEMS[cx.system]||{label:'your booking system'};
   return `<section class="card"><h2>Connect to ${esc(v.label)} through its exports</h2><p class="hint">Download the month's reservations from ${esc(v.label)} as Excel or CSV into one folder, along with your usage logs and price sheet. LaBro works out which file is which.</p>${folderStatus()}</section>`;
 }
 function mcpCard(){
-  const m=cx.mcp,cfg=m&&m.available?JSON.stringify({mcpServers:{labro:{command:m.command,args:m.args,env:m.env},...(m.agentArgs?{'labro-scheduling-practice':{command:m.command,args:m.agentArgs,env:m.env}}:{})}},null,2):'';
-  return `<section class="card"><h2>Let an AI agent run LaBro</h2><p class="hint">LaBro includes an MCP server, the standard way for an AI agent to use a tool. An agent such as Claude Desktop can find your exports, read the price sheet and run the month check. By default it receives counts and totals, not names or account codes. The separate scheduling-practice server can summon the new agent against synthetic FBS and iLab sources; its runs are separate from this desktop workspace.</p>
-  ${cfg?`<label for="mcp-config">Add this to your agent's MCP settings</label><textarea id="mcp-config" rows="9" readonly spellcheck="false" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">${esc(cfg)}</textarea><div class="actions" style="margin-top:8px"><button class="secondary" id="mcp-copy" type="button">Copy settings</button>${m.folder?'':'<span class="hint">Connect a folder first so the settings point at it.</span>'}</div>`:`<p class="hint" style="margin-top:8px">${CONN?'The MCP server is not included in this build.':'Available in the desktop app.'}</p>`}</section>`;
+  const m=cx.mcp,client=cx.client||'claude',cfg=root.LBConnectorConfig.config(m,client,cx.practice),codex=client==='codex';
+  return `<section class="card"><h3>Choose your AI agent</h3><p class="hint">Let Claude or Codex read your existing exports and check the month using LaBro's tools. No API key is needed for this local connector.</p>
+  <div class="chips" role="group" aria-label="AI agent">${[['claude','Claude Desktop'],['codex','Codex']].map(([id,label])=>`<button class="chip" data-mcp-client="${id}" aria-pressed="${client===id}">${label}</button>`).join('')}</div>
+  ${cfg?`<ol class="how-list compact"><li>${m.folder?'Your exports folder is connected.':'Choose the folder containing your reservations, instrument logs and prices.'}${!m.folder&&FS?'<button class="secondary" id="mcp-folder">Choose exports folder</button>':''}</li><li>${codex?'Add the settings below to <code>~/.codex/config.toml</code>. Keep your other settings.':'In Claude Desktop, open Settings → Developer → Edit Config. Merge the LaBro entry into <code>mcpServers</code> in <code>claude_desktop_config.json</code>.'}</li><li>Restart ${codex?'Codex':'Claude Desktop'}, then ask it to review your sheets using the prompt below.</li></ol>
+  <label for="mcp-config">${codex?'Codex settings (TOML)':'Claude settings (JSON)'}</label><textarea id="mcp-config" rows="8" readonly spellcheck="false" class="config-code">${esc(cfg)}</textarea><div class="actions"><button class="secondary" id="mcp-copy" ${!m.folder?'disabled':''}>Copy ${codex?'Codex':'Claude'} settings</button></div>
+  <label class="checkline"><input id="mcp-practice" type="checkbox" ${cx.practice?'checked':''}>Also include the FBS / iLab practice agent (synthetic data)</label>
+  <div class="connector-prompt"><strong>Try this with your agent</strong><p id="mcp-prompt">Use LaBro to find my exports, read my prices, and check this month. Summarize missing data and sessions needing review. Do not submit charges.</p><button class="link" id="mcp-prompt-copy">Copy prompt</button></div>
+  <p class="hint">The connector reads only your selected folder. By default it returns counts and totals; names and account codes are hidden. It does not send bills.</p>`:`<p class="hint" style="margin-top:10px">Open the desktop app to connect Claude or Codex to your local spreadsheets.</p>`}</section>`;
 }
 function connections(){
   if(!cx.loaded){loadConnections().then(()=>{if(location.hash==='#connect')render(true)});return `<div class="page-head"><div><h1>Connections</h1></div></div><div class="card"><p class="hint">Loading…</p></div>`}
   const sys=cx.system;
-  return `<div class="page-head"><div><h1>Connections</h1><p class="sub">Tell LaBro which booking system your core uses and how to reach it.</p></div></div>
-  <div class="banner"><div><strong>Try the scheduling agent.</strong> Pull bookings from the FBS and iLab practice systems, then review them before importing. <a href="#agent">Open scheduling agent</a></div></div>${systemCard()}${sys==='ilab'?ilabCard():sys==='fbs'?fbsCard():otherCard()}${mcpCard()}`;
+  return `<div class="page-head"><div><h1>Connections</h1><p class="sub">Connect your scheduling system or let an AI agent review your spreadsheets.</p></div></div>
+  <div class="banner"><div><strong>Need help getting started?</strong> <a href="#agent">Run the scheduling agent</a> with FBS or iLab practice data, or add real exports on <a href="#schedule">Home</a>.</div></div>
+  <section class="connection-section" aria-labelledby="api-section"><h2 id="api-section">1. API key or exported files</h2><p class="sub">Pick the scheduling system your lab uses. iLab can use an API token for equipment; schedule files work without a key.</p>${systemCard()}${sys==='ilab'?ilabCard():sys==='fbs'?fbsCard():otherCard()}</section>
+  <section class="connection-section" aria-labelledby="mcp-section"><h2 id="mcp-section">2. MCP connector</h2><p class="sub">Give Claude or Codex read-only tools for the sheets already on your computer.</p>${mcpCard()}</section>`;
 }
 const SYSTEM_TO_PROFILE={fbs:'FBS',ilab:'iLab',ppms:'PPMS',booked:'Booked Scheduler'};
-function chooseSystem(k){cx.system=k;cx.test=null;cx.error='';if(profile){profile.booking_system=SYSTEM_TO_PROFILE[k]||'Other';draft.booking_system=profile.booking_system;try{localStorage.setItem('labro-profile',JSON.stringify(profile))}catch{}}}
+function chooseSystem(k){cx.system=k;cx.test=null;cx.error='';if(profile){profile.booking_system=SYSTEM_TO_PROFILE[k]||'Other';draft.booking_system=profile.booking_system;if(configured)try{localStorage.setItem('labro-profile',JSON.stringify(profile))}catch{}}}
 
 /* ---------------------------------------------------------------- test report (counts and column names only) */
 function reportData(){
@@ -500,17 +509,19 @@ async function copyReport(){
 }
 
 /* ---------------------------------------------------------------- routing and events */
-const TITLES={agent:'Scheduling agent',connect:'Connections',start:'Welcome',schedule:'Schedule',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
+const TITLES={home:'Home',agent:'Scheduling agent',connect:'Connections',start:'Welcome',schedule:'Home',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
 function render(keep){
   let route=location.hash.slice(1)||(profile?'schedule':'start');
-  if(route==='dashboard')route='schedule';
+  if(route==='dashboard'||route==='home')route='schedule';
   if(!profile&&route!=='setup'&&route!=='start'&&route!=='connect'&&route!=='agent'){location.hash='start';return}
   const vp=$('viewport'),top=keep?vp.scrollTop:0,oldCal=document.querySelector('.cal'),sl=keep&&oldCal?oldCal.scrollLeft:0;
-  $('screen').innerHTML=route==='agent'?root.LBAgentUI.render():route==='start'?startPage():route==='connect'?connections():route==='setup'?setup():route==='schedule'?schedule():route==='upload'?upload():route==='progress'?progress():route==='results'?results():schedule();
+  $('screen').innerHTML=route==='agent'?root.LBAgentUI.render():route==='start'?startPage():route==='connect'?connections():route==='setup'?setup():route==='schedule'?home():route==='upload'?upload():route==='progress'?progress():route==='results'?results():schedule();
+  if(onboarding&&route==='schedule')$('screen').insertAdjacentHTML('beforeend',setupWelcome());
   $('lab-title').textContent=(profile?.lab_name||'Your lab')+(sampleMode?' (simulated)':'');$('page-title').textContent=TITLES[route]||'';
   document.querySelectorAll('#sidebar nav a').forEach(a=>{if(a.hash==='#'+(route==='progress'?'upload':route))a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   if(keep){vp.scrollTop=top;const c=document.querySelector('.cal');if(c)c.scrollLeft=sl}
   bind();
+  if($('setup-welcome'))$('setup-welcome').showModal();
 }
 const on=(sel,fn)=>document.querySelectorAll(sel).forEach(fn);
 function bindDrop(kind,handler){
@@ -530,6 +541,15 @@ function importAgentRun(run){
   location.hash='schedule';render();
 }
 function bind(){
+  const welcomeChoice=choice=>{onboarding=false;try{localStorage.setItem('labro-onboarded','1')}catch{};if(choice==='agent'){location.hash='agent';render()}else if(choice==='upload'){render();$('home-uploads')?.scrollIntoView({block:'start'})}else render()};
+  on('[data-welcome]',b=>b.onclick=()=>welcomeChoice(b.dataset.welcome));
+  if($('setup-welcome'))$('setup-welcome').oncancel=e=>{e.preventDefault();welcomeChoice('skip')};
+  on('[data-open-setup]',b=>b.onclick=()=>{onboarding=true;location.hash='schedule';render()});
+  on('[data-home-month]',b=>b.onclick=()=>{homeMonth=new Date(homeMonth.getFullYear(),homeMonth.getMonth()+Number(b.dataset.homeMonth),1);homeDay=null;render(true)});
+  on('[data-home-day]',b=>b.onclick=()=>{homeDay=b.dataset.homeDay;render(true)});
+  if($('home-today'))$('home-today').onclick=()=>{homeMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);homeDay=S.ymd(Math.floor(Date.now()/86400000));render(true)};
+  if($('jump-uploads'))$('jump-uploads').onclick=e=>{e.preventDefault();$('home-uploads').scrollIntoView({block:'start'})};
+
   if(location.hash==='#agent')root.LBAgentUI.bind({render,toast,importRun:importAgentRun});
   /* folder */
   if($('pick-folder'))$('pick-folder').onclick=connectFolder;
@@ -554,9 +574,13 @@ function bind(){
   if($('ilab-machines'))$('ilab-machines').onclick=()=>{
     const names=(cx.test&&cx.test.equipment)||[];if(!names.length)return;
     const target=profile||draft;target.machines=H.dedupeMachines([...(target.machines||[]),...names]);target.machines_on=[...new Set([...(target.machines_on||[]),...names.filter(n=>target.machines.includes(n))])];
-    if(profile){draft=structuredClone(profile);try{localStorage.setItem('labro-profile',JSON.stringify(profile))}catch{}}
+    if(profile){draft=structuredClone(profile);if(configured)try{localStorage.setItem('labro-profile',JSON.stringify(profile))}catch{}}
     toast(plural(names.length,'machine','machines')+' added to your billing rules');
   };
+  on('[data-mcp-client]',b=>b.onclick=()=>{cx.client=b.dataset.mcpClient;render(true)});
+  if($('mcp-folder'))$('mcp-folder').onclick=connectFolder;
+  if($('mcp-practice'))$('mcp-practice').onchange=()=>{cx.practice=$('mcp-practice').checked;render(true)};
+  if($('mcp-prompt-copy'))$('mcp-prompt-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('mcp-prompt').textContent);toast('Agent prompt copied')}catch{toast('Select and copy the prompt above.')}};
   if($('mcp-copy'))$('mcp-copy').onclick=async()=>{const t=$('mcp-config').value;try{await navigator.clipboard.writeText(t)}catch{$('mcp-config').select();try{document.execCommand('copy')}catch{}}toast('MCP settings copied')};
   /* setup */
   on('[data-group]',b=>b.onclick=()=>{try{readDraft()}catch(e){$('setup-error').textContent=e.message;return}const k=b.dataset.group,v=b.dataset.value;if(k==='billing')setBilling(draft,v);else draft[k]=k==='round_minutes'?+v:v;render(true)});
@@ -580,7 +604,7 @@ function bind(){
   });
   on('[data-rm]',b=>b.onclick=()=>{try{readDraft()}catch{}draft.rate_card.splice(+b.dataset.rm,1);render(true)});
   if($('add-price'))$('add-price').onclick=()=>{try{readDraft()}catch(e){$('setup-error').textContent=e.message;return}draft.rate_card=draft.rate_card||[];if(!(draft.tiers||[]).length)draft.tiers=[{key:'internal',label:'Internal'}];draft.rate_card.push({machine:'',mode:'self',unit:'hour',hourly:true,rates:{},after:{},line:''});render(true)};
-  if($('save-profile'))$('save-profile').onclick=()=>{try{readDraft();syncMachines();profile={...defaults(),...structuredClone(draft)};delete profile.unplaced;localStorage.setItem('labro-profile',JSON.stringify(profile));if(CONN)CONN.saveRules(JSON.stringify(profile)).then(()=>CONN.mcp()).then(m=>{cx.mcp=m}).catch(()=>{});review=true;rows=null;rowIndex=new Map();sampleMode=false;if(FS&&folder.entries.length)applyFolder();location.hash='schedule'}catch(e){$('setup-error').textContent=e.message}};
+  if($('save-profile'))$('save-profile').onclick=()=>{try{readDraft();syncMachines();configured=true;profile={...defaults(),...structuredClone(draft)};delete profile.unplaced;localStorage.setItem('labro-profile',JSON.stringify(profile));if(CONN)CONN.saveRules(JSON.stringify(profile)).then(()=>CONN.mcp()).then(m=>{cx.mcp=m}).catch(()=>{});review=true;rows=null;rowIndex=new Map();sampleMode=false;if(FS&&folder.entries.length)applyFolder();location.hash='schedule'}catch(e){$('setup-error').textContent=e.message}};
   on('[data-mrule]',el=>el.onchange=()=>{const name=(draft.machines_on||[])[+el.dataset.mrule];if(!name)return;draft.machine_rules=draft.machine_rules||{};const rule=draft.machine_rules[name]||{},field=el.dataset.field,value=el.value;if(value==='')delete rule[field];else rule[field]=field==='round_minutes'?+value:value;if(Object.keys(rule).length)draft.machine_rules[name]=rule;else delete draft.machine_rules[name]});
   /* schedule */
   on('[data-res]',b=>b.onclick=()=>{sched.sel=sched.sel===b.dataset.res?null:b.dataset.res;render(true)});
@@ -604,6 +628,6 @@ function bind(){
   on('[data-map]',el=>el.onchange=()=>{const kind=el.dataset.map,d=(kind==='book'?sources.book:logs[+el.dataset.idx]).detect;d.map[el.dataset.field]=+el.value;d.missing=['user',...(d.events?['timestamp','event']:['start','end']),...(kind==='book'?['instrument']:[])].filter(k=>d.map[k]<0);$('analyze').disabled=!canAnalyze();if(kind==='book'&&el.dataset.field==='instrument')render(true)});
 }
 window.addEventListener('hashchange',()=>{const token=++routeToken;$('screen').classList.add('changing');setTimeout(()=>{if(token!==routeToken)return;$('viewport').scrollTop=0;render();$('screen').classList.remove('changing')},140)});
-if(!location.hash)location.hash=profile?'schedule':'start';else render();
+if(!location.hash)location.hash='schedule';else render();
 if(FS){refreshFolder().then(()=>{if(profile&&folder.entries.length){const got=applyFolder();if(got.reservations&&!location.hash.match(/#(setup|progress)/))render(true);return}if(!location.hash.match(/#(setup|progress)/))render(true)});watchFolder()}
 })(typeof window!=='undefined'?window:globalThis);
