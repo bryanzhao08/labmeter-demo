@@ -12,7 +12,7 @@ app.whenReady().then(async () => {
       if (!window.selfTest()) throw new Error('Film self-test failed');
       const canvas = document.getElementById('out');
       const review = {};
-      for (const t of [3.5, 4.0, 4.35, 4.7, 5.0, 5.34, 5.5, 5.85, 6.3, 6.75, 10.5, 17.9]) {
+      for (const t of [3.5, 4.0, 4.35, 4.7, 5.0, 5.34, 5.5, 5.85, 6.3, 6.75, 8.6, 10.5, 17.9]) {
         if (window.prepare) await window.prepare(t);
         window.renderAt(t);
         review[t] = canvas.toDataURL('image/png').split(',')[1];
