@@ -230,7 +230,7 @@ async function createWindow() {
         if(typeof require!=='undefined')throw Error('Node exposed');
         if(!window.XLSX)throw Error('Offline spreadsheet reader missing');
         await document.fonts.ready;
-        if(!document.fonts.check('14px Inter')||!/Inter/.test(getComputedStyle(document.body).fontFamily))throw Error('Inter font not loaded');
+        if(!document.fonts.check('13px "Roboto Mono"')||!/Roboto Mono/.test(getComputedStyle(document.body).fontFamily))throw Error('Roboto Mono font not loaded');
         const originalFetch=window.fetch;window.fetch=(url,...rest)=>String(url).startsWith('http://127.0.0.1:11434/')?Promise.reject(Error('offline')):originalFetch(url,...rest);
         if(!window.labroFS)throw Error('Folder bridge missing');
         for(const k of ['require','process','fs'])if(typeof window.labroFS[k]!=='undefined')throw Error('Folder bridge leaks '+k);
