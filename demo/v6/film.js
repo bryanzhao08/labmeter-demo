@@ -31,7 +31,10 @@ const loaded=imageNames.map(n=>new Promise((resolve,reject)=>{const im=new Image
 let screen;
 // Yellow safety rail around the instrument bay.
 for(const x of [-6.6,1.8])for(const z of [-4.5,-1.35])cyl(room,x,.65,z,.055,1.3,yellow);
-for(const z of [-4.5,-1.35])box(room,-2.4,1.27,z,8.4,.09,.09,yellow,.03);
+// Back rail is continuous; the front rail has a gate opening so the researcher walks in through it.
+box(room,-2.4,1.27,-4.5,8.4,.09,.09,yellow,.03);
+for(const x of [-5.3,-3.1])cyl(room,x,.65,-1.35,.055,1.3,yellow);
+box(room,-5.95,1.27,-1.35,1.3,.09,.09,yellow,.03);box(room,-.65,1.27,-1.35,4.9,.09,.09,yellow,.03);
 // Human faces the instruments. Limbs swing deterministically.
 const human=new THREE.Group();room.add(human);box(human,0,1.22,0,.65,1.05,.43,white,.2);cyl(human,0,1.95,0,.25,.12,light);const head=new THREE.Mesh(new THREE.SphereGeometry(.27,20,14),mat(0xd8c8b6));head.position.y=2.2;head.castShadow=true;human.add(head);
 const legs=[],arms=[];for(const s of [-1,1]){let leg=box(human,s*.19,.45,0,.19,.9,.22,dark,.08);legs.push(leg);let a=box(human,s*.43,1.25,0,.18,.85,.2,white,.08);arms.push(a)}
@@ -46,7 +49,8 @@ const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));const ease=v=>{v=clamp(v);ret
 function cameraAt(pos,target){camera.position.set(...pos);camera.lookAt(...target);camera.updateMatrixWorld()}
 function sceneFrame(t){
  const campusMode=t>=14;room.visible=!campusMode;campus.visible=campusMode;
- human.position.set(mix(1,-3.8,ease(t/3)),0,mix(1,-1.9,ease(t/3))); human.rotation.y=-2.2;
+ // Walk to the gate opening, then step through it to the cytometer. Never crosses a rail.
+ {const a=ease(t/2),b=ease((t-2)/1);const x=t<2?mix(1,-4.2,a):-4.2,z=t<2?mix(1.2,-.4,a):mix(-.4,-2.15,b);human.position.set(x,0,z);human.rotation.y=t<2?Math.atan2(-5.2,-1.6):Math.PI}
  const walk=t<3?Math.sin(t*9)*.35:0;legs[0].rotation.x=walk;legs[1].rotation.x=-walk;arms[0].rotation.x=-walk;arms[1].rotation.x=walk+(t>=2.7&&t<3.5?-.7:0);
  panels.forEach((p,i)=>{p.visible=false;p.position.y=2.2+ease((t-7.1-i*.2)/.7)*1.5});
  agents.forEach((a,i)=>{a.visible=false;a.children[0].material=(t>=10+i*.6)?yellow:white});
@@ -69,11 +73,19 @@ function wire(x1,y1,x2,y2,a){ctx.save();ctx.globalAlpha=a;ctx.strokeStyle='#e8c2
 function overlaySources(t){const [dx,dy]=rightProj(3.5,2.4,2.45);[['FBS','reservations'],['iLab','equipment'],['Price sheet','rates']].forEach(([n,sub],i)=>{const a=ease((t-7.1-i*.25)/.5);if(a<=0)return;const x=1010+i*300,y=130-30*(1-a);ctx.globalAlpha=a;wire(x+130,y+110,dx,dy,a);chip(x,y,260,110,n,false,sub);ctx.globalAlpha=1})}
 function overlayAgents(t){const [dx,dy]=rightProj(3.5,2.4,2.45);agentNames.forEach((n,i)=>{const a=ease((t-10-i*.12)/.4);if(a<=0)return;const x=990+i*182,y=120;ctx.globalAlpha=a;const on=t>=10.6+i*.6;wire(x+82,y+90,dx,dy,on?1:.35);chip(x,y,164,90,n,on,null,25);if(i===4&&t>12.9){ctx.fillStyle='#22221f';ctx.font='700 40px RobotoMono, monospace';ctx.fillText('✓',x+146,y+14)}ctx.globalAlpha=1})}
 function overlayHub(t){const [x,y]=project(0,hub.position.y+2.3,0);const a=ease((t-14.6)/.5);if(a<=0)return;ctx.globalAlpha=a;chip(x-110,y-90,220,76,'LaBro',true);ctx.globalAlpha=1}
+const clips={};
+for(const [k,src,from,to] of [['a','clips/shot-a.mp4',0,3.5],['b','clips/shot-b.mp4',3.5,5.5]]){const v=document.createElement('video');v.src=src;v.muted=true;v.preload='auto';v.playsInline=true;clips[k]={v,from,to,ok:false};v.addEventListener('loadeddata',()=>{clips[k].ok=true});}
+function clipFor(t){for(const c of Object.values(clips))if(c.ok&&t>=c.from&&t<c.to)return c;return null}
+window.prepare=t=>{const c=clipFor(t);if(!c)return Promise.resolve();const target=Math.min(c.v.duration-0.04,(t-c.from)/(c.to-c.from)*c.v.duration);if(Math.abs(c.v.currentTime-target)<0.001)return Promise.resolve();return new Promise(r=>{c.v.addEventListener('seeked',()=>r(),{once:true});c.v.currentTime=target})};
 window.renderAt=function(t){t=clamp(Number(t)||0,0,18);sceneFrame(t);let grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#1b2130');grad.addColorStop(1,'#2a3242');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
- if(t<5.5||t>=14)ctx.drawImage(renderer.domElement,0,0);else{ctx.save();ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480,0,1440,1080);ctx.restore();const zoom=1+.06*ease((t-5.5)/4.5);if(t<10){appFrame(images['02-schedule'],45,160,850,650,zoom);if(t>=7.8)appFrame(images['03-drawer'],45,160,850,650,zoom,ease((t-7.8)/.4))}else appFrame(images['05-results'],45,160,850,650,1.02)}
- if(t<3.5){overlayBooking(t);caption('Booked 2 hours. Used 3.5.')}else if(t>=5.5&&t<10)caption("LaBro's agents pull every booking, log and price.");else if(t>=10&&t<14)caption('Match. Price. Flag. You approve.');
+ if(t>=5.5&&t<6.5){const q=ease((t-5.5)/1);ctx.save();ctx.globalAlpha=q;ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480+(1-q)*300,0,1440,1080);ctx.restore();
+   const r=[mix(0,45,q),mix(0,160,q),mix(1920,850,q),mix(1080,650,q)];appFrame(images['02-schedule'],r[0],r[1],r[2],r[3],1)}
+ else if(t<5.5&&clipFor(t)){const c=clipFor(t);ctx.drawImage(c.v,0,0,W,H);if(t>=4.8){const q=ease((t-4.8)/.6);ctx.save();ctx.globalAlpha=q;appFrame(images['02-schedule'],mix(240,0,q),mix(120,0,q),mix(1440,1920,q),mix(840,1080,q),1);ctx.restore()}}
+ else if(t<5.5||t>=14)ctx.drawImage(renderer.domElement,0,0);else{ctx.save();ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480,0,1440,1080);ctx.restore();const zoom=1+.06*ease((t-6.5)/3.5);if(t<10){appFrame(images['02-schedule'],45,160,850,650,zoom);if(t>=7.8)appFrame(images['03-drawer'],45,160,850,650,zoom,ease((t-7.8)/.4))}else appFrame(images['05-results'],45,160,850,650,1.02)}
+ if(window.NO_OVERLAY)return;
+ if(t<3.5){overlayBooking(t);caption('Booked 2 hours. Used 3.5.')}else if(t>=6.3&&t<10)caption("LaBro's agents pull every booking, log and price.");else if(t>=10&&t<14)caption('Match. Price. Flag. You approve.');
  if(t>=7.1&&t<10)overlaySources(t);if(t>=10&&t<14)overlayAgents(t);if(t>=14&&t<16.4){overlayHub(t);caption('One LaBro for every core on campus.')}
  if(t>=16){let a=ease((t-16)/.8);ctx.fillStyle=`rgba(27,33,48,${a})`;ctx.fillRect(0,0,W,H);ctx.globalAlpha=a;ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='600 120px RobotoMono, monospace';ctx.fillText('LaBro',960,500);ctx.fillStyle='#f4c430';ctx.font='600 40px RobotoMono, monospace';ctx.fillText('You run the science. LaBro runs the lab.',960,590);ctx.globalAlpha=1}
 };
 window.selfTest=()=>{[0,5,9,12,17].forEach(window.renderAt);return true};
-window.ready=Promise.all([...loaded,document.fonts.ready]).then(()=>{const tex=new THREE.Texture(images['02-schedule']);tex.colorSpace=THREE.SRGBColorSpace;tex.needsUpdate=true;screen=new THREE.Mesh(new THREE.PlaneGeometry(1.94,1.1),new THREE.MeshBasicMaterial({map:tex}));screen.position.set(3.5,2.12,2.52);room.add(screen);window.renderAt(0)});
+window.ready=Promise.all([...loaded,document.fonts.ready,...Object.values(clips).map(c=>new Promise(r=>{if(c.v.readyState>=2)return r();c.v.addEventListener('loadeddata',r,{once:true});c.v.addEventListener('error',r,{once:true});setTimeout(r,4000)}))]).then(()=>{const tex=new THREE.Texture(images['02-schedule']);tex.colorSpace=THREE.SRGBColorSpace;tex.needsUpdate=true;screen=new THREE.Mesh(new THREE.PlaneGeometry(1.94,1.1),new THREE.MeshBasicMaterial({map:tex}));screen.position.set(3.5,2.12,2.52);room.add(screen);window.renderAt(0)});

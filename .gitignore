@@ -6,3 +6,5 @@ desktop/web/
 contracts/
 demo/v6/*.mp4
 demo/v6/*.webm
+demo/v6/clips/
+demo/v6/keyframes/

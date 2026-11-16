@@ -12,7 +12,8 @@ app.whenReady().then(async () => {
       if (!window.selfTest()) throw new Error('Film self-test failed');
       const canvas = document.getElementById('out');
       const review = {};
-      for (const t of [1.5, 4.5, 7, 12, 15, 17.5]) {
+      for (const t of [1.5, 5.0, 5.3, 7, 12, 15, 17.5]) {
+        if (window.prepare) await window.prepare(t);
         window.renderAt(t);
         review[t] = canvas.toDataURL('image/png').split(',')[1];
       }
@@ -35,6 +36,7 @@ app.whenReady().then(async () => {
       for (let f = 0; f <= window.DURATION * 30; f++) {
         const remaining = previous + 1000 / 30 - performance.now();
         if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+        if (window.prepare) await window.prepare(f / 30);
         window.renderAt(f / 30);
         track.requestFrame();
         previous = performance.now();
