@@ -3,90 +3,67 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LaBro is the agentic lab management framework.">
-  <title>LaBro — the agentic lab management framework</title>
-  <link rel="stylesheet" href="site.css">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="description" content="LaBro brings a shared lab's bookings, usage logs and prices into one place, so its manager can check the bill and get back to the science.">
+  <meta name="theme-color" content="#f7f8fa">
+  <title>LaBro — your lab's bro</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="notebook.css">
+  <script src="notebook.js" defer></script>
 </head>
 <body>
-  <header class="site-header wrap">
-    <a class="wordmark" href="index.html"><svg class="logo-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-  <defs>
-    <mask id="lbface-inde">
-      <rect width="64" height="64" fill="#fff"/>
-      <circle cx="26.5" cy="44.5" r="2.6" fill="#000"/>
-      <circle cx="37.5" cy="44.5" r="2.6" fill="#000"/>
-      <path d="M26 50.6c3.6 2.8 8.4 2.8 12 0" stroke="#000" stroke-width="2.6" stroke-linecap="round"/>
-    </mask>
-  </defs>
-  <g stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
-    <path d="M25 20v9.5L12.2 51.4A5 5 0 0 0 16.5 59h31a5 5 0 0 0 4.3-7.6L39 29.5V20"/>
-  </g>
-  <path mask="url(#lbface-inde)" fill="currentColor" d="M20.4 36.5h23.2l7.6 13.9A4.6 4.6 0 0 1 47.2 58H16.8a4.6 4.6 0 0 1-4-6.9z"/>
-  <path fill="currentColor" d="M22 20.5c0-6.4 4.5-10.5 10-10.5s10 4.1 10 10.5z"/>
-  <path fill="currentColor" d="M23.5 15.5 11 17.6a2.4 2.4 0 0 0 .4 4.7l11.6-.3z"/>
-  <circle cx="32" cy="9.6" r="1.8" fill="currentColor"/>
-</svg>LaBro</a>
-    <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#connects">Connects to</a><a href="#pricing">Pricing</a><a href="#waitlist">Waitlist</a><a href="#tech">Tech</a><a href="#faq">FAQ</a></nav>
-  </header>
-  <main>
-    <section class="hero wrap">
-      <div class="hero-copy">
-        <p class="category">The agentic lab management framework</p>
-        <h1>You run the science. LaBro runs the lab.</h1>
-        <p class="lead">A crew of AI agents that keeps a shared lab's bookings, instrument use and billing in order, and only asks you to approve.</p>
-        <div class="actions"><a class="button primary" href="#waitlist">Join the waitlist</a><a class="button secondary" href="download.html">Download the preview</a></div>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="masthead"><a class="brand" href="index.html" aria-label="LaBro home"><img src="../brand/labro-mark-ink.svg" alt="" width="38" height="38">LaBro</a><span class="edition">A little order for your lab.</span></header>
+  <main id="main">
+    <section class="cover" aria-labelledby="title">
+      <div class="binding" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="cover-copy">
+        <p class="book-label">The lab notebook, a little smarter.</p>
+        <h1 id="title">Your lab's bro.<br>A little less<br><span class="highlight">lab admin.</span></h1>
+        <p class="intro">Bookings, instrument logs and billing.<br>LaBro puts them in order, so you can get back to the science.</p>
+        <div class="actions"><a class="button outline" href="#notebook" id="learn-more">Learn more <span aria-hidden="true">↘</span></a><button class="button yellow" data-waitlist>Join waitlist now</button></div>
+        <p class="cover-foot">Made for the people keeping shared labs running.</p>
       </div>
-      <div class="schedule" role="img" aria-label="Example instrument schedule with bookings for User A through User D">
-        <div class="schedule-head"><strong>Instrument schedule</strong></div>
-        <div class="schedule-scroll"><div class="schedule-grid">
-          <div>Instrument</div><div class="times"><span>9:00</span><span>11:00</span><span>1:00</span><span>3:00</span><span>5:00</span></div>
-          <div class="machine">Flow cytometer</div><div class="track"><span class="booking b1">User A</span></div>
-          <div class="machine">Confocal</div><div class="track"><span class="booking b2">User B</span></div>
-          <div class="machine">Sequencer</div><div class="track"><span class="booking b3">User C</span></div>
-          <div class="machine">Mass spec</div><div class="track"><span class="booking b4">User D</span></div>
-        </div></div>
+      <div class="cover-entry" aria-label="Illustrative lab notebook entry">
+        <div class="entry-meta"><span>Lab notes</span><span>No. 001</span></div>
+        <h2>Good science.<br>Less spreadsheet archaeology.</h2>
+        <div class="lab-sketch" aria-hidden="true">
+          <svg viewBox="0 0 390 185" fill="none"><g stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M58 163h197M78 162c-3-13 4-23 18-29l26-11M193 52c38 4 65 33 61 70-2 22-18 37-43 40M193 77c23 5 35 25 33 44-1 13-10 24-24 28M124 119h82M142 127v13h44"/><path d="m111 37 28-14 39 70-29 15zM104 38l34-18M155 108l7 13M176 99l7 13M271 163h70M293 77v27l-19 43c-4 9 0 15 10 15h43c10 0 14-6 10-15l-19-43V77M289 77h33M286 130h40"/></g><path d="m280 145 6-14h39l6 14c3 7 0 11-7 11h-37c-7 0-10-4-7-11Z" fill="#f6d95b"/><circle cx="301" cy="141" r="3" fill="#fff"/><circle cx="315" cy="148" r="2.5" fill="#fff"/></svg>
+        </div>
+        <ul class="note-list"><li><span class="ink-check">✓</span> Find the bookings.</li><li><span class="ink-check">✓</span> Line up the logs.</li><li><span class="ink-check">✓</span> Give every charge a reason.</li></ul>
+        <p class="margin-note">You make the call.<br>LaBro does the sorting.</p>
+        <span class="page-number">01</span>
       </div>
     </section>
-    <section id="how" class="section-rule"><div class="wrap section"><span id="agent"></span><h2>How it works</h2>
-      <div class="pipeline">
-        <article><h3>Finder</h3><p>Detects the lab's booking system and data sources.</p></article>
-        <article><h3>Collector</h3><p>Pulls the month's bookings, instrument logs and price sheet.</p></article>
-        <article><h3>Matcher</h3><p>Pairs every booking with the time the instrument actually ran.</p></article>
-        <article><h3>Pricer</h3><p>Applies the lab's own rates, tiers and after-hours rules.</p></article>
-        <article><h3>Reviewer</h3><p>Flags no-shows, overruns and outliers, then hands you one bill to approve.</p></article>
+
+    <section class="notebook-section" id="notebook" aria-labelledby="notebook-title" tabindex="-1">
+      <div class="section-intro"><p class="book-label">A few pages from the notebook</p><h2 id="notebook-title">Here's what LaBro takes off your plate.</h2><p>Turn a page. Follow one booking from the calendar to the bill.</p></div>
+      <div class="notebook">
+        <div class="page-tabs" role="tablist" aria-label="Explore LaBro">
+          <button id="tab-problem" role="tab" aria-selected="true" aria-controls="page-problem" tabindex="0" data-page="0">The problem</button>
+          <button id="tab-workflow" role="tab" aria-selected="false" aria-controls="page-workflow" tabindex="-1" data-page="1">How it works</button>
+          <button id="tab-lab" role="tab" aria-selected="false" aria-controls="page-lab" tabindex="-1" data-page="2">Your lab</button>
+        </div>
+        <div class="notebook-pages">
+          <article class="notebook-page" id="page-problem" role="tabpanel" aria-labelledby="tab-problem">
+            <div class="page-copy"><p class="entry-meta">Entry 01 / The month-end puzzle</p><h3>A booking tells<br>half the story.</h3><p>John books the microscope from 9 to 11. His computer login ends at 1. Some of that time might be copying files.</p><p>The lab manager has to bring the records together and work out what belongs on the bill.</p><p class="pencil-note">A login isn't a measurement of experiment time.</p></div>
+            <div class="evidence-sheet"><p class="entry-meta">Example entry / synthetic records</p><h4>John's morning at the microscope</h4><div class="time-ruler"><span>9 am</span><span>11 am</span><span>1 pm</span></div><div class="timeline-row"><span>Booking</span><div><i class="booked-bar">2 hours</i></div></div><div class="timeline-row"><span>PC login</span><div><i class="logged-bar">4 hours</i></div></div><div class="evidence-answer"><span>What should be billed?</span><strong>Needs the manager's review.</strong></div><p class="hint">LaBro puts both records in view. It doesn't guess when the experiment ended.</p></div>
+          </article>
+          <article class="notebook-page" id="page-workflow" role="tabpanel" aria-labelledby="tab-workflow" hidden>
+            <div class="page-copy"><p class="entry-meta">Entry 02 / A better way to close the month</p><h3>Bring it together.<br>Check it once.</h3><p>Give LaBro the reservations, instrument logs and prices your lab already uses.</p><p>It lines up the records, applies your billing rules and flags the sessions that need a look. The manager reviews before exporting charges.</p><p class="pencil-note">Less copy and paste. More context.</p></div>
+            <div class="workflow-sheet"><h4>A month in three steps</h4><ol class="workflow"><li><strong>Collect your records</strong><span>FBS or iLab exports, usage logs and your price sheet.</span></li><li><strong>Check the differences</strong><span>See overruns, missing bookings and records that don't line up.</span></li><li><strong>Review and export</strong><span>Keep the decision with the person who knows the lab.</span></li></ol><details><summary>Where do the agents fit?</summary><p>The preview's scheduling agent collects and validates data from FBS and iLab practice systems. Real schedules currently use exports. Claude and Codex can run LaBro's local checks through MCP.</p></details></div>
+          </article>
+          <article class="notebook-page" id="page-lab" role="tabpanel" aria-labelledby="tab-lab" hidden>
+            <div class="page-copy"><p class="entry-meta">Entry 03 / For the person running the lab</p><h3>Your instruments.<br>Your rules.<br>Your final say.</h3><p>LaBro is for shared labs and the managers who keep them running. Researchers use the equipment; the lab or university pays for the software.</p><p>Start with one month's records. Keep your existing scheduling system.</p></div>
+            <div class="lab-sheet"><h4>A little help with the admin</h4><ul class="note-list"><li><span class="ink-check">✓</span> One calendar for your reservations</li><li><span class="ink-check">✓</span> Your prices and billing rules</li><li><span class="ink-check">✓</span> Clear exceptions to review</li><li><span class="ink-check">✓</span> Local files, under your control</li></ul><p class="price-note"><strong>$199</strong> / core / month <span>Planned Core pricing. Campus plans available.</span></p><button class="button yellow" data-waitlist>Join waitlist now</button></div>
+          </article>
+        </div>
+        <div class="page-navigation"><button id="previous-page" aria-label="Previous notebook page" disabled>← Previous</button><p id="page-status" role="status" aria-live="polite">Page 1 of 3</p><button id="next-page" aria-label="Next notebook page">Next page →</button></div>
       </div>
-      <p class="pipeline-note">Every agent's work is checked by deterministic rules before it reaches you.</p>
-    </div></section>
-    <section id="connects" class="section-rule"><div class="wrap section"><h2>Connects to</h2><p class="integration-list">FBS · iLab · PPMS · Booked Scheduler · Excel and CSV · Claude · Copilot Studio · n8n</p></div></section>
-    <section id="pricing" class="section-rule"><div class="wrap section"><h2>Pricing</h2><div class="plans">
-      <article class="plan"><h3>Core</h3><p class="price">$199 <span>per core / month</span></p><ul><li>Every agent</li><li>Unlimited instruments</li><li>Monthly close</li></ul></article>
-      <article class="plan"><h3>Campus</h3><p class="price">Custom</p><ul><li>Every core on campus</li><li>Campus roll-up and admin view</li><li>Priority support</li></ul></article>
-    </div></div></section>
-    <section id="waitlist" class="section-rule"><div class="wrap section waitlist"><h2>Join the waitlist</h2><p>Pilot spots for spring 2027 are open to university core facilities. Pre-order a Core plan and lock in $199 per core for your first year.</p><div class="actions"><a class="button primary" href="mailto:zhaobrya@usc.edu?subject=LaBro%20waitlist&amp;body=Name%3A%0AUniversity%3A%0ACore%20facility%3A%0ABooking%20system%3A">Join the waitlist</a>
-      <a class="button secondary" href="mailto:zhaobrya@usc.edu?subject=LaBro%20pre-order">Pre-order</a></div></div></section>
-    <section id="tech" class="section-rule"><div class="wrap section"><h2>Under the hood</h2><dl class="tech-list">
-      <div><dt>Multi-agent orchestration</dt><dd>Specialist agents for discovery, collection, reconciliation, pricing and review, coordinated by a planner.</dd></div>
-      <div><dt>Model Context Protocol server</dt><dd>Any MCP-capable agent can call LaBro's tools: find exports, read prices, check a month.</dd></div>
-      <div><dt>Interval reconciliation engine</dt><dd>Merges booked and logged intervals per user, instrument and day, with per-machine billing policies.</dd></div>
-      <div><dt>Rate-sheet parser</dt><dd>Reads price sheets in Excel, CSV or plain text into tiers, after-hours windows and rounding rules.</dd></div>
-      <div><dt>Anomaly scoring</dt><dd>Statistical outlier detection on session length and charge within each machine and month.</dd></div>
-      <div><dt>Local-first runtime</dt><dd>Electron desktop app; data stays on the lab's machine. API tokens are encrypted in the OS keychain.</dd></div>
-      <div><dt>Human-in-the-loop</dt><dd>Nothing is billed until a manager approves; every charge carries its evidence.</dd></div>
-    </dl></div></section>
-    <section id="faq" class="section-rule"><div class="wrap section"><h2>FAQ</h2><div class="faq">
-      <details><summary>Why does a lab need agents for this?</summary><p>Each month someone has to find the exports, match thousands of bookings against instrument logs, apply rules that differ by machine, and chase exceptions. That is a chain of judgment calls across several systems: the kind of work agents do well, with a person approving the result.</p></details>
-      <details><summary>Does LaBro replace our booking or billing system?</summary><p>No. It works alongside FBS, iLab, PPMS and the rest, and hands back a reviewed bill in the format you already upload.</p></details>
-      <details><summary>Where does our data go?</summary><p>It stays on your computer. LaBro runs locally and only talks to the systems you connect.</p></details>
-      <details><summary>What if an agent gets something wrong?</summary><p>Every charge shows the booking and log it came from, and nothing is billed until you approve it.</p></details>
-      <details><summary>How long does setup take?</summary><p>About ten minutes: connect your exports folder or system, check the price sheet LaBro reads, and run a month.</p></details>
-      <details><summary>Which instruments does it work with?</summary><p>Any instrument with a booking and a usage log: flow cytometers, microscopes, NMR, mass spectrometers, sequencers.</p></details>
-      <details><summary>Can our own AI assistant use it?</summary><p>Yes. LaBro exposes its tools over MCP, so Claude, Copilot Studio or n8n can run checks.</p></details>
-      <details><summary>How much does it cost?</summary><p>$199 per core per month, or a campus plan for every core.</p></details>
-      <details><summary>How do I try it?</summary><p>Download the preview and run the practice month, or join the waitlist for a pilot.</p></details>
-    </div></div></section>
-    <section class="section-rule"><div class="wrap contact"><a href="mailto:zhaobrya@usc.edu">Questions? zhaobrya@usc.edu</a></div></section>
+    </section>
+    <section class="last-note"><img src="../brand/labro-mark-ink.svg" width="56" height="56" alt=""><h2>You run the science.<br>Let LaBro help with the rest.</h2><button class="button yellow" data-waitlist>Join waitlist now</button><p>Building with lab managers. One month at a time.</p></section>
   </main>
-  <footer class="section-rule"><div class="wrap footer"><a class="wordmark" href="index.html">LaBro</a><a href="https://github.com/bryanzhao08/labro">GitHub</a><p>© 2026 LaBro</p></div></footer>
+  <footer><a class="brand" href="index.html">LaBro</a><div><a href="download.html">Download the preview</a><a href="https://github.com/bryanzhao08/labro">GitHub</a><a href="mailto:zhaobrya@usc.edu">Say hello</a></div><span>© 2026 LaBro</span></footer>
+
+  <dialog id="waitlist-dialog" aria-labelledby="waitlist-title"><form id="waitlist-form"><button class="close-dialog" type="button" aria-label="Close waitlist">×</button><p class="book-label">A new entry in the lab book</p><h2 id="waitlist-title">Let's make lab admin easier.</h2><p>Tell Bryan a little about your lab and ask about early access.</p><label for="email">Your email</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@university.edu" required maxlength="254"><label for="lab">Lab or university <span>(optional)</span></label><input id="lab" name="lab" autocomplete="organization" placeholder="Where you run the science" maxlength="160"><button class="button yellow" type="submit">Open signup email</button><p class="hint" id="waitlist-help">Opens your email app. You'll review and send the request yourself.</p><p class="email-fallback">Or email <a href="mailto:zhaobrya@usc.edu?subject=LaBro%20waitlist">zhaobrya@usc.edu</a>.</p></form></dialog>
 </body>
 </html>
