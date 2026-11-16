@@ -3,7 +3,7 @@
 'use strict';
 if(typeof document==='undefined')return;
 const H=root.LBHelpers,R=root.LBRates,S=root.LBSchedule,E=root.LBReconcile,I=root.LBIntake,FS=root.labroFS||null;
-const APP_VERSION='0.8.0',CONN=root.labroConn||null;
+const APP_VERSION='0.8.1',CONN=root.labroConn||null;
 const {choices,detectColumns,keywordParser,validateModel,extractMachines,machineRulesFrom,policyFor,outliers,flagKind,applyRateCard,setBilling,tierKey,MODE_NAME}=H;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

@@ -1,6 +1,6 @@
 {
   "name": "labro-desktop",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "description": "Local-first core facility requests, billing review and campus reporting",
   "author": "LaBro",
@@ -14,7 +14,8 @@
     "agent:train": "node agent/train.cjs",
     "agent:test": "node tests/agent.test.cjs",
     "agent:practice": "node agent/practice.cjs",
-    "desktop:test:home": "npm run desktop:prepare && electron . --home-smoke-test"
+    "desktop:test:home": "npm run desktop:prepare && electron . --home-smoke-test",
+    "desktop:icons": "electron desktop/build-icons.cjs"
   },
   "devDependencies": {
     "electron": "45.2.3",
@@ -38,10 +39,12 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "identity": null
+      "identity": null,
+      "icon": "brand/app-icon.icns"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "brand/app-icon.ico"
     },
     "nsis": {
       "oneClick": false,

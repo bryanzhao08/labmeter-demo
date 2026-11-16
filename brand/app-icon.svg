@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><title>LaBro app icon</title><rect x="96" y="96" width="832" height="832" rx="186" fill="#F4C430"/><svg x="220" y="178" width="584" height="640" viewBox="0 0 64 64" color="#22221F" fill="none">
+  <title>LaBro</title>
+  <!-- One colour only (#22221F): a lab flask wearing a backwards cap; face cut out of the liquid. -->
+  <defs>
+    <mask id="face">
+      <rect width="64" height="64" fill="#fff"/>
+      <circle cx="26.5" cy="44.5" r="2.6" fill="#000"/>
+      <circle cx="37.5" cy="44.5" r="2.6" fill="#000"/>
+      <path d="M26 50.6c3.6 2.8 8.4 2.8 12 0" stroke="#000" stroke-width="2.6" stroke-linecap="round"/>
+    </mask>
+  </defs>
+  <g stroke="#22221F" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- flask outline -->
+    <path d="M25 20v9.5L12.2 51.4A5 5 0 0 0 16.5 59h31a5 5 0 0 0 4.3-7.6L39 29.5V20"/>
+  </g>
+  <!-- liquid with a face -->
+  <path mask="url(#face)" fill="#22221F" d="M20.4 36.5h23.2l7.6 13.9A4.6 4.6 0 0 1 47.2 58H16.8a4.6 4.6 0 0 1-4-6.9z"/>
+  <!-- backwards cap: crown over the neck, brim pointing back -->
+  <path fill="#22221F" d="M22 20.5c0-6.4 4.5-10.5 10-10.5s10 4.1 10 10.5z"/>
+  <path fill="#22221F" d="M23.5 15.5 11 17.6a2.4 2.4 0 0 0 .4 4.7l11.6-.3z"/>
+  <circle cx="32" cy="9.6" r="1.8" fill="#22221F"/>
+</svg></svg>
