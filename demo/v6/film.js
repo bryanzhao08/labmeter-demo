@@ -27,7 +27,8 @@ cyl(room,4.6,1.55,-3.2,.65,.75,white);cyl(room,4.6,1.98,-3.2,.68,.12,light);
 box(room,3.5,1.15,2.8,3.7,.22,1.8,white);for(const dx of [-1.55,1.55])for(const dz of [-.65,.65])box(room,3.5+dx,.55,2.8+dz,.16,1.1,.16,light);
 box(room,3.5,1.56,2.45,.22,.7,.22,light);box(room,3.5,2.12,2.45,2.1,1.25,.12,dark,.08);box(room,3.5,1.3,3.15,1.4,.07,.45,light,.02);
 const images={};const imageNames=['02-schedule','03-drawer','05-results'];
-const loaded=imageNames.map(n=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{images[n]=im;resolve()};im.onerror=reject;im.src=`./stills/${n}.png`}));
+const markLoad=new Promise(r=>{const im=new Image(256,256);im.onload=()=>{images.mark=im;r()};im.onerror=()=>r();im.src='./labro-mark-ink.svg'});
+const loaded=[markLoad,...imageNames.map(n=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{images[n]=im;resolve()};im.onerror=reject;im.src=`./stills/${n}.png`}))];
 let screen;
 // Yellow safety rail around the instrument bay.
 for(const x of [-6.6,1.8])for(const z of [-4.5,-1.35])cyl(room,x,.65,z,.055,1.3,yellow);
@@ -44,7 +45,7 @@ const agentNames=['Finder','Collector','Matcher','Pricer','Reviewer'];const agen
 // Campus LOD is separate from the hero room.
 const campus=new THREE.Group();scene.add(campus);box(campus,0,-.3,0,43,.25,37,floorMat);
 for(let ix=-1;ix<=1;ix++)for(let iz=-1;iz<=1;iz++){const g=new THREE.Group();g.position.set(ix*13,0,iz*11);campus.add(g);box(g,0,0,0,10,.2,8,wall);box(g,0,1,-3.9,10,2,.15,white);box(g,-4.9,1,0,.15,2,8,white);for(let j=-1;j<=1;j++){box(g,j*3,.65,-2.3,2.2,.2,1,light);box(g,j*3,1.15,-2.3,1,.8,.7,white)}if(ix||iz){const len=Math.hypot(ix*13,iz*11);const line=box(campus,ix*6.5,.03,iz*5.5,.08,.04,len,yellow,.01);line.rotation.y=Math.atan2(ix*13,iz*11)}}
-const hub=new THREE.Group();campus.add(hub);box(hub,0,1,0,3,2,2,yellow,.15);sign(hub,'LaBro',0,1,1.02,2.6,.75,'#e8c24a','#27313a');
+const hub=new THREE.Group();campus.add(hub);box(hub,0,1,0,3,2,2,yellow,.15);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));const ease=v=>{v=clamp(v);return v*v*(3-2*v)};const mix=(a,b,v)=>a+(b-a)*v;
 function cameraAt(pos,target){camera.position.set(...pos);camera.lookAt(...target);camera.updateMatrixWorld()}
 function sceneFrame(t){
@@ -58,7 +59,8 @@ function sceneFrame(t){
  if(t<3.5)cameraAt([12-mix(0,1,ease(t/3.5)),9,14],[0,1.2,-.5]);
  else if(t<5.5){let q=ease((t-3.5)/2);cameraAt([mix(11,3.5,q),mix(8,2.12,q),mix(14,4.15,q)],[mix(0,3.5,q),mix(1.2,2.12,q),mix(-.5,2.45,q)])}
  else if(t<14)cameraAt([11,13,15],[0,1,-.5]);
- else {let q=ease((t-14)/2);cameraAt([mix(12,31,q),mix(14,38,q),mix(16,40,q)],[0,0,0]);hub.position.y=ease((t-14)/1.5)*1.5}
+ else {hub.position.y=ease((t-14)/1.2)*1.5;const hy=hub.position.y+1;let q=ease((t-14)/1.6);let pos=[mix(12,31,q),mix(14,38,q),mix(16,40,q)],look=[0,0,0];
+  if(t>=15.5){const d=ease((t-15.5)/1.0);pos=[mix(pos[0],0,d),mix(pos[1],hy,d),mix(pos[2],1.12,d)];look=[0,mix(0,hy,d),0]}cameraAt(pos,look)}
  panels.forEach(p=>p.lookAt(camera.position)); agents.forEach(a=>a.lookAt(camera.position));
  renderer.render(scene,camera);
 }
@@ -84,8 +86,11 @@ window.renderAt=function(t){t=clamp(Number(t)||0,0,18);sceneFrame(t);let grad=ct
  else if(t<5.5||t>=14)ctx.drawImage(renderer.domElement,0,0);else{ctx.save();ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480,0,1440,1080);ctx.restore();const zoom=1+.06*ease((t-6.5)/3.5);if(t<10){appFrame(images['02-schedule'],45,160,850,650,zoom);if(t>=7.8)appFrame(images['03-drawer'],45,160,850,650,zoom,ease((t-7.8)/.4))}else appFrame(images['05-results'],45,160,850,650,1.02)}
  if(window.NO_OVERLAY)return;
  if(t<3.5){overlayBooking(t);caption('Booked 2 hours. Used 3.5.')}else if(t>=6.3&&t<10)caption("LaBro's agents pull every booking, log and price.");else if(t>=10&&t<14)caption('Match. Price. Flag. You approve.');
- if(t>=7.1&&t<10)overlaySources(t);if(t>=10&&t<14)overlayAgents(t);if(t>=14&&t<16.4){overlayHub(t);caption('One LaBro for every core on campus.')}
- if(t>=16){let a=ease((t-16)/.8);ctx.fillStyle=`rgba(27,33,48,${a})`;ctx.fillRect(0,0,W,H);ctx.globalAlpha=a;ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='600 120px RobotoMono, monospace';ctx.fillText('LaBro',960,500);ctx.fillStyle='#f4c430';ctx.font='600 40px RobotoMono, monospace';ctx.fillText('You run the science. LaBro runs the lab.',960,590);ctx.globalAlpha=1}
+ if(t>=7.1&&t<10)overlaySources(t);if(t>=10&&t<14)overlayAgents(t);if(t>=14.3&&t<15.6)caption('One crew of agents for every core.');
+ if(t>=16.35){const Y='#F4C430',INK='#22221F';const f=ease((t-16.35)/.3);ctx.fillStyle=Y;ctx.globalAlpha=f;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;
+  if(t>=16.6){const m=ease((t-16.6)/.6),sz=mix(120,220,m);ctx.globalAlpha=m;if(images.mark)ctx.drawImage(images.mark,W/2-sz/2,mix(470,330,m)-sz/2,sz,sz);ctx.globalAlpha=1;
+   const w=ease((t-16.9)/.55);ctx.save();ctx.beginPath();ctx.rect(0,450,W,190);ctx.clip();ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 132px RobotoMono, monospace';ctx.fillText('LaBro',W/2,mix(700,540,w));ctx.restore();
+   const g=ease((t-17.25)/.5);ctx.globalAlpha=g;ctx.fillStyle=INK;ctx.font='500 40px RobotoMono, monospace';ctx.textAlign='center';ctx.fillText('You run the science. LaBro runs the lab.',W/2,mix(700,680,g));ctx.globalAlpha=1}}
 };
 window.selfTest=()=>{[0,5,9,12,17].forEach(window.renderAt);return true};
 window.ready=Promise.all([...loaded,document.fonts.ready,...Object.values(clips).map(c=>new Promise(r=>{if(c.v.readyState>=2)return r();c.v.addEventListener('loadeddata',r,{once:true});c.v.addEventListener('error',r,{once:true});setTimeout(r,4000)}))]).then(()=>{const tex=new THREE.Texture(images['02-schedule']);tex.colorSpace=THREE.SRGBColorSpace;tex.needsUpdate=true;screen=new THREE.Mesh(new THREE.PlaneGeometry(1.94,1.1),new THREE.MeshBasicMaterial({map:tex}));screen.position.set(3.5,2.12,2.52);room.add(screen);window.renderAt(0)});

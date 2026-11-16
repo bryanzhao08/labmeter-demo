@@ -328,3 +328,7 @@ dd{margin:0;font-weight:500;overflow-wrap:anywhere}
 .stat{min-width:0}.stat strong{min-width:0}.tl-name b{display:block}.tl-name b i{display:inline-block;margin-right:8px}.table-wrap table{min-width:max-content}
 
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* Logo mark (one colour; inherits text colour) */
+.brand svg.brand-mark{width:28px;height:28px;color:var(--marker);background:none;flex:none}
+.brand svg.brand-mark::after{content:none}

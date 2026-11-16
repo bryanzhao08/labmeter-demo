@@ -6,3 +6,6 @@
 @media(max-width:1100px){.pipeline{grid-template-columns:1fr}.pipeline article:not(:last-child):after{content:"↓";right:24px;top:auto;bottom:-15px}.hero{grid-template-columns:1fr;gap:50px}.schedule{max-width:700px}}
 @media(max-width:600px){.wrap{width:calc(100% - 36px)}.site-header{padding-block:20px;align-items:flex-start;flex-direction:column;gap:12px}nav{gap:10px 16px}.hero{padding-block:60px}.actions{align-items:stretch;flex-direction:column}.button{width:100%}.section{padding-block:65px}.plans,.tech-list>div,.download-details{grid-template-columns:1fr}.tech-list>div{gap:10px}.footer{padding-block:25px;flex-wrap:wrap;gap:18px}.footer p{margin-left:0}.download-page{padding-block:40px 70px}.back{margin-bottom:48px}.download-details{gap:35px;margin-top:70px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.wordmark{display:inline-flex;align-items:center;gap:10px}
+.logo-mark{width:30px;height:30px;color:currentColor;flex:none}
