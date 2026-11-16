@@ -25,7 +25,7 @@ app.whenReady().then(async () => {
       const track = stream.getVideoTracks()[0];
       if (!track || typeof track.requestFrame !== 'function') throw new Error('Manual frame capture is unavailable');
       const chunks = [];
-      const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 16e6 });
+      const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: ${Number(process.env.VBR || 16e6)} });
       const stopped = new Promise((resolve, reject) => {
         recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
         recorder.onerror = e => reject(e.error || new Error('MediaRecorder failed'));
