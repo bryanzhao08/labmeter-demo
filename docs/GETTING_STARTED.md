@@ -1,48 +1,87 @@
 # Getting started with LaBro
 
-## Download
+This guide is for a core manager. It takes you from download to your first exported month.
 
-Get the Apple silicon Mac app from [GitHub Releases](https://github.com/bryanzhao08/labmeter-demo/releases/latest). Download the ZIP under **Assets**, unzip it, and move LaBro to Applications. `SHA256SUMS.txt` provides the archive checksum.
+## 1. Install
 
-The current build is unsigned. Windows execution is not verified. The repository's source-code ZIP is separate from the runnable Mac app.
+1. Open the [latest release](https://github.com/bryanzhao08/labro/releases/latest).
+2. Under **Assets**, download the Mac ZIP (Apple silicon).
+3. Unzip it and move LaBro to Applications.
 
-## Start with the calendar
+`SHA256SUMS.txt` on the same page lets you check the download. The page's "Source code" ZIP is not the app.
 
-Home opens to a calendar immediately. Select a date, move between months, or use **Today**. After importing reservations, the calendar offers day/week views, instrument filters and clickable reservations.
+## 2. Open it for the first time
 
-The first-time setup popup offers:
+The app is not signed, so your computer will show a warning.
 
-- **Try the scheduling agent:** collect synthetic bookings from an independent FBS or iLab practice system.
-- **Use my spreadsheets:** add your own exports below the calendar.
-- **Explore the calendar first:** dismiss setup and keep browsing.
+- **Mac:** if it says the app is from an unidentified developer, open **System Settings**, then **Privacy & Security**, then choose **Open Anyway**.
+- **Windows:** if SmartScreen appears, choose **More info**, then **Run anyway**. Windows has not been verified yet.
 
-Use **Set up LaBro** on Home to open that choice again.
+## 3. Choose how to start
 
-## Use your real files
+Home opens to a calendar. A setup window offers three choices:
 
-1. Save reservation exports, instrument usage logs and your price sheet in one folder. CSV and Excel are supported; PDF price sheets require pasted text.
-2. On Home, scroll to **Add your lab's data**. Choose the folder or upload reservations and logs individually. The reservations populate the calendar.
-3. Open **Billing rules**, add your prices/policy, review the interpreted rules, then save. Configure rules before checking charges.
-4. Choose **Analyze the month**. Review exceptions under **Results**, then export eligible charges. Unreadable rows block export until corrected.
+- **Try the scheduling agent:** use synthetic bookings from a practice system.
+- **Use my spreadsheets:** load your own exports.
+- **Explore the calendar first:** close the window and look around.
 
-The app reads source files without modifying them. It does not submit charges to a scheduling or finance system. Imported workspace records must be loaded again after restarting; saved billing rules and agent run history persist.
+Choose **Set up LaBro** on Home to see these again.
 
-## Try the scheduling agent
+## 4. Try simulated data
 
-Open it from first-time setup or the link in **Connections**. Choose FBS or iLab, a month and a scenario, then run the agent. Inspect the activity log and schedule preview. **Open practice scheduler** shows the underlying synthetic source in your browser.
+1. Choose **Try the scheduling agent**.
+2. Pick FBS or iLab, a month and a scenario.
+3. Select **Run** and read the activity log and schedule preview.
+4. Choose **Use in LaBro** to load the records into your workspace.
 
-Choose **Use in LaBro** to replace the current workspace's reservations and usage logs with the validated synthetic records. This does not overwrite saved billing rules on disk. Invalid records block import. The practice systems are independent LaBro simulators, not authenticated vendor integrations.
+Invalid records block this step. **Open practice scheduler** shows the practice system in your browser.
+
+## 5. Or use your own files
+
+1. Put one month of reservation exports, usage logs and your price sheet in one folder. CSV and Excel work.
+2. On Home, scroll to **Add your lab's data**.
+3. Choose the folder, or upload the files one at a time.
+
+The reservations appear on the calendar. LaBro reads your files and never changes them.
+
+## 6. Check prices
+
+1. Open **Billing rules**.
+2. Add your prices and policy.
+3. Review the rules LaBro understood, then save.
+
+A PDF price sheet must be pasted in as text. Set up rules before you check charges.
+
+## 7. Read the schedule
+
+- Move between months or choose **Today**.
+- Switch between day and week views.
+- Filter by instrument, and click a reservation to see its details.
+
+Compare a few reservations with your own records.
+
+## 8. Review results
+
+1. Choose **Analyze the month**.
+2. Open **Results** and read each flagged line.
+3. Compare a few charges with the original records.
+
+Rows LaBro cannot read block the export until you fix them.
+
+## 9. Export
+
+Export the eligible charges as a CSV. Held rows are left out.
+
+LaBro does not send charges to any scheduling or finance system. After a restart, load your files again. Saved billing rules and agent history stay.
 
 ## Connections
 
-### 1. API key or exported files
+Open **Connections** for two optional setups.
 
-Find/select your scheduling system. FBS uses exports without an API key. iLab's optional token connection fetches equipment; its reservations still use exported reports. Enter the iLab token in the separate credential window.
+- **API key or exported files:** FBS uses exports, with no API key. iLab's token lists equipment only, so reservations still come from exports. Enter the token in the separate credential window.
+- **MCP connector:** lets Claude Desktop or Codex check a month. Pick an exports folder, copy the settings and restart your client. See the [MCP guide](../mcp/README.md).
 
-### 2. MCP connector
+## More help
 
-Choose **Claude Desktop** or **Codex**, select an exports folder, and copy the generated settings. Claude uses JSON; Codex uses TOML. Merge the settings into your existing client configuration and restart the client. LaBro does not edit those files automatically.
-
-Copy the provided prompt to ask your agent to find exports, read prices and check the month. Default tool responses hide names and account codes. The optional practice-agent checkbox adds the separate synthetic scheduling server.
-
-See [MCP setup](../mcp/README.md) and [agent architecture and training](../agent/README.md).
+- [Pilot testing and known limits](../TESTING.md)
+- [Scheduling agent details](../agent/README.md)

@@ -1,124 +1,73 @@
 # LaBro
 
-[**Download LaBro for Mac (Apple silicon)**](https://github.com/bryanzhao08/labmeter-demo/releases/latest) · [Source code](https://github.com/bryanzhao08/labmeter-demo)
+**The agentic lab management framework. You run the science. LaBro runs the lab.**
 
-Download the `LaBro-0.8.0-mac-arm64.zip` file under **Assets**, unzip it and move LaBro to Applications. The build is unsigned. Windows execution has not been verified.
+LaBro is a desktop app that helps a shared lab keep its bookings, instrument use and billing in order. A crew of agents prepares the month, and you approve the result.
 
-[Getting started](docs/GETTING_STARTED.md) · [Desktop/build guide](desktop/README.md) · [MCP setup](mcp/README.md) · [Pilot testing](TESTING.md)
+## What it does
 
-## Calendar-first desktop (0.8.0)
+- Reads your reservation exports, instrument usage logs and price sheet.
+- Matches each booking with the time the instrument actually ran.
+- Applies your own rates, tiers and after-hours rules.
+- Flags no-shows, overruns and outliers for review.
+- Exports a charges file only after you approve it.
 
-Home opens directly to an interactive calendar, with reservation and instrument-log uploads below. First-time setup offers the scheduling agent or your own spreadsheets. Connections has two sections: **API key or exported files** and **MCP connector**, with separate Claude Desktop JSON and Codex TOML settings. Choose an exports folder, copy the settings, restart your AI client, and ask it to review your sheets. No client configuration is overwritten automatically.
+Your files stay on your computer. LaBro never changes your scheduling system.
 
-For development: `npm install`, then `npm run desktop:start`. Verify with `npm run desktop:test:home` and `npm run desktop:test`.
+## Download
 
-## Scheduling agent prototype (0.7.0)
+- [Latest release on GitHub](https://github.com/bryanzhao08/labro/releases/latest) (Mac, Apple silicon)
+- [Download page](https://bryanzhao08.github.io/labro/site/download.html) with first-launch tips
+- [Project site](https://bryanzhao08.github.io/labro/site/)
 
-The desktop app now includes a **Scheduling agent** workspace for independent FBS and iLab practice systems. It fetches paginated synthetic reports, retries temporary failures, maps columns with a small locally trained model, validates records and stages them for manager review. It also exposes a separate scheduling-practice MCP server. Live vendor scheduling access is not claimed. See [agent architecture, training and demo instructions](agent/README.md).
+The build is unsigned, and Windows has not been verified.
 
-## Earlier prototypes (formerly LabMeter)
+## Try it in 2 minutes
 
-### Desktop foundation (0.6)
+1. Open LaBro.
+2. Choose **Try the scheduling agent**.
+3. Pick **FBS practice**.
+4. Select **Run**, then read the schedule it collects.
 
-Start with `npm run desktop:start` or `app.html`. LaBro reads a chosen folder of reservation exports, usage logs and prices, compares the records locally, and presents exceptions before CSV export. The desktop runtime is Electron and JavaScript; no backend server or database is required. Optional iLab equipment access runs in the desktop main process, and `mcp/labro-mcp.cjs` exposes the same workflow through five read-only tools. See `desktop/README.md`, `TESTING.md` and `mcp/README.md`.
+The practice data is synthetic. For the full walkthrough, see [Getting started](docs/GETTING_STARTED.md).
 
-The sensor, campus and FastAPI/SQLite descriptions below document earlier simulations and prototypes. They do not describe live sensor deployment or the current desktop runtime. All bundled demo data is synthetic.
+## How it works
 
-## Start here (2026-11-06)
-- `index.html`: landing page.
-- `close.html#requests`, `#rules`, `#campus` (2026-11-10), two roles in one app:
-  - **Core manager**: a request log priced by the price list plus editable when/then rules (`rules.js`, LBRules). Hold rules keep bad lines out of the FBS upload, with one-click fixes. Outputs: FBS eLog upload CSV, audit trail CSV, month summary JSON. State lives in localStorage (`labro-desk-v1`).
-  - **Research office**: rolls up one month summary per core (`campus.js`, LBCampus): recovery against target, booked vs measured hours, idle instruments, lab spend across cores. Two cores come from the browser's own data; four are simulated. Cores report by file; there is no live feed.
-  - UI in `desk.js`, plugged into `close.js` through `window.LBApp`. Tests: `node tests/rules.test.js`, `sh tests/smoke.sh smoke-desk.html`.
-- `close.html`, **LaBro Close**: the month-end close app. Load FBS/iLab/PPMS reservations, a login log and optional sensor runs. You get:
-  - checked charges with reasons, plus decisions on flagged lines
-  - evidence timelines and PI replies
-  - PI statements and a charges CSV
-  - expired-grant checks
-  - rates rebuilt from measured hours, with 2 CFR 200.468 flags and exports shaped to USC's public rate templates
-  - S10 usage by lab
-  - alerts, and a campus view
-  
-  Engines: `audit.js` (`window.LMAuditCore`) and `rates.js` (`window.LBRates`).
-- `pitch.html`: pitch deck. `lab.html`: lab simulator. `overview.html`: the earlier sensor overview SPA (formerly `index.html`; old `index.html#/...` links redirect).
-- `winlog.js` (`window.LBWinLog`): turns a raw Windows Security log (Event Viewer CSV, 4624/4634/4647) into login sessions. It runs automatically when one is dropped as the usage log.
-- Tests:
-  - `node tests/core.test.js`, `node tests/rates.test.js`, `node tests/layouts.test.js`, `node tests/winlog.test.js`
-  - Browser smoke test: run `python3 -m http.server 8765`, then `sh tests/smoke.sh`.
+- **Finder:** detects the lab's booking system and data sources.
+- **Collector:** pulls the month's bookings, instrument logs and price sheet.
+- **Matcher:** pairs every booking with the time the instrument actually ran.
+- **Pricer:** applies the lab's rates, tiers and after-hours rules.
+- **Reviewer:** flags exceptions and hands you one bill to approve.
 
-A static GitHub Pages demo of LaBro: clip-on sensors detect when shared lab instruments actually run, NFC taps claim the instrument to a grant, and reconciliation compares bookings, claims and measured runs. Verified run time is billed; walk-ups, overruns, idle claims, no-shows and sensor gaps go to a review queue.
+## For developers
 
-**All data is simulated.** There are no real instruments, sensors, users or customers. Researcher and grant names are invented display labels for `user-N` and `grant-N`. The instrument "tap" page is a client-side simulation and persists nothing. Review decisions and the portable-gear actions (Mark found, Report missing, Check out, Return) are stored only in your browser's localStorage. Portable-gear locations are room-level, from simulated BLE gateway sightings (not GPS); `data/assets.json` documents the status rules.
+```sh
+npm ci
+for f in tests/*.test.cjs; do node "$f"; done
+npm run desktop:test
+npm run desktop:mac    # Apple silicon Mac ZIP
+npm run desktop:win    # Windows x64 installer, build on Windows
+```
 
-## Two setups (header switch, or `?setup=fbs` / `?setup=suite`)
-- **With FBS (default):** for cores that must keep FBS for scheduling. The **Audit** page (`#/audit`) takes an FBS-style reservation export and a usage log (Bookitlab, software or login), plus optional LaBro sensor runs. It reconciles them per user per day, applying configurable rules:
-  - overrun grace, 60 min by default, billed at actual
-  - penalty multiplier for overruns past grace and for unbooked use
-  - flat fee, no-show charge, early-start tolerance and rounding
-  
-  With sensor runs loaded, it bills only instrument-running time, so data transfer after acquisition is not charged. Uploaded files are parsed in the browser and never sent anywhere. Sample files are in `data/audit/`, generated by `labmeter/sim/export_audit_samples.py`. Their column layouts are mock-ups, not the real FBS or Bookitlab schemas.
-- **All-in-one:** LaBro runs the whole workflow:
-  - **Book** (`#/book`): a calendar that replaces FBS scheduling, with no past or overlapping bookings, saved in localStorage
-  - NFC tap claim
-  - measured run
-  - **Billing**, with PI statements (including reserved-but-unused time, to make idle cost visible) and a ledger export
+Run `npm run desktop:start` to launch the app from source.
 
-These setups came out of a discovery call with a USC core manager (2026-11-02). That manager audits FBS against usage logs by hand every month.
+## Documentation
 
-## Modes
-- **Overview (default):** a static 2D snapshot at the latest data time. Metric strip, floor plan with instrument and gear chips, an Attention list, and per-instrument rows with a 7-day usage sparkline. No animation, and three.js is never loaded.
-- **Live simulation:** the top-right toggle (also `#/?mode=sim`, remembered in localStorage) opens a 3D view that plays the week by itself (about 1 simulated hour per 2 s, 1x/4x/pause, loops, quiet hours are skipped faster). The event feed and metrics are derived from the timeline, reconciliation and assets data. three.js r128 is loaded from cdnjs only when this mode opens. With reduced-motion set, it starts paused.
+- [Getting started](docs/GETTING_STARTED.md): a walkthrough for core managers.
+- [Pilot testing and known limits](TESTING.md)
+- [Desktop app and build guide](desktop/README.md)
+- [MCP server](mcp/README.md): let Claude or Codex check a month.
+- [Scheduling agent](agent/README.md): architecture, training and limits.
 
-## How the data was generated
-The real LaBro FastAPI server (SQLite, fresh temporary DB) was started on a local port and `sim/run.py --days 7` posted deterministic synthetic gateway events, NFC claims and bookings over HTTP (16,400 events, 6 instruments, 12 demo users, 5 grants). The API responses the UI needs were then saved to `data/`: `reconciliation.json`, `utilization.json`, `instruments.json`, `timeline-<instrument>.json`, `tag-<instrument>.json`, plus `billing.csv`, `bookings.csv` and the simulator's `ground_truth.json`. The server was stopped afterwards.
+## Older prototypes
 
-## Limitations
-- The simulator creates one ~65-minute observation window per instrument per day, so timelines are sparse and utilization is relative to monitored time.
-- Billing floors to 15-minute increments per uninterrupted run; booked-time billing is not implemented; no iLab/PPMS schema is validated.
-- "Pending review value" is run time x hourly rate for walk-ups and overruns; it is not billed.
+Earlier work used simulated sensors and a browser-only demo. Those pages are kept for history and are not the current app:
 
-## Run locally
-`python3 -m http.server` in the parent folder, then open `/labmeter-demo/`. Uses relative paths and hash routing, so it works under any subpath. Opening via `file://` will not load the JSON.
+- `overview.html`, `lab.html`: sensor overview and 3D lab simulator.
+- `close.html`, `workbench.html`: earlier month-end and reconciliation pages.
 
-## Windows collector prototype (2026-11-10)
-Download `collector/labro-collector.zip`, extract and follow its README. Collects session observations, activity estimates and optionally process-open time. It does not measure machine acquisition, identify people behind shared accounts, enforce login, or connect to FBS APIs.
-Each collector process has its own CSV to avoid concurrent-session overwrites. Writes use a temporary file before replacement. Import the CSV as a usage log and map the workstation to its reservation resource.
-Run `node tests/collector.test.js` with PowerShell installed to check synthetic active/idle timing and app import. These tests do not validate Windows installation, idle APIs, event backfill or shared-folder permissions; pilot on one Windows PC before wider use.
+`app.html` is the current desktop entry point. All bundled data is synthetic.
 
-## Batch usage logs
-In Close the month, select or drop multiple usage files together. The batch replaces the current usage dataset only after all files validate. Identical workstation/user/start/end sessions are deduplicated, and each output row retains its source filename. Raw Windows Security exports are converted before merging. Conversion warnings remain visible.
-Batch imports use automatic column detection; import an unrecognized layout alone to map it manually. This is file-based collection, not a live connection. Different overlapping intervals are not deduplicated as if they were identical evidence.
-Tests: `node tests/imports.test.js` and `tests/smoke-imports.html` served over HTTP.
+## Contact
 
-## Downloadable desktop app
-LaBro now has an Electron desktop preview. Build an Apple Silicon Mac ZIP with
-`npm ci && npm run desktop:mac`; build a Windows x64 installer on Windows with
-`npm run desktop:win`. See [desktop setup and limits](desktop/README.md).
-The app bundles its data and Excel reader, blocks network requests in the renderer,
-and stores requests/rules separately from the website. Uploaded source files are
-not persisted across launches. Releases are unsigned previews.
-Run `npm run desktop:test` for native app smoke checks.
-The manual Desktop builds GitHub workflow produces downloadable Mac/Windows artifacts.
-
-## Instrument-folder evidence
-New `folders.html` workflow, also packaged in desktop 0.2: user-selected folder,
-filename filtering, explicit column mapping, acquisition/session/reservation labels,
-saved profile, interval preview and traceable evidence CSV. Invalid records and
-overlaps block export. No manufacturer format or remote instrument access is assumed.
-See desktop/README.md for setup, timestamp conventions and limits.
-
-## Reconciliation workspace (0.3)
-Open `workbench.html` (the new desktop start screen).
-Import booking and usage CSV/Excel, select worksheets, and check the column mappings.
-Raw login/logout or paired intervals are supported. Save mapping/policy profiles locally.
-Choose booked, observed, or union-of-booked-and-observed time; 1/15/30-minute rounding;
-self-service/assisted/training rates; and explicit username aliases.
-Review repeated logins, no-shows and overlaps. Missing endpoints block exports.
-Download ready charges with original source references and review reasons; held rows
-are excluded. Source files/reviews are not persisted, and no charges are sent externally.
-Current rounding is per user/instrument/day. Split batches when instrument rates differ.
-Setup fees, after-hours discounts, per-reservation rounding and live integrations remain
-unimplemented. Example identities/accounts are synthetic.
-Tests: `node tests/reconcile.test.js`, `npm run desktop:test`.
-Pitch sections product-update, interview-interest and validation-next document supplied
-discovery feedback without implying paid commitments.
+zhaobrya@usc.edu
