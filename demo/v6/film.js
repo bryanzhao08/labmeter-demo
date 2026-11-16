@@ -65,7 +65,43 @@ function sceneFrame(t){
  renderer.render(scene,camera);
 }
 function roundRect(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=3;ctx.stroke()}}
-function appFrame(img,x,y,w,h,zoom=1,alpha=1){ctx.save();ctx.globalAlpha=alpha;roundRect(x,y,w,h,6,'#fff','#e7e5de');ctx.beginPath();ctx.roundRect(x+3,y+3,w-6,h-6,4);ctx.clip();let iw=w*zoom,ih=iw*img.height/img.width;if(ih<h){ih=h*zoom;iw=ih*img.width/img.height}ctx.drawImage(img,x+(w-iw)/2,y+(h-ih)/2,iw,ih);ctx.restore()}
+function appFrame(img,x,y,w,h,zoom=1,alpha=1){ctx.save();ctx.globalAlpha=alpha;roundRect(x,y,w,h,6,'#fff','#e7e5de');ctx.beginPath();ctx.roundRect(x+3,y+3,w-6,h-6,4);ctx.clip();ctx.drawImage(img,x+3,y+3,w-6,h-6);ctx.restore()}
+
+// Fit the real interface to the filmed monitor before the screen fills the frame.
+// Shot B is sampled only through its first second; later AI frames deform text and
+// put a monitor stand in front of the interface. The final approach is composited.
+const monitorTrack=[
+ {at:0,quad:[[981,545],[1164,588],[1160,698],[980,645]]},
+ {at:.5,quad:[[944,529],[1171,574],[1164,717],[943,660]]},
+ {at:1,quad:[[858,487],[1201,533],[1193,746],[856,682]]}
+];
+function trackedMonitor(time){const i=time<=.5?0:1,a=monitorTrack[i],b=monitorTrack[i+1],q=clamp((time-a.at)/(b.at-a.at));return a.quad.map((p,j)=>p.map((v,k)=>mix(v,b.quad[j][k],q)))}
+function imageTriangle(img,src,dst){
+ const [a,b,c]=src,[p,q,r]=dst,det=(b[0]-a[0])*(c[1]-a[1])-(c[0]-a[0])*(b[1]-a[1]);
+ const A=((q[0]-p[0])*(c[1]-a[1])-(r[0]-p[0])*(b[1]-a[1]))/det;
+ const B=((q[1]-p[1])*(c[1]-a[1])-(r[1]-p[1])*(b[1]-a[1]))/det;
+ const C=((r[0]-p[0])*(b[0]-a[0])-(q[0]-p[0])*(c[0]-a[0]))/det;
+ const D=((r[1]-p[1])*(b[0]-a[0])-(q[1]-p[1])*(c[0]-a[0]))/det;
+ ctx.save();ctx.beginPath();ctx.moveTo(...p);ctx.lineTo(...q);ctx.lineTo(...r);ctx.closePath();ctx.clip();ctx.setTransform(A,B,C,D,p[0]-A*a[0]-C*a[1],p[1]-B*a[0]-D*a[1]);ctx.drawImage(img,0,0);ctx.restore();
+}
+function imageQuad(img,quad){
+ const point=(u,v)=>[0,1].map(k=>(1-v)*mix(quad[0][k],quad[1][k],u)+v*mix(quad[3][k],quad[2][k],u));
+ const n=8;for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+  const u=x/n,v=y/n,U=(x+1)/n,V=(y+1)/n,p=[point(u,v),point(U,v),point(U,V),point(u,V)],a=[[u*img.width,v*img.height],[U*img.width,v*img.height],[U*img.width,V*img.height],[u*img.width,V*img.height]];
+  imageTriangle(img,[a[0],a[1],a[2]],[p[0],p[1],p[2]]);imageTriangle(img,[a[0],a[2],a[3]],[p[0],p[2],p[3]]);
+ }
+}
+function monitorHandoff(t,clip){
+ const sourceTime=clamp((t-3.5)/.85),zoom=ease((t-4.35)/.8),settle=ease((t-5.15)/.35),quad=trackedMonitor(sourceTime),full=[[0,0],[W,0],[W,H],[0,H]];
+ const scale=mix(1,9,zoom),cx=mix(1027,960,zoom),cy=mix(612,540,zoom);
+ // Keep the sharp screen glued to the bezel until the bezel is outside the frame.
+ // Only then remove perspective and reveal the complete interface.
+ const projected=quad.map(p=>[cx+(p[0]-1027)*scale,cy+(p[1]-612)*scale]);
+ const mapped=projected.map((p,i)=>p.map((v,k)=>mix(v,full[i][k],settle)));
+ ctx.save();ctx.translate(cx,cy);ctx.scale(scale,scale);ctx.translate(-1027,-612);ctx.drawImage(clip.v,0,0,W,H);ctx.restore();
+ ctx.save();ctx.globalAlpha=ease((t-3.5)/.2);if(settle>.999)ctx.drawImage(images['02-schedule'],0,0,W,H);else imageQuad(images['02-schedule'],mapped);ctx.restore();
+}
+
 function caption(text){ctx.save();ctx.font='600 54px RobotoMono, monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineWidth=6;ctx.strokeStyle='#111';ctx.fillStyle='#fff';ctx.strokeText(text,W/2,1008);ctx.fillText(text,W/2,1008);ctx.restore()}
 function project(x,y,z){let p=new THREE.Vector3(x,y,z).project(camera);return [(p.x+1)*W/2,(1-p.y)*H/2]}
 function overlayBooking(t){let [x,y]=project(-4.8,3.5,-3.2);roundRect(x-175,y-42,350,64,12,'#e8c24a');ctx.fillStyle='#222a32';ctx.font='600 25px RobotoMono, monospace';ctx.textAlign='center';ctx.fillText('John · booked 9–11',x,y);let cx=x+225,cy=y-8;ctx.beginPath();ctx.arc(cx,cy,55,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=4;ctx.strokeStyle='#29333d';ctx.stroke();let hour=9+3.5*ease(t/3.5);for(const [angle,len,width] of [[hour/12*Math.PI*2,28,5],[(hour%1)*Math.PI*2,40,3]]){ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.sin(angle)*len,cy-Math.cos(angle)*len);ctx.lineWidth=width;ctx.stroke()}roundRect(x-160,y+40,320,12,6,'#d9d9d9');roundRect(x-160,y+40,Math.max(1,320*ease(t/3.5)),12,6,'#c65c52')}
@@ -76,16 +112,17 @@ function overlaySources(t){const [dx,dy]=rightProj(3.5,2.4,2.45);[['FBS','reserv
 function overlayAgents(t){const [dx,dy]=rightProj(3.5,2.4,2.45);agentNames.forEach((n,i)=>{const a=ease((t-10-i*.12)/.4);if(a<=0)return;const x=990+i*182,y=120;ctx.globalAlpha=a;const on=t>=10.6+i*.6;wire(x+82,y+90,dx,dy,on?1:.35);chip(x,y,164,90,n,on,null,25);if(i===4&&t>12.9){ctx.fillStyle='#22221f';ctx.font='700 40px RobotoMono, monospace';ctx.fillText('✓',x+146,y+14)}ctx.globalAlpha=1})}
 function overlayHub(t){const [x,y]=project(0,hub.position.y+2.3,0);const a=ease((t-14.6)/.5);if(a<=0)return;ctx.globalAlpha=a;chip(x-110,y-90,220,76,'LaBro',true);ctx.globalAlpha=1}
 const clips={};
-for(const [k,src,from,to] of [['a','clips/shot-a.mp4',0,3.5],['b','clips/shot-b.mp4',3.5,5.5]]){const v=document.createElement('video');v.src=src;v.muted=true;v.preload='auto';v.playsInline=true;clips[k]={v,from,to,ok:false};v.addEventListener('loadeddata',()=>{clips[k].ok=true});}
+for(const [k,src,from,to] of [['a','clips/shot-a.mp4',0,3.5],['b','clips/shot-b.mp4',3.5,5.5]]){const v=document.createElement('video');v.src=src;v.muted=true;v.preload='auto';v.playsInline=true;clips[k]={id:k,v,from,to,ok:false};v.addEventListener('loadeddata',()=>{clips[k].ok=true});}
 function clipFor(t){for(const c of Object.values(clips))if(c.ok&&t>=c.from&&t<c.to)return c;return null}
-window.prepare=t=>{const c=clipFor(t);if(!c)return Promise.resolve();const target=Math.min(c.v.duration-0.04,(t-c.from)/(c.to-c.from)*c.v.duration);if(Math.abs(c.v.currentTime-target)<0.001)return Promise.resolve();return new Promise(r=>{c.v.addEventListener('seeked',()=>r(),{once:true});c.v.currentTime=target})};
+window.prepare=t=>{const c=clipFor(t);if(!c)return Promise.resolve();const target=Math.min(c.v.duration-0.04,c.id==='b'?clamp((t-3.5)/.85):(t-c.from)/(c.to-c.from)*c.v.duration);if(Math.abs(c.v.currentTime-target)<0.001)return Promise.resolve();return new Promise(r=>{c.v.addEventListener('seeked',()=>r(),{once:true});c.v.currentTime=target})};
 window.renderAt=function(t){t=clamp(Number(t)||0,0,18);sceneFrame(t);let grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#1b2130');grad.addColorStop(1,'#2a3242');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
- if(t>=5.5&&t<6.5){const q=ease((t-5.5)/1);ctx.save();ctx.globalAlpha=q;ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480+(1-q)*300,0,1440,1080);ctx.restore();
-   const r=[mix(0,45,q),mix(0,160,q),mix(1920,850,q),mix(1080,650,q)];appFrame(images['02-schedule'],r[0],r[1],r[2],r[3],1)}
- else if(t<5.5&&clipFor(t)){const c=clipFor(t);ctx.drawImage(c.v,0,0,W,H);if(t>=4.8){const q=ease((t-4.8)/.6);ctx.save();ctx.globalAlpha=q;appFrame(images['02-schedule'],mix(240,0,q),mix(120,0,q),mix(1440,1920,q),mix(840,1080,q),1);ctx.restore()}}
- else if(t<5.5||t>=14)ctx.drawImage(renderer.domElement,0,0);else{ctx.save();ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480,0,1440,1080);ctx.restore();const zoom=1+.06*ease((t-6.5)/3.5);if(t<10){appFrame(images['02-schedule'],45,160,850,650,zoom);if(t>=7.8)appFrame(images['03-drawer'],45,160,850,650,zoom,ease((t-7.8)/.4))}else appFrame(images['05-results'],45,160,850,650,1.02)}
+ if(t>=5.5&&t<5.85){ctx.drawImage(images['02-schedule'],0,0,W,H)}
+ else if(t>=5.85&&t<6.75){const q=ease((t-5.85)/.9);ctx.save();ctx.globalAlpha=q;ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480+(1-q)*300,0,1440,1080);ctx.restore();
+   const r=[mix(0,45,q),mix(0,250,q),mix(1920,850,q),mix(1080,478.125,q)];appFrame(images['02-schedule'],r[0],r[1],r[2],r[3],1)}
+ else if(t<5.5&&clipFor(t)){const c=clipFor(t);if(c.id==='b')monitorHandoff(t,c);else ctx.drawImage(c.v,0,0,W,H)}
+ else if(t<5.5||t>=14)ctx.drawImage(renderer.domElement,0,0);else{ctx.save();ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480,0,1440,1080);ctx.restore();const zoom=1;if(t<10){appFrame(images['02-schedule'],45,250,850,478.125,zoom);if(t>=7.8)appFrame(images['03-drawer'],45,250,850,478.125,zoom,ease((t-7.8)/.4))}else appFrame(images['05-results'],45,250,850,478.125,1)}
  if(window.NO_OVERLAY)return;
- if(t<3.5){overlayBooking(t);caption('Booked 2 hours. Used 3.5.')}else if(t>=6.3&&t<10)caption("LaBro's agents pull every booking, log and price.");else if(t>=10&&t<14)caption('Match. Price. Flag. You approve.');
+ if(t<3.5){overlayBooking(t);caption('Booked 2 hours. Used 3.5.')}else if(t>=6.8&&t<10)caption("LaBro's agents pull every booking, log and price.");else if(t>=10&&t<14)caption('Match. Price. Flag. You approve.');
  if(t>=7.1&&t<10)overlaySources(t);if(t>=10&&t<14)overlayAgents(t);if(t>=14.3&&t<15.6)caption('One crew of agents for every core.');
  if(t>=16.35){const Y='#F4C430',INK='#22221F';const f=ease((t-16.35)/.3);ctx.fillStyle=Y;ctx.globalAlpha=f;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;
   if(t>=16.6){const m=ease((t-16.6)/.6),sz=mix(120,220,m);ctx.globalAlpha=m;if(images.mark)ctx.drawImage(images.mark,W/2-sz/2,mix(470,330,m)-sz/2,sz,sz);ctx.globalAlpha=1;

@@ -12,7 +12,7 @@ app.whenReady().then(async () => {
       if (!window.selfTest()) throw new Error('Film self-test failed');
       const canvas = document.getElementById('out');
       const review = {};
-      for (const t of [15.0, 15.9, 16.2, 16.45, 16.8, 17.9]) {
+      for (const t of [3.5, 4.0, 4.35, 4.7, 5.0, 5.34, 5.5, 5.85, 6.3, 6.75, 10.5, 17.9]) {
         if (window.prepare) await window.prepare(t);
         window.renderAt(t);
         review[t] = canvas.toDataURL('image/png').split(',')[1];
@@ -32,14 +32,13 @@ app.whenReady().then(async () => {
         recorder.onstop = resolve;
       });
       recorder.start();
-      let previous = performance.now() - 1000 / 30;
+      const recordingStart = performance.now();
       for (let f = 0; f <= window.DURATION * 30; f++) {
-        const remaining = previous + 1000 / 30 - performance.now();
+        const remaining = recordingStart + f * 1000 / 30 - performance.now();
         if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
         if (window.prepare) await window.prepare(f / 30);
         window.renderAt(f / 30);
         track.requestFrame();
-        previous = performance.now();
       }
       await new Promise(resolve => setTimeout(resolve, 1000 / 30));
       recorder.stop();
@@ -55,7 +54,7 @@ app.whenReady().then(async () => {
       return { mime, base64, review };
     })()`, true);
     const ext = result.mime.startsWith('video/mp4') ? 'mp4' : 'webm';
-    const output = path.join(__dirname, `labro-demo-v6.${ext}`);
+    const output = path.join(__dirname, `labro-demo-v7.${ext}`);
     const data = Buffer.from(result.base64, 'base64');
     fs.writeFileSync(output, data);
     const reviewDir = path.join(__dirname, 'review');
