@@ -4,3 +4,5 @@ desktop/web/
 
 .DS_Store
 contracts/
+demo/v6/*.mp4
+demo/v6/*.webm
