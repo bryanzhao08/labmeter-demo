@@ -22,6 +22,8 @@
       box-shadow:3px 3px 0 #bdb9ad;font-size:clamp(18px,2.6vw,26px);font-weight:500;transform:rotate(-.6deg)}
     .cta{display:inline-block;min-height:56px;padding:16px 30px;background:var(--yellow);color:var(--ink);border:2px solid var(--ink);
       border-radius:4px;font:700 18px LabMono,monospace;text-decoration:none;cursor:pointer;box-shadow:4px 4px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+    .actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+    .cta.secondary{background:var(--paper)}
     .cta:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
     .cta:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
     .cta:focus-visible,a:focus-visible{outline:3px solid #456b97;outline-offset:5px}
@@ -37,8 +39,8 @@
       <img class="mark" src="../brand/parity-mark-ink.svg" alt="" width="96" height="96">
       <h1>Parity</h1>
       <p class="slogan">You run the science. Parity runs the lab.</p>
-      <div><a class="cta" href="mailto:zhaobrya@usc.edu?subject=Parity%20early%20access&amp;body=Hi%20Bryan%2C%0A%0AI%27m%20interested%20in%20Parity%20for%20my%20lab%20or%20core.%0A%0ALab%20or%20university%3A%0AWhat%20I%27d%20like%20help%20with%3A%0A">Pre-order / work with me</a></div>
-      <p class="sub">Opens an email to Bryan. Early access for shared research cores.</p>
+      <div class="actions"><a class="cta" href="mailto:zhaobrya@usc.edu?subject=Parity%20early%20access&amp;body=Hi%20Bryan%2C%0A%0AI%27m%20interested%20in%20Parity%20for%20my%20lab%20or%20core.%0A%0ALab%20or%20university%3A%0AWhat%20I%27d%20like%20help%20with%3A%0A">Pre-order / work with me</a><a class="cta secondary" href="https://github.com/bryanzhao08/parity/blob/main/docs/GETTING_STARTED.md">Read the docs</a></div>
+      <p class="sub">Pre-order opens an email to Bryan. The docs walk you from download to your first exported month.</p>
     </div>
   </main>
   <footer><a href="download.html">Download the preview</a><a href="https://github.com/bryanzhao08/parity/releases">GitHub releases</a><span>© 2026 Parity</span></footer>
