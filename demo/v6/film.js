@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from './vendor/addons/RoundedBoxGeometry.js';
 
 const W=1920,H=1080, out=document.getElementById('out'), ctx=out.getContext('2d');
-window.DURATION=18;
+window.DURATION=20;
+// ElevenLabs narration (voice: Arthur). The end card holds after t=18 while the last line finishes.
+window.VOICEOVER=[{src:'audio/vo-1.mp3',at:5.5,rate:1.2},{src:'audio/vo-2.mp3',at:11.7,rate:1.15},{src:'audio/vo-4.mp3',at:16.8,rate:1.05}];
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
 renderer.setSize(W,H); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
 const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(36,W/H,.1,300);

@@ -4,7 +4,8 @@ const path = require('path');
 
 app.whenReady().then(async () => {
   const win = new BrowserWindow({ width: 1920, height: 1080, show: false, useContentSize: true,
-    webPreferences: { contextIsolation: true, backgroundThrottling: false } });
+    webPreferences: { contextIsolation: true, backgroundThrottling: false, autoplayPolicy: 'no-user-gesture-required' } });
+  win.webContents.on('console-message', (e, level, msg) => { if (/AUDIO|REC/.test(msg)) console.log(msg); });
   try {
     await win.loadFile(path.join(__dirname, 'film.html'));
     await win.webContents.executeJavaScript('window.ready');
@@ -17,25 +18,35 @@ app.whenReady().then(async () => {
         window.renderAt(t);
         review[t] = canvas.toDataURL('image/png').split(',')[1];
       }
-      const preferred = 'video/mp4;codecs=avc1.640028';
+      const withAudio = 'video/mp4;codecs=avc1.640028,mp4a.40.2';
+      const preferred = MediaRecorder.isTypeSupported(withAudio) ? withAudio : 'video/mp4;codecs=avc1.640028';
       const fallback = 'video/webm;codecs=vp9';
       const mime = MediaRecorder.isTypeSupported(preferred) ? preferred : fallback;
       if (!MediaRecorder.isTypeSupported(mime)) throw new Error('Neither requested recording format is supported');
-      const stream = canvas.captureStream(0);
-      const track = stream.getVideoTracks()[0];
+      const videoStream = canvas.captureStream(0);
+      const track = videoStream.getVideoTracks()[0];
+      // ElevenLabs voiceover, played into the recording at fixed times (pitch kept when sped up).
+      const audioCtx = new AudioContext();
+      const dest = audioCtx.createMediaStreamDestination();
+      const lines = (window.VOICEOVER || []).map(v => { const el = new Audio(v.src); el.preservesPitch = true; el.playbackRate = v.rate || 1; el.preload = 'auto'; audioCtx.createMediaElementSource(el).connect(dest); return { ...v, el, started: false }; });
+      await Promise.all(lines.map(l => new Promise(r => { if (l.el.readyState >= 3) return r(); l.el.oncanplaythrough = r; l.el.onerror = r; setTimeout(r, 4000); })));
+      await audioCtx.resume();
+      console.log('AUDIO', audioCtx.state, JSON.stringify(lines.map(l => [l.src, l.el.readyState, l.el.error && l.el.error.code])));
+      const stream = new MediaStream([track, ...(lines.length ? dest.stream.getAudioTracks() : [])]);
       if (!track || typeof track.requestFrame !== 'function') throw new Error('Manual frame capture is unavailable');
       const chunks = [];
       const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: ${Number(process.env.VBR || 16e6)} });
       const stopped = new Promise((resolve, reject) => {
         recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-        recorder.onerror = e => reject(e.error || new Error('MediaRecorder failed'));
+        recorder.onerror = e => { console.log('REC error ' + (e.error && e.error.message)); reject(e.error || new Error('MediaRecorder failed')); };
         recorder.onstop = resolve;
       });
-      recorder.start();
+      recorder.start(1000);
       const recordingStart = performance.now();
       for (let f = 0; f <= window.DURATION * 30; f++) {
         const remaining = recordingStart + f * 1000 / 30 - performance.now();
         if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+        for (const l of lines) if (!l.started && f / 30 >= l.at) { l.started = true; l.el.play(); }
         if (window.prepare) await window.prepare(f / 30);
         window.renderAt(f / 30);
         track.requestFrame();
@@ -44,10 +55,12 @@ app.whenReady().then(async () => {
       recorder.stop();
       await stopped;
       stream.getTracks().forEach(t => t.stop());
+      audioCtx.close();
+      console.log('REC', mime, chunks.length, chunks.map(c => c.size).join(','));
       const blob = new Blob(chunks, { type: mime });
       const base64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onload = () => resolve(reader.result.slice(reader.result.indexOf(';base64,') + 8));
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
