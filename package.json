@@ -39,8 +39,9 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "identity": null,
-      "icon": "brand/app-icon.icns"
+      "identity": "-",
+      "icon": "brand/app-icon.icns",
+      "hardenedRuntime": false
     },
     "win": {
       "target": "nsis",
