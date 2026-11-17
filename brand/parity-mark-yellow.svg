@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Parity">
+  <title>Parity</title>
+  <!-- One colour only (#F4C430): a lab flask whose liquid carries an equals sign (booked = used). -->
+  <defs>
+    <mask id="eq">
+      <rect width="64" height="64" fill="#fff"/>
+      <rect x="22.5" y="41.2" width="19" height="3.6" rx="1.8" fill="#000"/>
+      <rect x="22.5" y="48.4" width="19" height="3.6" rx="1.8" fill="#000"/>
+    </mask>
+  </defs>
+  <g stroke="#F4C430" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M21 9h22"/>
+    <path d="M25 9v20.5L12.2 51.4A5 5 0 0 0 16.5 59h31a5 5 0 0 0 4.3-7.6L39 29.5V9"/>
+  </g>
+  <path mask="url(#eq)" fill="#F4C430" d="M20.4 36.5h23.2l7.6 13.9A4.6 4.6 0 0 1 47.2 58H16.8a4.6 4.6 0 0 1-4-6.9z"/>
+</svg>

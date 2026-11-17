@@ -4,7 +4,7 @@ const {createRuntime,normalize}=require('../agent/runtime.cjs'),{headers,records
 const S=require('../schedule.js'),H=require('../helpers.js'),M=require('../month.js');
 async function finished(a,id){for(let i=0;i<300;i++){const r=a.get(id);if(r.status!=='running')return r;await new Promise(r=>setTimeout(r,10))}throw Error('Agent timed out')}
 (async()=>{
- const directory=fs.mkdtempSync(path.join(os.tmpdir(),'labro-agent-'));let a;
+ const directory=fs.mkdtempSync(path.join(os.tmpdir(),'parity-agent-'));let a;
  try{
   a=await createRuntime({directory});
   for(const system of ['fbs','ilab']){

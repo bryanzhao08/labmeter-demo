@@ -1,8 +1,8 @@
-# LaBro scheduling agent — 0.7.0
+# Parity scheduling agent — 0.7.0
 
 Working prototype for two **independent practice systems**, inspired by FBS and iLab export workflows. No vendor credentials, live university access, bookings or charges are changed.
 
-In the desktop app, open **Scheduling agent**, choose FBS or iLab, a month and a scenario, then **Run scheduling agent**. Open the practice scheduler to see the source report in Chrome. Review the activity log and reservations, then **Use in LaBro**. This temporarily replaces the current workspace's schedule and usage logs; reload restores saved billing rules. The synthetic data stays clearly marked. No automatic billing approval occurs.
+In the desktop app, open **Scheduling agent**, choose FBS or iLab, a month and a scenario, then **Run scheduling agent**. Open the practice scheduler to see the source report in Chrome. Review the activity log and reservations, then **Use in Parity**. This temporarily replaces the current workspace's schedule and usage logs; reload restores saved billing rules. The synthetic data stays clearly marked. No automatic billing approval occurs.
 
 ## What actually runs
 
@@ -45,14 +45,14 @@ The fixture has 24 unique reservations, one cancellation and one duplicate row a
 
 The Connections screen now gives settings for the existing five-tool billing MCP plus the separate two-tool scheduling-practice MCP. The new process exposes:
 
-- `labro_pull_practice_schedule(system, month, scenario?)`: starts the bounded workflow.
-- `labro_practice_run_status(run_id)`: returns progress and final synthetic records.
+- `parity_pull_practice_schedule(system, month, scenario?)`: starts the bounded workflow.
+- `parity_practice_run_status(run_id)`: returns progress and final synthetic records.
 
 The scheduling MCP owns an in-memory runtime separate from the desktop workspace. It does not silently import into the app. Both Node and the packaged Electron binary (`ELECTRON_RUN_AS_NODE=1`) can run `agent/mcp.cjs`. No client permissions are changed automatically.
 
 ## What can be pitched accurately
 
-“LaBro has a local scheduling agent that collects paginated records from two realistic practice systems, maps their columns with a small trained model, and stages validated bookings for a manager's review. It also exposes that workflow over MCP.”
+“Parity has a local scheduling agent that collects paginated records from two realistic practice systems, maps their columns with a small trained model, and stages validated bookings for a manager's review. It also exposes that workflow over MCP.”
 
 Live FBS and iLab scheduling access, enterprise authentication/SSO, production browser automation, model generalization, real customer time savings and upstream billing writes remain **unvalidated**. Existing export-folder ingestion and iLab equipment-token connection continue to work.
 

@@ -25,7 +25,7 @@ function label(s,t,x,y,color=C.muted){return txt(s,t.toUpperCase(),x,y,500,30,co
 function base(s,index,kicker,title,subtitle){
  s.fills=fill(C.paper);box(s,0,0,18,1080,C.red);label(s,kicker,92,70,C.red);txt(s,title,90,125,1710,82,C.ink,F.head);
  if(subtitle)txt(s,subtitle,94,232,1660,36,C.muted);
- line(s,92,1000,1734,2,C.ink);txt(s,'LABRO   /   SHARED LAB OPERATIONS',94,1017,850,30,C.muted,F.mono);txt(s,String(index).padStart(2,'0'),1730,1017,95,30,C.muted,F.mono);
+ line(s,92,1000,1734,2,C.ink);txt(s,'PARITY   /   SHARED LAB OPERATIONS',94,1017,850,30,C.muted,F.mono);txt(s,String(index).padStart(2,'0'),1730,1017,95,30,C.muted,F.mono);
 }
 function card(s,x,y,w,h,title,body,accent=C.mineral){box(s,x,y,w,h,C.white,18);box(s,x,y,9,h,accent,4);txt(s,title,x+34,y+28,w-68,40,C.ink,F.head);txt(s,body,x+34,y+92,w-68,32,C.muted);}
 function node(s,x,y,w,t,accent=C.mineral){box(s,x,y,w,114,C.white,12);box(s,x,y,9,114,accent,3);txt(s,t,x+28,y+33,w-50,34,C.ink,F.body);}
@@ -51,15 +51,15 @@ function schematicUI(s){
 }
 function display(s,i){
  switch(i){
- case 0: base(s,1,'SHARED LABS','LaBro','A clearer path from equipment use to billing');photo(s,'usc-microscope.jpg',1120,345,650,485);txt(s,'Research runs on shared equipment.\nManagers make the final call.',100,440,900,52,C.ink);break;
+ case 0: base(s,1,'SHARED LABS','Parity','A clearer path from equipment use to billing');photo(s,'usc-microscope.jpg',1120,345,650,485);txt(s,'Research runs on shared equipment.\nManagers make the final call.',100,440,900,52,C.ink);break;
  case 1: base(s,2,'THE INCIDENT','A booking is not the whole experiment','Simulated example · the manager sees a booking and a login');timeline(s);break;
  case 2: base(s,3,'THE WORKFLOW','Turn exports into a reviewable month','Simulated data · product workflow');txt(s,'Bring records together.\nMake exceptions visible.',100,395,600,58,C.ink,F.head);photo(s,'upload.png',760,355,490,420);photo(s,'schedule.png',1280,355,490,420);txt(s,'UPLOAD',760,800,450,30,C.muted,F.mono);txt(s,'SCHEDULE',1280,800,450,30,C.muted,F.mono);break;
  case 3: base(s,4,'REVIEW AND TIME','Evidence first, then a billing decision','The manager reviews exceptions; unreadable rows require correction');txt(s,'Booking + login\nFlagged interval\nManager decision',110,390,540,49,C.ink,F.head);photo(s,'results.png',710,340,1060,560);txt(s,'RESULTS · SYNTHETIC DATA',710,920,950,30,C.muted,F.mono);break;
  case 4: base(s,5,'CAMPUS DISCOVERY','Conversations shaped the workflow','Conversations with researchers and facility staff');const ca=figma.createVector();s.appendChild(ca);ca.vectorPaths=[{windingRule:'NONZERO',data:'M 0 0 L 300 0 L 300 240 L 535 500 L 370 500 L 195 425 L 90 260 Z'}];ca.x=230;ca.y=360;ca.fills=fill(C.pale);[['STANFORD',400,525,850,470],['CALTECH',620,740,850,635],['USC',605,770,850,790]].forEach(([t,x,y,lx,ly])=>{circ(s,x-12,y-12,24,C.red);line(s,x+18,y-2,785-x,3,C.mineral);line(s,800,Math.min(y,ly+22),3,Math.max(3,Math.abs(y-ly-22)),C.mineral);line(s,800,ly+20,32,3,C.mineral);txt(s,t,lx,ly,550,40,C.ink,F.head)});break;
- case 5: base(s,6,'PROPOSED PRICING','Two ways to adopt LaBro','Pilot feedback will shape scope and willingness to pay');card(s,120,370,730,420,'CORE PLAN','$199 / month\nPer shared lab or core',C.mineral);card(s,970,370,730,420,'CAMPUS PLAN','$160,000 / year\nBroader deployment and support',C.red);break;
+ case 5: base(s,6,'PROPOSED PRICING','Two ways to adopt Parity','Pilot feedback will shape scope and willingness to pay');card(s,120,370,730,420,'CORE PLAN','$199 / month\nPer shared lab or core',C.mineral);card(s,970,370,730,420,'CAMPUS PLAN','$160,000 / year\nBroader deployment and support',C.red);break;
  case 6: base(s,7,'ESTIMATED MARKET','A market built from explicit assumptions','US estimate · annual subscription revenue');card(s,100,360,790,445,'US TOTAL  ·  $35.82M','15,000 assumed cores\n× $199 / month × 12',C.mineral);card(s,990,360,790,445,'INITIAL SERVICEABLE  ·  $22.33M','187 assumed R1 universities\n× 50 cores × $199 / month × 12',C.red);break;
  case 7: base(s,8,'GROWTH SCENARIO','From core pilot to campus plans','A standalone campus-plan scenario · not added to core subscriptions');[['CORE PILOT',180],['CAMPUS',745],['MORE UNIVERSITIES',1310]].forEach(([t,x],j)=>{circ(s,x,380,112,[C.mineral,C.red,C.yellow][j]);txt(s,t,x-35,530,480,40,C.ink,F.head);if(j<2)arrow(s,x+170,435)});txt(s,'60 × $160,000 = $9.6M ARR',180,760,1450,60,C.ink,F.head);break;
- case 8: base(s,9,'PILOT INVITATION','Help us put LaBro to work','Seeking shared lab managers with reservation and usage exports');photo(s,'usc-microscope.jpg',1120,345,650,485);txt(s,'Test the evidence.\nMeasure the time.\nShape campus deployment.',100,405,900,54,C.ink,F.head);break;
+ case 8: base(s,9,'PILOT INVITATION','Help us put Parity to work','Seeking shared lab managers with reservation and usage exports');photo(s,'usc-microscope.jpg',1120,345,650,485);txt(s,'Test the evidence.\nMeasure the time.\nShape campus deployment.',100,405,900,54,C.ink,F.head);break;
  case 9: base(s,10,'APPENDIX 01','Integration boundaries','Existing files in · reviewed files out');
    label(s,'INPUT',115,350,C.red);label(s,'LOCAL REVIEW',760,350,C.red);label(s,'OUTPUT',1380,350,C.red);
    node(s,115,415,495,'FBS / iLab exports');node(s,115,565,495,'Equipment logs');arrow(s,640,545);
@@ -85,15 +85,15 @@ async function main(){
  if(figma.editorType!=='slides')throw Error('Open a Figma Slides deck before running this plugin.');
  await fonts();
  for(const [name,data] of Object.entries(ASSETS))IMAGE_HASHES[name]=figma.createImage(bytes64(data)).hash;
- const row=figma.createSlideRow();row.name='LaBro v6';
+ const row=figma.createSlideRow();row.name='Parity v6';
  const appendix=['FBS and iLab exports enter as files, alongside optional equipment logs. There is no reservation synchronization. Reviewed charges are exported.','Electron 45.2.3 hosts a sandboxed HTML, CSS and JavaScript renderer. Preload IPC connects to Node main. SheetJS 0.20.3 reads spreadsheets and CSV; shared month.js and reconcile-engine.js perform matching. safeStorage protects credentials; profiles use browser storage and local files. No server or database is required.','Five local stdio read-only tools provide aggregate output by default. Details require opt-in. An incomplete check identifies unreadable rows.','Seventeen automated test suites passed and the desktop smoke test passed. Packaging is in progress. Pilot work must verify real exports, usefulness, time and deployment requirements.','Annualized core estimates and a separate campus scenario; assumptions require validation.'];
  for(let i=0;i<14;i++){
-  const slide=figma.createSlide();row.appendChild(slide);slide.name=(i<9?'LaBro v6 · ':'LaBro v6 appendix · ')+String(i+1).padStart(2,'0');
+  const slide=figma.createSlide();row.appendChild(slide);slide.name=(i<9?'Parity v6 · ':'Parity v6 appendix · ')+String(i+1).padStart(2,'0');
   slide.setSlideTransition({style:'SMART_ANIMATE',duration:0.6,curve:'EASE_IN_AND_OUT',timing:{type:'ON_CLICK'}});
   display(slide,i);
   const note=txt(slide,i<9?NOTES[i]:appendix[i-9],80,80,1500,30,C.ink);note.name='Presenter notes · copy to Slides notes';note.visible=false;
  }
- figma.notify('Added LaBro v6: 9 main slides and 5 appendix slides. Copy hidden notes into presenter notes.');
+ figma.notify('Added Parity v6: 9 main slides and 5 appendix slides. Copy hidden notes into presenter notes.');
  figma.closePlugin();
 }
-main().catch(e=>figma.closePlugin('LaBro v6 could not finish: '+String(e.message||e)));
+main().catch(e=>figma.closePlugin('Parity v6 could not finish: '+String(e.message||e)));

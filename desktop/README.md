@@ -1,8 +1,8 @@
-# LaBro desktop
+# Parity desktop
 
 Version 0.8.0. This guide is for developers. Managers should start with the [user guide](../docs/GETTING_STARTED.md).
 
-[Latest release](https://github.com/bryanzhao08/labro/releases/latest) · [Pilot testing](../TESTING.md) · [MCP server](../mcp/README.md) · [Scheduling agent](../agent/README.md)
+[Latest release](https://github.com/bryanzhao08/parity/releases/latest) · [Pilot testing](../TESTING.md) · [MCP server](../mcp/README.md) · [Scheduling agent](../agent/README.md)
 
 ## Run and build
 

@@ -1,7 +1,7 @@
 const assert = require('assert'), fs = require('fs'), os = require('os'), path = require('path');
 const {execFileSync} = require('child_process');
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'labro-test-'));
-const script = path.resolve(__dirname, '../collector/labro-collector.ps1');
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'parity-test-'));
+const script = path.resolve(__dirname, '../collector/parity-collector.ps1');
 function run(user, idle) {
   execFileSync('pwsh', ['-NoProfile', '-File', script, '-OutDir', dir, '-FakeUser', user,
     '-FakeNow', '2026-10-01 09:00:00', '-FakeIdleSec', String(idle), '-Ticks', '3', '-Instrument', 'TEST-PC']);

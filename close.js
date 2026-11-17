@@ -1,5 +1,5 @@
 "use strict";
-/* LaBro Close: month-end close for a shared-instrument core. Uses the LMAuditCore engine (audit.js)
+/* Parity Close: month-end close for a shared-instrument core. Uses the LMAuditCore engine (audit.js)
    for parsing + reconciliation and LBRates (rates.js) for recharge-rate checks. All in the browser. */
 (function () {
   var C = window.LMAuditCore, RT = window.LBRates;
@@ -82,7 +82,7 @@
       '<div class="card" style="margin-top:22px"><h3 style="margin:0 0 10px">This month\'s totals</h3><div class="bars">' +
       bar("By booking", T.booked, "var(--book)", "What FBS charges if you bill reserved time.") +
       bar("By PC login", T.login, "var(--login)", "Includes time spent copying data after the instrument stopped.") +
-      (noRuns ? "" : bar("By actual run", T.actual, "var(--run)", "Instrument-on time from LaBro sensors, inside each user's session.")) +
+      (noRuns ? "" : bar("By actual run", T.actual, "var(--run)", "Instrument-on time from Parity sensors, inside each user's session.")) +
       '</div><p class="muted small" style="margin:12px 0 0">Hours: booked ' + h1(T.hrs.booked) + ' h · logged in ' + h1(T.hrs.login) + ' h' + (noRuns ? "" : ' · instrument running ' + h1(T.hrs.run) + ' h') + '. Your rules: overruns within ' + R.grace + ' min billed at actual, past that ' + R.mult + '× · unbooked use ' + R.mult + '× · ' + R.round + '-min increments · no-show fee ' + R.noshow + '%. <a href="overview.html#/audit">Edit rules and rates</a></p></div>' +
       '<div class="grid g4" style="margin-top:22px">' +
       stat(S.A.rows.length - T.flagged, "lines matched automatically") + stat(T.flagged, "lines need a decision") + stat(T.open, "still open", T.open ? "" : "hero") + stat($(T.final), "final charges, incl. " + $(sum(S.A.rows, function (r) { return eff(r).penalty; })) + " penalties", "hero") +
@@ -98,7 +98,7 @@
       '<div class="card"><h3>Evidence for a dispute</h3><p class="muted small">Click any line above: booking, login and instrument run on one strip, plus a reply you can paste to the PI.</p></div>' +
       '</div>';
   }
-  // Column check: show what LaBro read from each file and let the user fix any guess.
+  // Column check: show what Parity read from each file and let the user fix any guess.
   function mapping() {
     var B = S.B, bad = [], html = "";
     ["res", "use", "run"].forEach(function (k) {
@@ -109,7 +109,7 @@
     });
     var um = (B.unmapped.use || []).concat(B.unmapped.run || []);
     if (!bad.length && !um.length) return '<p class="muted small" style="margin:8px 0 0">✓ Columns recognized in every file. <button class="linkb" data-act="showmap">Check the column mapping</button></p>';
-    html += '<div class="card" style="margin-top:12px;border-color:var(--warn)"><h3>Check how LaBro read your files</h3>';
+    html += '<div class="card" style="margin-top:12px;border-color:var(--warn)"><h3>Check how Parity read your files</h3>';
     bad.forEach(function (k) {
       var f = C.state.files[k];
       html += '<p class="small" style="margin:10px 0 4px"><b>' + esc(C.SRC[k].label) + '</b>' + (B.bad[k] ? ' · <span style="color:var(--warn)">' + B.bad[k] + ' rows could not be read</span>' : "") + '</p><div class="row">';
@@ -137,7 +137,7 @@
     var M = acctInfo(), WIN = 30;
     var head = '<h2>Accounts to check before you send</h2>';
     var up = '<label class="btn ghost small" style="position:relative;overflow:hidden">Upload account end dates<input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" data-accts style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>';
-    if (!M) return head + '<div class="card"><p class="muted" style="margin-top:0">Add a list of accounts with end dates (any CSV with an account column and an end-date column) and LaBro flags charges to grants that have ended or end within ' + WIN + ' days.</p>' + up + '</div>';
+    if (!M) return head + '<div class="card"><p class="muted" style="margin-top:0">Add a list of accounts with end dates (any CSV with an account column and an end-date column) and Parity flags charges to grants that have ended or end within ' + WIN + ' days.</p>' + up + '</div>';
     var last = Math.max.apply(null, S.A.rows.map(function (r) { return r.day; })), by = {};
     S.A.rows.forEach(function (r) {
       var a = M[r.acct], amt = finalCharge(r); if (!a || amt < 0.005) return;
@@ -217,7 +217,7 @@
       '<p><span class="tag ' + st[1] + '">' + esc(st[0]) + '</span> ' + esc(r.notes.join(" · ") || "Booking, login and run agree") + '</p>' + strip(r) +
       '<div class="tw" style="margin-top:14px"><table><tr><th>PI / account</th><th class="n">Booked</th><th class="n">Logged in</th><th class="n">Ran</th><th class="n">Billed</th><th class="n">Rate</th><th class="n">Charge</th></tr>' +
       '<tr><td>' + esc(r.pi) + ' · ' + esc(r.acct) + '</td><td class="n">' + C.hm(r.booked) + '</td><td class="n">' + C.hm(r.comp) + '</td><td class="n">' + C.hm(r.inst) + '</td><td class="n">' + C.hm(r.billed) + '</td><td class="n">' + $2(rate(r.res)) + '/h</td><td class="n">' + $2(finalCharge(r)) + '</td></tr></table></div>' +
-      '<p class="muted small">Sources: FBS reservation export, instrument-PC login log, LaBro current sensor on the instrument. Sensor data in this demo is simulated.</p>' +
+      '<p class="muted small">Sources: FBS reservation export, instrument-PC login log, Parity current sensor on the instrument. Sensor data in this demo is simulated.</p>' +
       '<h3>Reply to the PI</h3><textarea id="reply" rows="5" style="width:100%;font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px">' + esc(reply(r)) + '</textarea>' +
       '<div class="row noprint" style="margin-top:10px"><button class="btn" data-copy>Copy reply</button><button class="btn ghost" onclick="window.print()">Print or save as PDF</button></div>');
   }
@@ -266,7 +266,7 @@
       var e = eff(r);
       return [C.isoDay(r.day), r.res, r.name, r.email, r.pi, r.acct, h1(r.booked), h1(r.comp), S.A.hasRuns ? h1(r.inst) : "", h1(e.mins), rate(r.res).toFixed(2), e.charge.toFixed(2), e.penalty.toFixed(2), S.dec[r.key] || "auto", e.why];
     }));
-    dlCsv("labro-charges-" + (S.A.rows[0] ? C.isoDay(S.A.rows[0].day).slice(0, 7) : "month") + ".csv", lines);
+    dlCsv("parity-charges-" + (S.A.rows[0] ? C.isoDay(S.A.rows[0].day).slice(0, 7) : "month") + ".csv", lines);
   }
 
   // ---------- usage per instrument (shared by rates, grants, alerts)
@@ -341,7 +341,7 @@
       }).join("") + '</tbody></table></div>' +
       '<p class="muted small">Hours are this month\'s files annualized. Cost pools and carry-forwards start as synthetic examples: type your own. The sample assumes this year\'s rate was set as cost ÷ booked hours. Surplus / deficit = billed rate × measured hours − (cost pool − prior surplus).</p>' +
       '<h2>What a reviewer would likely question</h2><p class="muted small" style="margin-top:-4px">Checks: unallowable costs in the pool, federal users charged more than internal users, a surplus or deficit over 5% of cost, and rates that measured hours don\'t support. External and commercial rate tiers can legitimately differ and aren\'t flagged.</p>' + findings.map(function (f) { return '<div class="find"><span class="sev ' + f.severity + '">' + f.severity + '</span><div><b>' + esc(f.instrument || "Core") + '</b> · ' + esc(f.finding) + (f.cite ? ' <span class="cite">' + esc(f.cite) + '</span>' : "") + '</div></div>'; }).join("") +
-      '<h2>Fill the rate forms your finance office already uses</h2><div class="card"><p class="muted" style="margin-top:0">USC\'s Office of Financial Analysis publishes a Recharge Center Rate Analysis workbook and a Statement of Activities form. Both ask for <b>volume per service</b>: hours by user type for next year, and actual yearly usage. LaBro exports rows shaped to those public templates, from measured hours instead of bookings. (Not affiliated with USC.)</p>' +
+      '<h2>Fill the rate forms your finance office already uses</h2><div class="card"><p class="muted" style="margin-top:0">USC\'s Office of Financial Analysis publishes a Recharge Center Rate Analysis workbook and a Statement of Activities form. Both ask for <b>volume per service</b>: hours by user type for next year, and actual yearly usage. Parity exports rows shaped to those public templates, from measured hours instead of bookings. (Not affiliated with USC.)</p>' +
       '<div class="row"><button class="btn" data-act="uscvol">Volume tab rows (CSV)</button><button class="btn ghost" data-act="uscsoa">Statement of Activities: rate × yearly usage (CSV)</button></div>' +
       '<p class="muted small" style="margin-bottom:0">Columns follow the public templates at <a href="https://fbs.usc.edu/financial-analysis/recharge/recharge-center-forms/">fbs.usc.edu › Recharge Center Forms</a>. Every sample user is internal; with real data, the user type comes from the FBS account.</p></div>' +
       '<div class="callout muted">Why it matters: the rule asks for rates based on actual usage, adjusted at least every two years, with last period\'s surplus or deficit carried in (<a href="https://www.law.cornell.edu/cfr/text/2/200.468">2 CFR 200.468</a>). Auditors still question these charges: NSF OIG\'s 2025 audit of the University of Nebraska–Lincoln questioned $92,865 of inadequately supported internal service-center expenses, and its 2020 Yale audit questioned $12,855 billed without a formal rate schedule. Most cores build rates in a spreadsheet.</div>';
@@ -381,7 +381,7 @@
     var U = usage(), noUserRows = S.A.rows.filter(function (r) { return r.flags.nouser; }), transfer = S.A.rows.filter(function (r) { return r.flags.transfer; });
     return '<h1 class="apph">Alerts</h1>' +
       '<h2>Ran with no one booked · ' + noUserRows.length + '</h2>' +
-      (noUserRows.length ? groupBy(noUserRows).map(function (g) { return '<div class="find"><span class="sev high">' + g.rows.length + '×</span><div><b>' + esc(g.res) + '</b> · ' + C.hm(sum(g.rows, function (r) { return r.inst; })) + ' of running with no booking, on ' + g.rows.map(function (r) { return esc(C.dayLabel(r.day)); }).join(", ") + '<div class="muted small">' + (g.rows.every(function (r) { return r.sensorOnly; }) ? "No PC on this instrument, so FBS and login logs never saw these runs. " : "") + 'LaBro would text the core manager once a run passes 15 minutes with no booking.</div></div></div>'; }).join("") : '<p class="muted">None this month.</p>') +
+      (noUserRows.length ? groupBy(noUserRows).map(function (g) { return '<div class="find"><span class="sev high">' + g.rows.length + '×</span><div><b>' + esc(g.res) + '</b> · ' + C.hm(sum(g.rows, function (r) { return r.inst; })) + ' of running with no booking, on ' + g.rows.map(function (r) { return esc(C.dayLabel(r.day)); }).join(", ") + '<div class="muted small">' + (g.rows.every(function (r) { return r.sensorOnly; }) ? "No PC on this instrument, so FBS and login logs never saw these runs. " : "") + 'Parity would text the core manager once a run passes 15 minutes with no booking.</div></div></div>'; }).join("") : '<p class="muted">None this month.</p>') +
       '<h2>Logins that kept the instrument PC busy after the run · ' + transfer.length + '</h2><p class="muted">Total ' + h1(sum(transfer, function (r) { return r.comp - r.inst; })) + ' h of PC time after acquisition ended. Billing by login would charge it; billing by run does not.</p>' +
       '<h2>Service by run-hours</h2><div class="heat">' + U.map(function (u) {
         var s = SERVICE[u.res]; if (!s) return "";
@@ -456,12 +456,12 @@
   }
   function svcCsv(kind) {
     var v = svc(), P = v.P;
-    if (kind === "fbs") dlCsv("labro-fbs-price-list.csv", [["SKU", "Description", "Per", "Academic Price", "Industry Price", "Current Price"]].concat(P.rows.map(function (r) { return [r.sku, r.name, r.unit, r.academic.toFixed(2), r.industry.toFixed(2), r.current ? r.current.toFixed(2) : ""]; })));
-    if (kind === "usc") dlCsv("labro-rate-template-services.csv", [["Rate Description", "Unit", "Annual Volume", "Supplies", "Fixed Share", "Labor", "Full Cost", "Academic Rate", "Industry Rate", "Projected Revenue"]].concat(P.rows.map(function (r) { return [r.name + " (SKU " + r.sku + ")", r.unit, r.volume, r.consumables.toFixed(2), r.fixed.toFixed(2), r.labor.toFixed(2), r.full.toFixed(2), r.academic.toFixed(2), r.industry.toFixed(2), (r.academic * r.volume).toFixed(2)]; })));
-    if (kind === "tpl") dlCsv("labro-recipe-template.csv", [["SKU", "Name", "Unit", "Item", "Qty", "Unit cost", "Labor min", "Volume/yr", "Current price"]].concat([].concat.apply([], S.svc.model.skus.slice(0, 3).map(function (s) { return s.recipe.map(function (it, i) { return [s.sku, i ? "" : s.name, i ? "" : s.unit, it.item, it.qty, it.cost, i ? "" : s.laborMin, i ? "" : s.volume, i ? "" : (s.current || "")]; }); }))));
+    if (kind === "fbs") dlCsv("parity-fbs-price-list.csv", [["SKU", "Description", "Per", "Academic Price", "Industry Price", "Current Price"]].concat(P.rows.map(function (r) { return [r.sku, r.name, r.unit, r.academic.toFixed(2), r.industry.toFixed(2), r.current ? r.current.toFixed(2) : ""]; })));
+    if (kind === "usc") dlCsv("parity-rate-template-services.csv", [["Rate Description", "Unit", "Annual Volume", "Supplies", "Fixed Share", "Labor", "Full Cost", "Academic Rate", "Industry Rate", "Projected Revenue"]].concat(P.rows.map(function (r) { return [r.name + " (SKU " + r.sku + ")", r.unit, r.volume, r.consumables.toFixed(2), r.fixed.toFixed(2), r.labor.toFixed(2), r.full.toFixed(2), r.academic.toFixed(2), r.industry.toFixed(2), (r.academic * r.volume).toFixed(2)]; })));
+    if (kind === "tpl") dlCsv("parity-recipe-template.csv", [["SKU", "Name", "Unit", "Item", "Qty", "Unit cost", "Labor min", "Volume/yr", "Current price"]].concat([].concat.apply([], S.svc.model.skus.slice(0, 3).map(function (s) { return s.recipe.map(function (it, i) { return [s.sku, i ? "" : s.name, i ? "" : s.unit, it.item, it.qty, it.cost, i ? "" : s.laborMin, i ? "" : s.volume, i ? "" : (s.current || "")]; }); }))));
     if ((kind === "clean" || kind === "held") && v.K) {
       var rows = v.K.lines.filter(function (o) { return kind === "clean" ? !o.issues.length : o.issues.length; });
-      dlCsv("labro-upload-" + kind + ".csv", [["Quantity", "SKU", "Description", "Date", "Unit Price", "Requested by", "Lab", "Charge"].concat(kind === "held" ? ["Problem"] : [])].concat(rows.map(function (o) { var l = o.line; return [l.qty, l.sku, l.desc, l.date, l.price == null ? "" : l.price.toFixed(2), l.user, l.lab, l.charge].concat(kind === "held" ? [o.issues.map(function (i) { return i.why; }).join("; ")] : []); })));
+      dlCsv("parity-upload-" + kind + ".csv", [["Quantity", "SKU", "Description", "Date", "Unit Price", "Requested by", "Lab", "Charge"].concat(kind === "held" ? ["Problem"] : [])].concat(rows.map(function (o) { var l = o.line; return [l.qty, l.sku, l.desc, l.date, l.price == null ? "" : l.price.toFixed(2), l.user, l.lab, l.charge].concat(kind === "held" ? [o.issues.map(function (i) { return i.why; }).join("; ")] : []); })));
     }
   }
   function svcSet(path, val) {
@@ -509,10 +509,10 @@
       if (a === "uscvol" || a === "uscsoa") uscForms(a);
       if (a === "more") { S.more = true; render(true); }
       if (a === "tpl") {
-        dlCsv("labro-template-reservations.csv", [["Resource", "Email", "Name", "PI", "Account", "Start Date", "Start Time", "End Date", "End Time", "Status"], ["Zeiss LSM 880 Confocal", "jdoe@usc.edu", "Jane Doe", "Smith", "1-2345-6789", "10/01/2026", "9:00 AM", "10/01/2026", "11:00 AM", "Confirmed"]]);
-        setTimeout(function () { dlCsv("labro-template-usage-log.csv", [["Workstation", "Username", "Logon Time", "Logoff Time"], ["LSM880-PC", "jdoe", "2026-10-01 08:55:00", "2026-10-01 11:20:00"]]); }, 400);
-        setTimeout(function () { dlCsv("labro-template-instrument-runs.csv", [["sensor", "run_start", "run_end"], ["lsm880", "2026-10-01T09:02:00", "2026-10-01T11:05:00"]]); }, 800);
-        setTimeout(function () { dlCsv("labro-template-account-end-dates.csv", [["Account", "PI", "Sponsor", "End Date"], ["1-2345-6789", "Smith", "NIH R01", "2027-06-30"]]); }, 1200);
+        dlCsv("parity-template-reservations.csv", [["Resource", "Email", "Name", "PI", "Account", "Start Date", "Start Time", "End Date", "End Time", "Status"], ["Zeiss LSM 880 Confocal", "jdoe@usc.edu", "Jane Doe", "Smith", "1-2345-6789", "10/01/2026", "9:00 AM", "10/01/2026", "11:00 AM", "Confirmed"]]);
+        setTimeout(function () { dlCsv("parity-template-usage-log.csv", [["Workstation", "Username", "Logon Time", "Logoff Time"], ["LSM880-PC", "jdoe", "2026-10-01 08:55:00", "2026-10-01 11:20:00"]]); }, 400);
+        setTimeout(function () { dlCsv("parity-template-instrument-runs.csv", [["sensor", "run_start", "run_end"], ["lsm880", "2026-10-01T09:02:00", "2026-10-01T11:05:00"]]); }, 800);
+        setTimeout(function () { dlCsv("parity-template-account-end-dates.csv", [["Account", "PI", "Sponsor", "End Date"], ["1-2345-6789", "Smith", "NIH R01", "2027-06-30"]]); }, 1200);
       }
       if (a === "showmap") { S.showMap = true; render(true); }
       return;
@@ -605,7 +605,7 @@
     var U = usage(), months = days() / 30.4;
     if (kind === "uscvol") {
       var L = [["Long Name", "Short Name", "Basis for Billing", "Internal", "External Non-Profit", "External Profit", "Free Service", "Total", "Source"]];
-      U.forEach(function (u) { var hrs = Math.round(RT.annualize(u.run / 60, months)); L.push([u.res, u.res.split(" ").slice(0, 2).join(" "), "Hourly", hrs, 0, 0, 0, hrs, "LaBro measured run hours, " + (months < 1.5 ? "1 month x12" : Math.round(months) + " months annualized")]); });
+      U.forEach(function (u) { var hrs = Math.round(RT.annualize(u.run / 60, months)); L.push([u.res, u.res.split(" ").slice(0, 2).join(" "), "Hourly", hrs, 0, 0, 0, hrs, "Parity measured run hours, " + (months < 1.5 ? "1 month x12" : Math.round(months) + " months annualized")]); });
       dlCsv("usc-rate-analysis-volume.csv", L);
     } else {
       var L2 = [["Rate Description", "Rate", "Yearly Usage (volume)", "FY Total", "Booked hours (for comparison)"]];
@@ -616,7 +616,7 @@
   function grantCsv() {
     var lines = [["Instrument", "Lab", (S.A.hasRuns ? "Measured" : "Logged-in") + " hours", "Share"]];
     usage().forEach(function (u) { var tot = sum(Object.keys(u.pis), function (k) { return u.pis[k]; }) || 1; Object.keys(u.pis).forEach(function (p) { lines.push([u.res, p, h1(u.pis[p]), (u.pis[p] / tot * 100).toFixed(1) + "%"]); }); });
-    dlCsv("labro-instrument-usage.csv", lines);
+    dlCsv("parity-instrument-usage.csv", lines);
   }
   modal.addEventListener("click", function (e) {
     if (e.target.closest("[data-copy]")) { var t = document.getElementById("reply"); t.select(); try { navigator.clipboard.writeText(t.value); } catch (x) { document.execCommand("copy"); } e.target.textContent = "Copied"; return; } if (e.target === modal || e.target.closest("[data-close]")) closeModal(); });
@@ -628,13 +628,13 @@
   // ---------- 60-second guided tour (button in the header, or ?tour)
   var TOUR = [
     ["close", "h1", "One core, one month. Add the FBS export, the PC login log and (optional) sensor runs, or use the sample month."],
-    ["close", ".bars", "LaBro lines up three sources per user per day: the FBS booking, the PC login, and the instrument actually running (clip-on sensor)."],
-    ["close", "#queue", "Most lines match automatically. The ones LaBro flags for a human decision are listed, each with the reason."],
+    ["close", ".bars", "Parity lines up three sources per user per day: the FBS booking, the PC login, and the instrument actually running (clip-on sensor)."],
+    ["close", "#queue", "Most lines match automatically. The ones Parity flags for a human decision are listed, each with the reason."],
     ["close", ".qi.pen", "Click any line: booking, login and run on one timeline, plus a reply Dana can paste to the PI who disputes it.", "evidence"],
     ["close", ".find", "Before sending: charges to grants that already ended get flagged, so they don't come back as late cost transfers."],
     ["close", ".tw", "Out goes a charges file for FBS and a statement per lab. Every number traces back to a booking, a login or a run."],
     ["rates", "h1", "The bigger stake: next year's rate is cost ÷ hours. Built on bookings, it's wrong all year. Federal rules (2 CFR 200.468) want actual usage."],
-    ["rates", ".find", "LaBro flags what a reviewer would likely question, and fills the volume rows of the finance office's own rate template."],
+    ["rates", ".find", "Parity flags what a reviewer would likely question, and fills the volume rows of the finance office's own rate template."],
     ["grants", "h1", "The same hours become NIH S10 usage evidence: hours by lab, and the major users' share of accessible time."],
     ["campus", "h1", "Across campus: which instruments sit idle while their service contracts renew, and which need a second unit. That's the university plan."]
   ];

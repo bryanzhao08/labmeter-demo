@@ -109,7 +109,7 @@ function draw(){
     const out=[['Date','Instrument','User','Lab','Account','Service','Booked minutes','Observed minutes','Policy','Evidence','Billable minutes','Rate','Charge','Review reason','Source rows'],
     ...rows.filter(eligible).map(r=>[date(r.day),r.instrument,r.user,r.lab,r.account,r.mode,r.booked,r.used,$('basis').value,$('evidence').value,r.billed,r.rate,r.amount,approved[r.id]||'Matched',r.refs.join('; ')])];
     function cell(v){if(typeof v==='string'&&/^[=+@-]/.test(v))v="'"+v;return '"'+String(v).replace(/"/g,'""')+'"';}
-    const url=URL.createObjectURL(new Blob([out.map(r=>r.map(cell).join(',')).join('\n')],{type:'text/csv'})),a=document.createElement('a');a.href=url;a.download='labro-reviewed-charges.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const url=URL.createObjectURL(new Blob([out.map(r=>r.map(cell).join(',')).join('\n')],{type:'text/csv'})),a=document.createElement('a');a.href=url;a.download='parity-reviewed-charges.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   };
 }
 $('sample').onclick=()=>{

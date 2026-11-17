@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {readSafeFile}=require('../safe-read.cjs');
-const base=fs.mkdtempSync(path.join(os.tmpdir(),'labro-safe-'));
+const base=fs.mkdtempSync(path.join(os.tmpdir(),'parity-safe-'));
 try{
   fs.mkdirSync(path.join(base,'inside'));fs.writeFileSync(path.join(base,'inside','sample.csv'),'12345');
   assert.equal(readSafeFile(base,'inside/sample.csv',5).toString(),'12345');

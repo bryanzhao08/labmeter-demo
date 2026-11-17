@@ -22,7 +22,7 @@ jobs:
       - run: npm run ${{ matrix.command }}
       - uses: actions/upload-artifact@v4
         with:
-          name: LaBro-${{ matrix.os }}
+          name: Parity-${{ matrix.os }}
           path: |
             release/*.zip
             release/*.exe

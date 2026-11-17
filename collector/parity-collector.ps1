@@ -1,5 +1,5 @@
 <#
-LaBro Collector: writes the usage log for one instrument computer, so nobody has to export it by hand.
+Parity Collector: writes the usage log for one instrument computer, so nobody has to export it by hand.
 
 What it records, once a minute, for whoever is logged in to Windows:
   computer name, Windows username, logon time, last time seen, minutes with keyboard or mouse activity,
@@ -8,18 +8,18 @@ What it never records: keystrokes, window titles, screen contents, files, or any
 
 It does not lock the computer or block anyone. It only keeps a log.
 
-Output: one CSV per computer per month, e.g. C:\LaBro\logs\FORTESSA-PC-2026-10.csv, in the columns LaBro's
+Output: one CSV per computer per month, e.g. C:\Parity\logs\FORTESSA-PC-2026-10.csv, in the columns Parity's
 "Usage log" box reads directly. With -ShareDir the file is also copied to a shared folder every minute.
 
-Run by hand to try it:   powershell -ExecutionPolicy Bypass -File labro-collector.ps1 -Once
+Run by hand to try it:   powershell -ExecutionPolicy Bypass -File parity-collector.ps1 -Once
 Install for all users:   run install.cmd as administrator (see README.txt)
-Past sessions:           powershell -ExecutionPolicy Bypass -File labro-collector.ps1 -Backfill 45   (run as administrator)
+Past sessions:           powershell -ExecutionPolicy Bypass -File parity-collector.ps1 -Backfill 45   (run as administrator)
 
 Targets Windows PowerShell 5.1+. Windows integration still requires testing. No internet access.
 #>
 param(
-  [string]$OutDir = 'C:\LaBro\logs',
-  [string]$ShareDir = '',           # optional, e.g. \\coreserver\labro
+  [string]$OutDir = 'C:\Parity\logs',
+  [string]$ShareDir = '',           # optional, e.g. \\coreserver\parity
   [string]$Instrument = '',         # optional name to write instead of the computer name
   [string[]]$Apps = @(),            # optional process names of the instrument software, e.g. FACSDiva,ZEN
   [ValidateRange(1, 3600)][int]$EverySec = 60,
@@ -64,14 +64,14 @@ function Save-Session($s) {
 function Get-IdleSeconds {
   if ($FakeIdleSec -ge 0) { return $FakeIdleSec }
   if (-not $onWindows) { return 0 }
-  if (-not ('LaBro.Idle' -as [type])) {
-    Add-Type -Namespace LaBro -Name Idle -MemberDefinition @'
+  if (-not ('Parity.Idle' -as [type])) {
+    Add-Type -Namespace Parity -Name Idle -MemberDefinition @'
 [StructLayout(LayoutKind.Sequential)] public struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
 [DllImport("user32.dll")] public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
 public static uint Seconds() { LASTINPUTINFO l = new LASTINPUTINFO(); l.cbSize = (uint)Marshal.SizeOf(l); if (!GetLastInputInfo(ref l)) return 0; return ((uint)Environment.TickCount - l.dwTime) / 1000; }
 '@
   }
-  [int][LaBro.Idle]::Seconds()
+  [int][Parity.Idle]::Seconds()
 }
 
 function Test-AppOpen {

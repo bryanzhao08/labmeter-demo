@@ -1,12 +1,12 @@
-# LaBro pitch script · v6
+# Parity pitch script · v6
 
 Nine slides · 240 seconds including a 10-second silent demo · simulated incident and product data
 
 ## 1. Intro · 20 seconds · 0:00–0:20
 
-**On screen:** A real microscope in a shared lab, with the LaBro name.
+**On screen:** A real microscope in a shared lab, with the Parity name.
 
-This is LaBro—your lab’s bro for keeping equipment use and billing organized. John is a PhD student at USC. He books this shared microscope for 2 hours. The manager has to turn his booking and usage log into a bill.
+This is Parity—your lab’s bro for keeping equipment use and billing organized. John is a PhD student at USC. He books this shared microscope for 2 hours. The manager has to turn his booking and usage log into a bill.
 
 ## 2. Incident · 25 seconds · 0:20–0:45
 
@@ -16,9 +16,9 @@ In this simulated example, John books from 9 to 11, but his experiment ends at 1
 
 ## 3. Demo · 45 seconds · 0:45–1:30
 
-**On screen:** LaBro with simulated data: import, schedule, results and a flagged session.
+**On screen:** Parity with simulated data: import, schedule, results and a flagged session.
 
-A core is a shared facility where research groups book and pay to use equipment. LaBro is software for its manager. The manager adds reservation and usage exports from the systems the facility already uses. LaBro compares the intervals, applies the core’s billing rules and prices, and presents the month for review. Here is the workflow with simulated data.
+A core is a shared facility where research groups book and pay to use equipment. Parity is software for its manager. The manager adds reservation and usage exports from the systems the facility already uses. Parity compares the intervals, applies the core’s billing rules and prices, and presents the month for review. Here is the workflow with simulated data.
 
 **[10 seconds silent: show the imported files, open the schedule, then reveal the flagged result.]**
 
@@ -28,13 +28,13 @@ This row brings the booking and login together. The manager can inspect the evid
 
 **On screen:** One flagged result expands into its source evidence and an approval action.
 
-The manager can see that John’s login ran beyond the booking, then verify when the experiment ended and decide how to bill it. LaBro brings the relevant records into one place and highlights exceptions for review, so the manager can focus on the sessions that need a decision. If source rows cannot be read, the manager corrects the files before exporting charges. Our pilots will measure the time this workflow saves.
+The manager can see that John’s login ran beyond the booking, then verify when the experiment ended and decide how to bill it. Parity brings the relevant records into one place and highlights exceptions for review, so the manager can focus on the sessions that need a decision. If source rows cannot be read, the manager corrects the files before exporting charges. Our pilots will measure the time this workflow saves.
 
 ## 5. Campus interest · 20 seconds · 2:00–2:20
 
 **On screen:** A map highlighting 3 campuses.
 
-In discovery conversations at USC, Stanford and Caltech, researchers and facility staff described the work involved in reconciling equipment use. Their input helped shape this review workflow. We are now looking to test LaBro with managers using their own exports and billing rules.
+In discovery conversations at USC, Stanford and Caltech, researchers and facility staff described the work involved in reconciling equipment use. Their input helped shape this review workflow. We are now looking to test Parity with managers using their own exports and billing rules.
 
 ## 6. Pricing · 25 seconds · 2:20–2:45
 
@@ -58,4 +58,4 @@ We will start with individual cores, measure the results, then pursue campus agr
 
 **On screen:** The microscope returns beside a clear pilot invitation.
 
-We are looking for shared lab managers willing to pilot LaBro with reservation and usage exports. Together, we can test whether the flagged evidence is useful, measure reconciliation time, and learn what it takes to deploy across a campus. LaBro gives managers a clearer place to make the final call. **Help us put it to work in a real core.**
+We are looking for shared lab managers willing to pilot Parity with reservation and usage exports. Together, we can test whether the flagged evidence is useful, measure reconciliation time, and learn what it takes to deploy across a campus. Parity gives managers a clearer place to make the final call. **Help us put it to work in a real core.**

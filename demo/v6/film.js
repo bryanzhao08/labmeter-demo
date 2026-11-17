@@ -4,7 +4,8 @@ import { RoundedBoxGeometry } from './vendor/addons/RoundedBoxGeometry.js';
 const W=1920,H=1080, out=document.getElementById('out'), ctx=out.getContext('2d');
 window.DURATION=20;
 // ElevenLabs narration (voice: Arthur). The end card holds after t=18 while the last line finishes.
-window.VOICEOVER=[{src:'audio/vo-1.mp3',at:5.5,rate:1.2},{src:'audio/vo-2.mp3',at:11.7,rate:1.15},{src:'audio/vo-4.mp3',at:16.8,rate:1.05}];
+// vo-1 was recorded as "LaBro's agents pull..."; from:.46 skips the old name so it plays "Agents pull...". vo-4 said the old name and is dropped.
+window.VOICEOVER=[{src:'audio/vo-1.mp3',at:5.85,from:.46,rate:1.2},{src:'audio/vo-2.mp3',at:11.7,rate:1.15}];
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
 renderer.setSize(W,H); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
 const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(36,W/H,.1,300);
@@ -29,7 +30,7 @@ cyl(room,4.6,1.55,-3.2,.65,.75,white);cyl(room,4.6,1.98,-3.2,.68,.12,light);
 box(room,3.5,1.15,2.8,3.7,.22,1.8,white);for(const dx of [-1.55,1.55])for(const dz of [-.65,.65])box(room,3.5+dx,.55,2.8+dz,.16,1.1,.16,light);
 box(room,3.5,1.56,2.45,.22,.7,.22,light);box(room,3.5,2.12,2.45,2.1,1.25,.12,dark,.08);box(room,3.5,1.3,3.15,1.4,.07,.45,light,.02);
 const images={};const imageNames=['02-schedule','03-drawer','05-results'];
-const markLoad=new Promise(r=>{const im=new Image(256,256);im.onload=()=>{images.mark=im;r()};im.onerror=()=>r();im.src='./labro-mark-ink.svg'});
+const markLoad=new Promise(r=>{const im=new Image(256,256);im.onload=()=>{images.mark=im;r()};im.onerror=()=>r();im.src='./parity-mark-ink.svg'});
 const loaded=[markLoad,...imageNames.map(n=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{images[n]=im;resolve()};im.onerror=reject;im.src=`./stills/${n}.png`}))];
 let screen;
 // Yellow safety rail around the instrument bay.
@@ -112,7 +113,7 @@ function chip(x,y,w,h,label,on,sub,fs){ctx.save();ctx.shadowColor='rgba(0,0,0,.3
 function wire(x1,y1,x2,y2,a){ctx.save();ctx.globalAlpha=a;ctx.strokeStyle='#e8c24a';ctx.lineWidth=3;ctx.setLineDash([10,10]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x1,y1+120,x2,y2-120,x2,y2);ctx.stroke();ctx.restore()}
 function overlaySources(t){const [dx,dy]=rightProj(3.5,2.4,2.45);[['Scheduler','FBS · iLab · PPMS'],['Plug sensors','power on / off'],['Instrument PCs','login sessions']].forEach(([n,sub],i)=>{const a=ease((t-7.1-i*.25)/.5);if(a<=0)return;const x=1000+i*300,y=130-30*(1-a);ctx.globalAlpha=a;wire(x+130,y+110,dx,dy,a);chip(x,y,270,110,n,false,sub,27);ctx.globalAlpha=1})}
 function overlayAgents(t){const [dx,dy]=rightProj(3.5,2.4,2.45);agentNames.forEach((n,i)=>{const a=ease((t-10-i*.12)/.4);if(a<=0)return;const x=990+i*182,y=120;ctx.globalAlpha=a;const on=t>=10.6+i*.6;wire(x+82,y+90,dx,dy,on?1:.35);chip(x,y,164,90,n,on,null,25);if(i===4&&t>12.9){ctx.fillStyle='#22221f';ctx.font='700 40px RobotoMono, monospace';ctx.fillText('✓',x+146,y+14)}ctx.globalAlpha=1})}
-function overlayHub(t){const [x,y]=project(0,hub.position.y+2.3,0);const a=ease((t-14.6)/.5);if(a<=0)return;ctx.globalAlpha=a;chip(x-110,y-90,220,76,'LaBro',true);ctx.globalAlpha=1}
+function overlayHub(t){const [x,y]=project(0,hub.position.y+2.3,0);const a=ease((t-14.6)/.5);if(a<=0)return;ctx.globalAlpha=a;chip(x-110,y-90,220,76,'Parity',true);ctx.globalAlpha=1}
 const clips={};
 for(const [k,src,from,to] of [['a','clips/shot-a.mp4',0,3.5],['b','clips/shot-b.mp4',3.5,5.5]]){const v=document.createElement('video');v.src=src;v.muted=true;v.preload='auto';v.playsInline=true;clips[k]={id:k,v,from,to,ok:false};v.addEventListener('loadeddata',()=>{clips[k].ok=true});}
 function clipFor(t){for(const c of Object.values(clips))if(c.ok&&t>=c.from&&t<c.to)return c;return null}
@@ -128,8 +129,8 @@ window.renderAt=function(t){t=clamp(Number(t)||0,0,18);sceneFrame(t);let grad=ct
  if(t>=7.1&&t<10)overlaySources(t);if(t>=10&&t<14)overlayAgents(t);if(t>=14.3&&t<15.6)caption('One crew of agents for every core.');
  if(t>=16.35){const Y='#F4C430',INK='#22221F';const f=ease((t-16.35)/.3);ctx.fillStyle=Y;ctx.globalAlpha=f;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;
   if(t>=16.6){const m=ease((t-16.6)/.6),sz=mix(120,220,m);ctx.globalAlpha=m;if(images.mark)ctx.drawImage(images.mark,W/2-sz/2,mix(470,330,m)-sz/2,sz,sz);ctx.globalAlpha=1;
-   const w=ease((t-16.9)/.55);ctx.save();ctx.beginPath();ctx.rect(0,450,W,190);ctx.clip();ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 132px RobotoMono, monospace';ctx.fillText('LaBro',W/2,mix(700,540,w));ctx.restore();
-   const g=ease((t-17.25)/.5);ctx.globalAlpha=g;ctx.fillStyle=INK;ctx.font='500 40px RobotoMono, monospace';ctx.textAlign='center';ctx.fillText('You run the science. LaBro runs the lab.',W/2,mix(700,680,g));ctx.globalAlpha=1}}
+   const w=ease((t-16.9)/.55);ctx.save();ctx.beginPath();ctx.rect(0,450,W,190);ctx.clip();ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 132px RobotoMono, monospace';ctx.fillText('Parity',W/2,mix(700,540,w));ctx.restore();
+   const g=ease((t-17.25)/.5);ctx.globalAlpha=g;ctx.fillStyle=INK;ctx.font='500 40px RobotoMono, monospace';ctx.textAlign='center';ctx.fillText('You run the science. Parity runs the lab.',W/2,mix(700,680,g));ctx.globalAlpha=1}}
 };
 window.selfTest=()=>{[0,5,9,12,17].forEach(window.renderAt);return true};
 window.ready=Promise.all([...loaded,document.fonts.ready,...Object.values(clips).map(c=>new Promise(r=>{if(c.v.readyState>=2)return r();c.v.addEventListener('loadeddata',r,{once:true});c.v.addEventListener('error',r,{once:true});setTimeout(r,4000)}))]).then(()=>{const tex=new THREE.Texture(images['02-schedule']);tex.colorSpace=THREE.SRGBColorSpace;tex.needsUpdate=true;screen=new THREE.Mesh(new THREE.PlaneGeometry(1.94,1.1),new THREE.MeshBasicMaterial({map:tex}));screen.position.set(3.5,2.12,2.52);room.add(screen);window.renderAt(0)});

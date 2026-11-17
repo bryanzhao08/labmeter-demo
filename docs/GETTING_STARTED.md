@@ -1,12 +1,12 @@
-# Getting started with LaBro
+# Getting started with Parity
 
 This guide is for a core manager. It takes you from download to your first exported month.
 
 ## 1. Install
 
-1. Open the [latest release](https://github.com/bryanzhao08/labro/releases/latest).
+1. Open the [latest release](https://github.com/bryanzhao08/parity/releases/latest).
 2. Under **Assets**, download the Mac ZIP (Apple silicon).
-3. Unzip it and move LaBro to Applications.
+3. Unzip it and move Parity to Applications.
 
 `SHA256SUMS.txt` on the same page lets you check the download. The page's "Source code" ZIP is not the app.
 
@@ -25,14 +25,14 @@ Home opens to a calendar. A setup window offers three choices:
 - **Use my spreadsheets:** load your own exports.
 - **Explore the calendar first:** close the window and look around.
 
-Choose **Set up LaBro** on Home to see these again.
+Choose **Set up Parity** on Home to see these again.
 
 ## 4. Try simulated data
 
 1. Choose **Try the scheduling agent**.
 2. Pick FBS or iLab, a month and a scenario.
 3. Select **Run** and read the activity log and schedule preview.
-4. Choose **Use in LaBro** to load the records into your workspace.
+4. Choose **Use in Parity** to load the records into your workspace.
 
 Invalid records block this step. **Open practice scheduler** shows the practice system in your browser.
 
@@ -42,13 +42,13 @@ Invalid records block this step. **Open practice scheduler** shows the practice 
 2. On Home, scroll to **Add your lab's data**.
 3. Choose the folder, or upload the files one at a time.
 
-The reservations appear on the calendar. LaBro reads your files and never changes them.
+The reservations appear on the calendar. Parity reads your files and never changes them.
 
 ## 6. Check prices
 
 1. Open **Billing rules**.
 2. Add your prices and policy.
-3. Review the rules LaBro understood, then save.
+3. Review the rules Parity understood, then save.
 
 A PDF price sheet must be pasted in as text. Set up rules before you check charges.
 
@@ -66,13 +66,13 @@ Compare a few reservations with your own records.
 2. Open **Results** and read each flagged line.
 3. Compare a few charges with the original records.
 
-Rows LaBro cannot read block the export until you fix them.
+Rows Parity cannot read block the export until you fix them.
 
 ## 9. Export
 
 Export the eligible charges as a CSV. Held rows are left out.
 
-LaBro does not send charges to any scheduling or finance system. After a restart, load your files again. Saved billing rules and agent history stay.
+Parity does not send charges to any scheduling or finance system. After a restart, load your files again. Saved billing rules and agent history stay.
 
 ## Connections
 

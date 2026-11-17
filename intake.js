@@ -57,7 +57,7 @@ function pickDefaults(entries,previous){
 /* Privacy-safe report a manager can send back: structure and counts only. */
 function buildReport(x){
   const L=[],add=s=>L.push(s),details=x.allowDetails===true;
-  add('LaBro test report');
+  add('Parity test report');
   add('Folder connected: '+(x.folderConnected?'yes':'no'));
   if(x.files&&x.files.length){add('Files found: '+x.files.length);x.files.forEach((f,i)=>add('  '+(i+1)+'. '+(Object.hasOwn(KIND_LABEL,f.kind)?KIND_LABEL[f.kind]:'Unknown')+(f.include?' (in use)':'')+' · '+(Number(f.rows)||0)+' rows'+(details&&f.columns?' · columns: '+f.columns.join(' | '):'')))}
   add('Reservations: '+(x.reservations?(Number(x.reservations.count)||0)+' read, '+(Number(x.reservations.cancelled)||0)+' cancelled, '+(Number(x.reservations.unread)||0)+' unreadable'+(details&&x.reservations.columns?' · columns: '+x.reservations.columns.join(' | '):''):'none loaded'));

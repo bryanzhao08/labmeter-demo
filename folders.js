@@ -49,7 +49,7 @@ $('preview').onclick=async()=>{
       (result.issues.length?'<p role="alert">'+result.issues.map(esc).join('<br>')+'</p>':'<p>No invalid or overlapping intervals detected. Verify these against the source software.</p>')+
       '<button id="export" class="btn" '+(result.issues.length||!result.rows.length?'disabled':'')+'>Download evidence CSV</button><div class="tw"><table><thead><tr><th>User</th><th>Start</th><th>End</th><th>Minutes</th><th>Source</th></tr></thead><tbody>'+
       result.rows.slice(0,100).map(r=>'<tr><td>'+esc(r.user)+'</td><td>'+esc(r.start)+'</td><td>'+esc(r.end)+'</td><td>'+r.minutes.toFixed(2)+'</td><td>'+esc(r.source)+':'+r.line+'</td></tr>').join('')+'</tbody></table></div><p class="small">First 100 intervals shown; export includes all valid intervals.</p>';
-    $('export').onclick=()=>{const u=URL.createObjectURL(new Blob([E.csv(result)],{type:'text/csv'})),a=document.createElement('a');a.href=u;a.download='labro-'+profile().kind+'-evidence.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
+    $('export').onclick=()=>{const u=URL.createObjectURL(new Blob([E.csv(result)],{type:'text/csv'})),a=document.createElement('a');a.href=u;a.download='parity-'+profile().kind+'-evidence.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
     $('error').textContent='';
   }catch(e){$('error').textContent=e.message;}
 };

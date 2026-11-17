@@ -1,10 +1,10 @@
-# LaBro pitch v6 · QA and appendix
+# Parity pitch v6 · QA and appendix
 
 ## Delivery checks
 
 - 9 slides, timed 20 / 25 / 45 / 30 / 20 / 25 / 25 / 25 / 25 seconds = **240 seconds**. Slide 3 includes **10 seconds of silence**, leaving 230 seconds for speech. The spoken script contains approximately **510 words**, depending on how the counter treats hyphens and numerals. Rehearse with a timer; speaking numbers and the market slide clearly may require redistribution within the 4 minutes.
 - Microscope visible at 0:00; what the product does by 0:20; simulated incident and product visible by 0:45; demonstration begins at 0:45, before 1:30. No actual deck, playback, video or visual assets are supplied by this script.
-- John is the only named person. The manager owns reconciliation and the final decision. The simulated booking is 9–11, the experiment ends at 12:30, and copying continues until the 1:00 logout. LaBro sees the booking and login; a manager must verify the experiment’s end time.
+- John is the only named person. The manager owns reconciliation and the final decision. The simulated booking is 9–11, the experiment ends at 12:30, and copying continues until the 1:00 logout. Parity sees the booking and login; a manager must verify the experiment’s end time.
 - Product demonstration must use synthetic data. Show actual import, schedule and flagged results; do not imply that the app infers the experiment or automatically determines the correct charge. Unreadable rows block billing export.
 - Interest is discovery interest across 3 campuses, not customers, pilots, letters of intent or signed contracts. The script does not claim measured time savings. $199 per core per month and $160,000 per university per year are proposed prices.
 
@@ -26,4 +26,4 @@
 ## Source notes
 
 - Supplied [story pitch instructions](</Users/bryan/Downloads/figma-pitch-deck-skill.md>) and [feedback transcript](</Users/bryan/Downloads/text-9F2C431D1854-1.txt>); [Rico feedback transcript](</Users/bryan/Downloads/text-4296-B520-6C-0.txt>) emphasizes a concrete product demonstration and clear problem.
-- [LaBro handoff](</Users/bryan/Downloads/LABRO-HANDOFF-2026-11-11.md>) describes discovery calls, proposed prices and unvalidated historical market assumptions. It is not independent validation of market size or traction.
+- [Parity handoff](</Users/bryan/Downloads/PARITY-HANDOFF-2026-11-11.md>) describes discovery calls, proposed prices and unvalidated historical market assumptions. It is not independent validation of market size or traction.

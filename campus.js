@@ -22,9 +22,9 @@
   }
 
   function parse(text) {
-    var j; try { j = JSON.parse(text); } catch (e) { throw new Error('That file is not a LaBro core summary (not JSON).'); }
+    var j; try { j = JSON.parse(text); } catch (e) { throw new Error('That file is not a Parity core summary (not JSON).'); }
     var list = Array.isArray(j) ? j : [j];
-    list.forEach(function (s) { if (!s || typeof s !== 'object' || !s.core || s.billed == null) throw new Error('That file is not a LaBro core summary (needs "core" and "billed").'); });
+    list.forEach(function (s) { if (!s || typeof s !== 'object' || !s.core || s.billed == null) throw new Error('That file is not a Parity core summary (needs "core" and "billed").'); });
     return list.map(function (s) { var x = summary(s); x.source = 'file'; return x; });
   }
 

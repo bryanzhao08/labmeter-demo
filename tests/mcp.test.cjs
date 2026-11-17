@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn,spawnSync}=require('node:child_process'),readline=require('node:readline');
-const root=path.resolve(__dirname,'..'),server=path.join(root,'mcp/labro-mcp.cjs'),folder=fs.mkdtempSync(path.join(os.tmpdir(),'labro-mcp-'));
+const root=path.resolve(__dirname,'..'),server=path.join(root,'mcp/parity-mcp.cjs'),folder=fs.mkdtempSync(path.join(os.tmpdir(),'parity-mcp-'));
 for(const [a,b] of [['fbs-reservations.csv','Export (3).csv'],['usage-log.csv','Logs all.csv'],['price-sheet.csv','Rates.csv']])fs.copyFileSync(path.join(root,'data/mock',a),path.join(folder,b));
 fs.writeFileSync(path.join(folder,'notes.txt'),'Unrelated text\n');
 for(const name of ['Export (3).csv','Logs all.csv','Rates.csv']){const file=path.join(folder,name);let text=fs.readFileSync(file,'utf8').replaceAll('Flow cytometer 2','SyntheticMachineSecret');text=text.replace(/^(.*)$/m,'$1,SyntheticHeadingSecret');fs.writeFileSync(file,text);}

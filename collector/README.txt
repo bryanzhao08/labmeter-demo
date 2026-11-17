@@ -1,4 +1,4 @@
-LaBro Collector
+Parity Collector
 ===============
 Keeps the usage log for an instrument computer, so nobody exports it from the manufacturer's software by hand.
 
@@ -18,23 +18,23 @@ Tell your users the computer keeps a usage log; most cores already say so in the
 Try it (no install)
   1. Copy this folder to the instrument computer.
   2. Open PowerShell in the folder and run:
-       powershell -ExecutionPolicy Bypass -File labro-collector.ps1 -Once -OutDir .\logs
+       powershell -ExecutionPolicy Bypass -File parity-collector.ps1 -Once -OutDir .\logs
   3. Open the CSV it names. It should hold one row with your username.
 
 Install for every user of the computer
   1. Optional: open install.cmd in Notepad and set SHARE (a shared folder to copy the log to) and
      APPS (the instrument software's program name, as shown in Task Manager > Details, without .exe).
   2. Right-click install.cmd > Run as administrator.
-  3. Log out and back in. A file appears in C:\LaBro\logs, one per collector session, e.g. FORTESSA-PC-2026-10-<session-id>.csv.
+  3. Log out and back in. A file appears in C:\Parity\logs, one per collector session, e.g. FORTESSA-PC-2026-10-<session-id>.csv.
 
 Last month, before the collector was installed
   Run PowerShell as administrator:
-       powershell -ExecutionPolicy Bypass -File labro-collector.ps1 -Backfill 45
+       powershell -ExecutionPolicy Bypass -File parity-collector.ps1 -Backfill 45
   It reads Windows' own logon and logoff events for the past 45 days. (Not yet tested on a real PC.)
 
 Use the log
-  Drop the month's CSV into the "Usage log" box in LaBro (Close the month). Several computers: drop one
-  file at a time, or paste them into one file first. LaBro lines the sessions up with the reservations
+  Drop the month's CSV into the "Usage log" box in Parity (Close the month). Several computers: drop one
+  file at a time, or paste them into one file first. Parity lines the sessions up with the reservations
   and applies your grace, overrun and no-show rules.
 
 Columns

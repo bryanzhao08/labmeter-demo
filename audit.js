@@ -1,5 +1,5 @@
 "use strict";
-/* LaBro monthly audit: reservations export vs usage log (vs optional sensor runs), per user per day,
+/* Parity monthly audit: reservations export vs usage log (vs optional sensor runs), per user per day,
    with the core's own grace and penalty rules. Everything runs in the browser; files are never uploaded. */
 (function () {
   var RULES_KEY = "labmeter-audit-rules-v1";
@@ -30,7 +30,7 @@
       ]
     },
     run: {
-      label: "Instrument runs", hint: "LaBro sensor (optional)", sample: "data/audit/instrument_runs.csv", sampleName: "instrument_runs.csv", optional: true,
+      label: "Instrument runs", hint: "Parity sensor (optional)", sample: "data/audit/instrument_runs.csv", sampleName: "instrument_runs.csv", optional: true,
       fields: [
         ["instrument", "Sensor / instrument", [/sensor|instrument|device|resource/i], true],
         ["start", "Run start", [/start|begin/i], true],
@@ -441,7 +441,7 @@
     });
   }
 
-  // Engine API for close.html (LaBro Close). Same parser, rules and reconciliation as the Audit page.
+  // Engine API for close.html (Parity Close). Same parser, rules and reconciliation as the Audit page.
   window.LMAuditCore = {
     guessMap: guessMap, parseDT: parseDT, setFile: setFile, loadSample: loadSample, build: build, audit: audit, status: status, STATUS: STATUS,
     needsAction: needsAction, sampleRate: sampleRate, parseCSV: parseCSV, hm: hm, clock: clock, dayLabel: dayLabel, isoDay: isoDay,

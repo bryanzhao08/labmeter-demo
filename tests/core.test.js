@@ -1,4 +1,4 @@
-// node tests/core.test.js — loads audit.js headless and checks the LaBro Close engine on the sample month.
+// node tests/core.test.js — loads audit.js headless and checks the Parity Close engine on the sample month.
 const fs = require("fs"), path = require("path"), assert = require("assert");
 global.window = {}; global.localStorage = { getItem: () => null, setItem: () => {} };
 eval(fs.readFileSync(path.join(__dirname, "../audit.js"), "utf8"));

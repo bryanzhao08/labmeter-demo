@@ -1,6 +1,6 @@
-# LaBro demo film — v7 transition revision
+# Parity demo film — v7 transition revision
 
-The scene source stays in `demo/v6/`; `record.cjs` now produces `labro-demo-v7.mp4`. The earlier v6 export remains separate. All displayed app records are synthetic.
+The scene source stays in `demo/v6/`; `record.cjs` now produces `parity-demo-v7.mp4`. The earlier v6 export remains separate. All displayed app records are synthetic.
 
 ```sh
 npm run desktop:prepare

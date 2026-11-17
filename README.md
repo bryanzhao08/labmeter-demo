@@ -1,8 +1,8 @@
-# LaBro
+# Parity
 
-**The agentic lab management framework. You run the science. LaBro runs the lab.**
+**The agentic lab management framework. You run the science. Parity runs the lab.**
 
-LaBro is a desktop app that helps a shared lab keep its bookings, instrument use and billing in order. A crew of agents prepares the month, and you approve the result.
+Parity is a desktop app that helps a shared lab keep its bookings, instrument use and billing in order. A crew of agents prepares the month, and you approve the result.
 
 ## What it does
 
@@ -12,19 +12,19 @@ LaBro is a desktop app that helps a shared lab keep its bookings, instrument use
 - Flags no-shows, overruns and outliers for review.
 - Exports a charges file only after you approve it.
 
-Your files stay on your computer. LaBro never changes your scheduling system.
+Your files stay on your computer. Parity never changes your scheduling system.
 
 ## Download
 
-- [Latest release on GitHub](https://github.com/bryanzhao08/labro/releases/latest) (Mac, Apple silicon)
-- [Download page](https://bryanzhao08.github.io/labro/site/download.html) with first-launch tips
-- [Project site](https://bryanzhao08.github.io/labro/site/)
+- [Latest release on GitHub](https://github.com/bryanzhao08/parity/releases/latest) (Mac, Apple silicon)
+- [Download page](https://bryanzhao08.github.io/parity/site/download.html) with first-launch tips
+- [Project site](https://bryanzhao08.github.io/parity/site/)
 
 The build is unsigned, and Windows has not been verified.
 
 ## Try it in 2 minutes
 
-1. Open LaBro.
+1. Open Parity.
 2. Choose **Try the scheduling agent**.
 3. Pick **FBS practice**.
 4. Select **Run**, then read the schedule it collects.

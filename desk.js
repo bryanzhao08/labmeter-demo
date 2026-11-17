@@ -1,5 +1,5 @@
 "use strict";
-/* LaBro desk: the request log, the rules editor and the research-office roll-up. Views plug into close.js through
+/* Parity desk: the request log, the rules editor and the research-office roll-up. Views plug into close.js through
    window.LBApp. Engines: LBRules (rules.js), LBCampus (campus.js), LBServices (services.js). Requests, labs and
    rules are kept in this browser's localStorage; nothing is uploaded. */
 (function () {
@@ -217,14 +217,14 @@
     }
     if (a === "bill") {
       var ready = groups(run()).ready; if (!ready.length) return;
-      A.dlCsv("labro-fbs-upload.csv", fbsRows(ready));
+      A.dlCsv("parity-fbs-upload.csv", fbsRows(ready));
       ready.forEach(function (l) { l.req.status = "billed"; l.req.unit = l.unit; l.req.amount = l.amount; });
-      UI.note = ready.length + " lines, " + $2(total(ready)) + ", written to labro-fbs-upload.csv and marked billed. Held lines stay here until fixed."; rr();
+      UI.note = ready.length + " lines, " + $2(total(ready)) + ", written to parity-fbs-upload.csv and marked billed. Held lines stay here until fixed."; rr();
     }
-    if (a === "trail") A.dlCsv("labro-audit-trail.csv", trailRows(run()));
-    if (a === "summary") dl("labro-summary-cell-culture-" + d.month + ".json", JSON.stringify(cultureSummary(), null, 1), "application/json");
-    if (a === "mine") dl("labro-summaries-" + d.month + ".json", JSON.stringify([imagingSummary(), cultureSummary()], null, 1), "application/json");
-    if (a === "rollcsv") { var R = CP.rollup(summaries()); A.dlCsv("labro-campus-rollup.csv", [["Core", "Month", "Billed", "Cost", "Recovered %", "Target %", "Against target", "Booked hours", "Measured hours", "Lines", "Lines held", "Source"]].concat(R.cores.map(function (c) { var s = c.s; return [s.core, s.month, s.billed.toFixed(2), s.cost.toFixed(2), c.recovery == null ? "" : c.recovery.toFixed(1), s.target, c.gap.toFixed(2), Math.round(s.bookedH), Math.round(s.measuredH), s.lines, s.held, s.source]; }))); }
+    if (a === "trail") A.dlCsv("parity-audit-trail.csv", trailRows(run()));
+    if (a === "summary") dl("parity-summary-cell-culture-" + d.month + ".json", JSON.stringify(cultureSummary(), null, 1), "application/json");
+    if (a === "mine") dl("parity-summaries-" + d.month + ".json", JSON.stringify([imagingSummary(), cultureSummary()], null, 1), "application/json");
+    if (a === "rollcsv") { var R = CP.rollup(summaries()); A.dlCsv("parity-campus-rollup.csv", [["Core", "Month", "Billed", "Cost", "Recovered %", "Target %", "Against target", "Booked hours", "Measured hours", "Lines", "Lines held", "Source"]].concat(R.cores.map(function (c) { var s = c.s; return [s.core, s.month, s.billed.toFixed(2), s.cost.toFixed(2), c.recovery == null ? "" : c.recovery.toFixed(1), s.target, c.gap.toFixed(2), Math.round(s.bookedH), Math.round(s.measuredH), s.lines, s.held, s.source]; }))); }
     if (a === "reset") { D = RL.sampleDesk(A.svc().P); D.extra = []; D.corrected = 0; UI.note = "Back to the sample month."; rr(); }
     if (a === "defaults") { d.rules = RL.defaults(); UI.note = "Sample rules restored."; rr(); }
     if (a === "addrule") {

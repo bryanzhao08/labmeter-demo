@@ -1,13 +1,13 @@
-# Testing LaBro
+# Testing Parity
 
-This page is for people piloting LaBro on a core's computer, and for developers. For installation and navigation, see the [getting-started guide](docs/GETTING_STARTED.md).
+This page is for people piloting Parity on a core's computer, and for developers. For installation and navigation, see the [getting-started guide](docs/GETTING_STARTED.md).
 
 ## Known limits
 
 - The build is unsigned.
 - Windows execution is not verified. Only the Apple silicon Mac build has been checked.
 - PDF price sheets must be pasted in as text.
-- FBS has no public API, so LaBro uses exported files.
+- FBS has no public API, so Parity uses exported files.
 - The iLab token lists equipment only. Reservations still come from exports.
 - The scheduling agent runs against synthetic practice systems, not live FBS or iLab.
 - Real customer exports, release signing and how well the column mapper handles unseen layouts are not yet tested.
@@ -25,7 +25,7 @@ This page is for people piloting LaBro on a core's computer, and for developers.
 
 ### Checklist
 
-1. Open LaBro and check that Home shows a calendar with uploads underneath.
+1. Open Parity and check that Home shows a calendar with uploads underneath.
 2. Choose **Use my spreadsheets**, then select your folder or upload files on Home.
 3. Compare dates, instruments and durations with a known record. Try day and week views.
 4. Add your price sheet under **Billing rules**. Check prices, tiers, rounding, after-hours rules and evidence type, then save.

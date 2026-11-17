@@ -1,4 +1,4 @@
-/* Pure helpers for the LaBro app: reading plain-language setup, per-machine rules and flags. */
+/* Pure helpers for the Parity app: reading plain-language setup, per-machine rules and flags. */
 (function(root){
 'use strict';
 const Rates=root.LBRates||(typeof require!=='undefined'?require('./ratesheet.js'):null);

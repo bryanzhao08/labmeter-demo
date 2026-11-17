@@ -20,8 +20,8 @@ dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoun
 document.getElementById('waitlist-form').addEventListener('submit',e=>{
  e.preventDefault();const form=e.currentTarget;if(!form.reportValidity())return;
  const email=form.elements.email.value.trim(),lab=form.elements.lab.value.trim();
- const body=`I'd like to join the LaBro waitlist.\n\nEmail: ${email}\nLab or university: ${lab||'(not provided)'}\n\nWhat I'd like help with:\n`;
- window.location.href='mailto:zhaobrya@usc.edu?subject='+encodeURIComponent('LaBro waitlist')+'&body='+encodeURIComponent(body);
+ const body=`I'd like to join the Parity waitlist.\n\nEmail: ${email}\nLab or university: ${lab||'(not provided)'}\n\nWhat I'd like help with:\n`;
+ window.location.href='mailto:zhaobrya@usc.edu?subject='+encodeURIComponent('Parity waitlist')+'&body='+encodeURIComponent(body);
  document.getElementById('waitlist-help').textContent='Finish sending in your email app. If it did not open, use the email link below. Your signup has not been sent by this page.';
 });
 // Old links from the download page still open the short explanation.

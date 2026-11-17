@@ -46,7 +46,7 @@ app.whenReady().then(async () => {
       for (let f = 0; f <= window.DURATION * 30; f++) {
         const remaining = recordingStart + f * 1000 / 30 - performance.now();
         if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
-        for (const l of lines) if (!l.started && f / 30 >= l.at) { l.started = true; l.el.play(); }
+        for (const l of lines) if (!l.started && f / 30 >= l.at) { l.started = true; if (l.from) l.el.currentTime = l.from; l.el.play(); }
         if (window.prepare) await window.prepare(f / 30);
         window.renderAt(f / 30);
         track.requestFrame();
@@ -67,7 +67,7 @@ app.whenReady().then(async () => {
       return { mime, base64, review };
     })()`, true);
     const ext = result.mime.startsWith('video/mp4') ? 'mp4' : 'webm';
-    const output = path.join(__dirname, `labro-demo-v7.${ext}`);
+    const output = path.join(__dirname, `parity-demo-v7.${ext}`);
     const data = Buffer.from(result.base64, 'base64');
     fs.writeFileSync(output, data);
     const reviewDir = path.join(__dirname, 'review');

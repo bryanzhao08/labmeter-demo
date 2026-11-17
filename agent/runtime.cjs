@@ -23,7 +23,7 @@ function normalize(pages,resources,month){
 }
 async function createRuntime({directory,onEvent=()=>{}}={}){
  const sim=await startSimulator(),runs=new Map();let active=null;
- if(directory){fs.mkdirSync(directory,{recursive:true,mode:0o700});for(const name of fs.readdirSync(directory).filter(n=>/^[a-f0-9-]{36}\.json$/.test(n)).slice(-30)){try{const r=JSON.parse(fs.readFileSync(path.join(directory,name),'utf8'));if(r.status==='running'){r.status='interrupted';r.error='LaBro closed before this run finished. Start a new run.'}runs.set(r.id,r)}catch{}}}
+ if(directory){fs.mkdirSync(directory,{recursive:true,mode:0o700});for(const name of fs.readdirSync(directory).filter(n=>/^[a-f0-9-]{36}\.json$/.test(n)).slice(-30)){try{const r=JSON.parse(fs.readFileSync(path.join(directory,name),'utf8'));if(r.status==='running'){r.status='interrupted';r.error='Parity closed before this run finished. Start a new run.'}runs.set(r.id,r)}catch{}}}
  const save=r=>{if(!directory)return;const p=path.join(directory,r.id+'.json');fs.writeFileSync(p+'.tmp',JSON.stringify(r),{mode:0o600});fs.renameSync(p+'.tmp',p)};
  const emit=(r,tool,message,extra={})=>{r.events.push({at:new Date().toISOString(),tool,message,...extra});onEvent({id:r.id,status:r.status,event:r.events.at(-1)})};
  const summary=r=>({id:r.id,system:r.system,month:r.month,status:r.status,started:r.started,finished:r.finished,counts:r.counts,error:r.error});
@@ -65,7 +65,7 @@ async function createRuntime({directory,onEvent=()=>{}}={}){
    signal.throwIfAborted();
    r.result={...normalized,usage,resources,source:{system:r.system,mode:'synthetic',month:r.month,pages:pages.length,sha256:crypto.createHash('sha256').update(JSON.stringify(pages)).digest('hex')},csv:csv(normalized.table)};
    r.counts={reservations:normalized.table.rows.length,cancelled:normalized.cancelled,duplicates:normalized.duplicates,rejected:normalized.issues.length,pages:pages.length};
-   r.status=normalized.issues.length?'needs_review':'ready';emit(r,'stage',normalized.issues.length?'Review rejected rows before importing.':'Schedule staged. Choose “Use in LaBro” to import it.');
+   r.status=normalized.issues.length?'needs_review':'ready';emit(r,'stage',normalized.issues.length?'Review rejected rows before importing.':'Schedule staged. Choose “Use in Parity” to import it.');
   }catch(e){r.status=signal.aborted?'cancelled':'failed';r.error=signal.aborted?'Run cancelled. Current schedule was kept.':String(e.message||'Source pull failed.').slice(0,300);emit(r,r.status,r.error)}
   finally{r.finished=new Date().toISOString();save(r);if(active?.id===r.id)active=null;onEvent({id:r.id,status:r.status});}
  }

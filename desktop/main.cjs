@@ -5,10 +5,10 @@ const fs = require('node:fs');
 const {readSafeFile}=require('./web/safe-read.cjs');
 const homeSmoke=process.argv.includes('--home-smoke-test');
 const smoke = process.argv.includes('--smoke-test')||homeSmoke;
-if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(),'labro-desktop-test-')));
-protocol.registerSchemesAsPrivileged([{scheme:'labro',privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
+if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(),'parity-desktop-test-')));
+protocol.registerSchemesAsPrivileged([{scheme:'parity',privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
 const root = path.join(__dirname,'web');
-function local(url) { try { const u=new URL(url); return u.protocol==='labro:'&&u.host==='app'; } catch {return false;} }
+function local(url) { try { const u=new URL(url); return u.protocol==='parity:'&&u.host==='app'; } catch {return false;} }
 function external(url) { if (/^https:\/\//i.test(url)) shell.openExternal(url); }
 let main, credentialWindow, schedulingAgent;
 // ---- Connections: booking-system API access ----
@@ -29,7 +29,7 @@ function connToken(){
 function connPublic(){const c=conn||{};return {system:c.system||null,base:c.base||null,coreId:c.coreId||null,hasToken:!!connToken(),canStore:safeStorage.isEncryptionAvailable()}}
 function connBase(system,base){
   const def=CONNECTORS[system];if(!def)throw new Error('Unknown system');
-  if(smoke&&process.env.LABRO_TEST_API)return process.env.LABRO_TEST_API;
+  if(smoke&&process.env.PARITY_TEST_API)return process.env.PARITY_TEST_API;
   const u=new URL(base||('https://'+def.hosts[0]));
   if(u.protocol!=='https:'||!def.hosts.includes(u.hostname))throw new Error('That address is not a known '+def.label+' API server.');
   return u.origin;
@@ -65,7 +65,7 @@ function findApps(){
   const rx=[['fbs',/\bfbs\b|facility billing|softlock|soft lock|priority software/i],['ilab',/\bilab\b|crosslab/i],['ppms',/\bppms\b|stratocore/i],['bookitlab',/bookitlab/i]];
   const out=[];
   for(const d of dirs.filter(Boolean)){let items;try{items=fs.readdirSync(d)}catch{continue}
-    for(const n of items)for(const [system,r] of rx)if(r.test(n)&&!/^labro/i.test(n))out.push({system,name:n})}
+    for(const n of items)for(const [system,r] of rx)if(r.test(n)&&!/^parity/i.test(n))out.push({system,name:n})}
   return out.slice(0,20);
 }
 // ---- Folder access: one folder chosen by the person, read-only, spreadsheets and text only ----
@@ -76,7 +76,7 @@ function loadFolder(){
   if(homeSmoke)return null;
   if(smoke){
     // A throwaway folder with oddly named exports, as a real manager's Downloads folder would have.
-    const d=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'labro-folder-test-')),m=path.join(root,'data','mock');
+    const d=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'parity-folder-test-')),m=path.join(root,'data','mock');
     for(const [from,to] of [['fbs-reservations.csv','Export 2026-10-31 (3).csv'],['usage-log.csv','Logs_all instruments.csv'],['price-sheet.csv','Core rates fall.csv']])fs.copyFileSync(path.join(m,from),path.join(d,to));
     fs.writeFileSync(path.join(d,'notes.txt'),'Remember to email the dean about the budget.\n');
     return d;
@@ -88,7 +88,7 @@ function saveFolder(){try{fs.writeFileSync(cfgPath(),JSON.stringify({folder}))}c
 function stopWatch(){if(watcher){try{watcher.close()}catch{}watcher=null}}
 function startWatch(){
   stopWatch();if(!folder)return;
-  try{watcher=fs.watch(folder,{recursive:true},()=>{clearTimeout(timer);timer=setTimeout(()=>{if(main&&!main.isDestroyed())main.webContents.send('labro:folder-changed')},800)});watcher.on('error',()=>{})}catch{}
+  try{watcher=fs.watch(folder,{recursive:true},()=>{clearTimeout(timer);timer=setTimeout(()=>{if(main&&!main.isDestroyed())main.webContents.send('parity:folder-changed')},800)});watcher.on('error',()=>{})}catch{}
 }
 function listFiles(){
   const out=[];
@@ -104,19 +104,19 @@ function listFiles(){
   })(folder,0);
   return out.sort((a,b)=>b.mtime-a.mtime).slice(0,200);
 }
-const trusted=e=>{try{return new URL(e.senderFrame.url).protocol==='labro:'}catch{return false}};
+const trusted=e=>{try{return new URL(e.senderFrame.url).protocol==='parity:'}catch{return false}};
 // Scheduling agent is local-only. The renderer never supplies a network URL or script.
 const agentTrusted=e=>trusted(e)&&e.sender===main?.webContents&&e.senderFrame===main.webContents.mainFrame;
-for(const action of ['info','start','get','cancel'])ipcMain.handle('labro:agent:'+action,(e,input)=>{
+for(const action of ['info','start','get','cancel'])ipcMain.handle('parity:agent:'+action,(e,input)=>{
   if(!agentTrusted(e)||!schedulingAgent)throw Error('Scheduling agent is unavailable.');
   return schedulingAgent[action](input);
 });
-ipcMain.handle('labro:agent:practice',async(e,system)=>{
+ipcMain.handle('parity:agent:practice',async(e,system)=>{
   if(!agentTrusted(e)||!schedulingAgent)throw Error('Scheduling agent is unavailable.');
   await shell.openExternal(schedulingAgent.practiceURL(system));return true;
 });
-ipcMain.handle('labro:conn:get',e=>trusted(e)?connPublic():null);
-ipcMain.handle('labro:conn:save',async(e,d)=>{
+ipcMain.handle('parity:conn:get',e=>trusted(e)?connPublic():null);
+ipcMain.handle('parity:conn:save',async(e,d)=>{
   if(!trusted(e)||e.sender!==main.webContents||!d||typeof d!=='object')throw new Error('Not allowed');
   if(!CONNECTORS[d.system])throw new Error('Unknown system');
   const base=connBase(d.system,d.base),coreId=String(d.coreId||'').trim();
@@ -144,52 +144,52 @@ ipcMain.handle('labro:conn:save',async(e,d)=>{
     };
   });
 });
-ipcMain.handle('labro:credential:submit',(e,token)=>{
+ipcMain.handle('parity:credential:submit',(e,token)=>{
   if(!credentialWindow||e.sender!==credentialWindow.webContents||e.senderFrame!==credentialWindow.webContents.mainFrame)throw new Error('Not allowed');
   return credentialWindow._saveToken(token);
 });
-ipcMain.handle('labro:conn:forget',e=>{if(!trusted(e))return null;conn=null;memToken=null;try{fs.rmSync(connPath(),{force:true})}catch{}return connPublic()});
-ipcMain.handle('labro:conn:test',async e=>{
+ipcMain.handle('parity:conn:forget',e=>{if(!trusted(e))return null;conn=null;memToken=null;try{fs.rmSync(connPath(),{force:true})}catch{}return connPublic()});
+ipcMain.handle('parity:conn:test',async e=>{
   if(!trusted(e))return {ok:false,message:'Not allowed'};
   try{const list=await connFetch('equipment');return {ok:true,count:list.length,equipment:[...new Set(list.map(nameOf).filter(Boolean))].slice(0,100)}}
   catch(err){return {ok:false,message:err.message}}
 });
-ipcMain.handle('labro:detect:apps',e=>trusted(e)?findApps():[]);
+ipcMain.handle('parity:detect:apps',e=>trusted(e)?findApps():[]);
 const rulesPath=()=>path.join(app.getPath('userData'),'rules.json');
-ipcMain.handle('labro:rules:save',(e,json)=>{
+ipcMain.handle('parity:rules:save',(e,json)=>{
   if(!trusted(e)||typeof json!=='string'||json.length>2*1024*1024)return false;
   try{JSON.parse(json);fs.writeFileSync(rulesPath(),json,{mode:0o600});return true}catch{return false}
 });
-ipcMain.handle('labro:mcp:info',e=>{
+ipcMain.handle('parity:mcp:info',e=>{
   if(!trusted(e))return null;
-  const script=path.join(root,'mcp','labro-mcp.cjs');
+  const script=path.join(root,'mcp','parity-mcp.cjs');
   const args=[script,'--folder',folder||'<your exports folder>'];if(fs.existsSync(rulesPath()))args.push('--rules',rulesPath());
   return {available:fs.existsSync(script),command:process.execPath,args,env:{ELECTRON_RUN_AS_NODE:'1'},folder,agentArgs:[path.join(root,'agent','mcp.cjs')]};
 });
-ipcMain.handle('labro:folder:get',e=>trusted(e)?folder:null);
-ipcMain.handle('labro:folder:pick',async e=>{
+ipcMain.handle('parity:folder:get',e=>trusted(e)?folder:null);
+ipcMain.handle('parity:folder:pick',async e=>{
   if(!trusted(e))return folder;
   const r=await dialog.showOpenDialog(main,{title:'Choose the folder where you save booking-system exports',properties:['openDirectory'],defaultPath:folder||app.getPath('downloads')});
   if(!r.canceled&&r.filePaths[0]){folder=r.filePaths[0];saveFolder();startWatch()}
   return folder;
 });
-ipcMain.handle('labro:folder:forget',e=>{if(!trusted(e))return null;folder=null;stopWatch();try{fs.rmSync(cfgPath(),{force:true})}catch{}return null});
-ipcMain.handle('labro:folder:scan',e=>trusted(e)&&folder?listFiles():[]);
-ipcMain.handle('labro:folder:read',(e,name)=>{
+ipcMain.handle('parity:folder:forget',e=>{if(!trusted(e))return null;folder=null;stopWatch();try{fs.rmSync(cfgPath(),{force:true})}catch{}return null});
+ipcMain.handle('parity:folder:scan',e=>trusted(e)&&folder?listFiles():[]);
+ipcMain.handle('parity:folder:read',(e,name)=>{
   if(!trusted(e)||!folder||typeof name!=='string'||!FILE_RX.test(name))throw new Error('Not allowed');
   return readSafeFile(folder,name,MAX_BYTES);
 });
 async function createWindow() {
-  main = new BrowserWindow({width:1360,height:900,minWidth:800,minHeight:600,title:'LaBro',
+  main = new BrowserWindow({width:1360,height:900,minWidth:800,minHeight:600,title:'Parity',
     show:!smoke,backgroundColor:'#101615',
     webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,preload:path.join(__dirname,'preload.cjs')}});
   main.webContents.on('will-navigate',(e,url)=>{if(!local(url)){e.preventDefault();external(url);}});
   main.webContents.setWindowOpenHandler(({url})=>{
     // Statements use local blob documents; give them the same sandboxed renderer.
-    if(url.startsWith('blob:labro://app/')) return {action:'allow',overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}}};
+    if(url.startsWith('blob:parity://app/')) return {action:'allow',overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}}};
     external(url); return {action:'deny'};
   });
-  await main.loadURL('labro://app/app.html');
+  await main.loadURL('parity://app/app.html');
   if(homeSmoke){
     try{
       const home=await main.webContents.executeJavaScript(String.raw`(async()=>{
@@ -232,9 +232,9 @@ async function createWindow() {
         await document.fonts.ready;
         if(!document.fonts.check('13px "Roboto Mono"')||!/Roboto Mono/.test(getComputedStyle(document.body).fontFamily))throw Error('Roboto Mono font not loaded');
         const originalFetch=window.fetch;window.fetch=(url,...rest)=>String(url).startsWith('http://127.0.0.1:11434/')?Promise.reject(Error('offline')):originalFetch(url,...rest);
-        if(!window.labroFS)throw Error('Folder bridge missing');
-        for(const k of ['require','process','fs'])if(typeof window.labroFS[k]!=='undefined')throw Error('Folder bridge leaks '+k);
-        // The folder holds oddly named files; LaBro must tell them apart by content.
+        if(!window.parityFS)throw Error('Folder bridge missing');
+        for(const k of ['require','process','fs'])if(typeof window.parityFS[k]!=='undefined')throw Error('Folder bridge leaks '+k);
+        // The folder holds oddly named files; Parity must tell them apart by content.
         await wait(()=>document.querySelectorAll('.frow').length>=3);
         const frows=[...document.querySelectorAll('.frow')].map(r=>r.innerText);
         const has=k=>frows.some(t=>t.includes(k));
@@ -274,14 +274,14 @@ async function createWindow() {
         // The test report holds structure and counts, never names.
         let copied='';Object.defineProperty(navigator,'clipboard',{value:{writeText:async t=>{copied=t}},configurable:true});
         document.querySelector('[data-report]').click();await wait(()=>copied);
-        if(!/LaBro test report/.test(copied)||!/Analysis: \d+ sessions/.test(copied))throw Error('Report incomplete');
+        if(!/Parity test report/.test(copied)||!/Analysis: \d+ sessions/.test(copied))throw Error('Report incomplete');
         if(/User [A-H]\b|John|Export 2026|PTA-|\$\d/.test(copied))throw Error('Report leaks private details');
         if(sidebar!==document.getElementById('sidebar'))throw Error('Sidebar replaced');
         return {xlsx:XLSX.version,priceRows,blocks,files:frows.length,report:copied.split('\n').length};
       })()`);
       // Optional, synthetic-data-only product captures for the pitch and manual review.
-      if(process.env.LABRO_CAPTURE_DIR){
-        const captures=path.resolve(process.env.LABRO_CAPTURE_DIR);fs.mkdirSync(captures,{recursive:true});
+      if(process.env.PARITY_CAPTURE_DIR){
+        const captures=path.resolve(process.env.PARITY_CAPTURE_DIR);fs.mkdirSync(captures,{recursive:true});
         await new Promise(resolve=>setTimeout(resolve,3500));
         for(const page of ['upload','schedule','results']){
           await main.webContents.executeJavaScript(`(async()=>{location.hash=${JSON.stringify(page)};await new Promise(resolve=>setTimeout(resolve,500));await document.fonts.ready;window.scrollTo(0,0)})()`);
@@ -306,7 +306,7 @@ async function createWindow() {
       const api=require('node:http').createServer((q,r)=>{seen.push({url:q.url,auth:q.headers.authorization||''});
         if(q.headers.authorization!=='bearer test-token-123'){r.writeHead(401);r.end('{}');return}
         r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({ilab_response:{equipment:[{id:1,name:'Aria III sorter'},{id:2,name:'LSM 980 confocal'}]}}))});
-      await new Promise(ok=>api.listen(0,'127.0.0.1',ok));process.env.LABRO_TEST_API='http://127.0.0.1:'+api.address().port;
+      await new Promise(ok=>api.listen(0,'127.0.0.1',ok));process.env.PARITY_TEST_API='http://127.0.0.1:'+api.address().port;
       let credentialStep=0,lastCredential=null;
       const credentialTest=setInterval(async()=>{
         const win=credentialWindow;
@@ -337,14 +337,14 @@ async function createWindow() {
         await wait(()=>/Connected\./.test(document.body.innerText));
         if(!/Aria III sorter/.test(document.body.innerText))throw Error('Equipment list missing');
         if(document.getElementById('ilab-token'))throw Error('Token field present in main page');
-        const info=await window.labroConn.get();
+        const info=await window.parityConn.get();
         if(!info.hasToken||JSON.stringify(info).includes('test-token'))throw Error('Token readable from the page');
         if(document.documentElement.innerHTML.includes('test-token-123'))throw Error('Token present in the page');
-        const cfg=document.getElementById('mcp-config');if(!cfg||!/labro-mcp\.cjs/.test(cfg.value)||!/--rules/.test(cfg.value)||!/ELECTRON_RUN_AS_NODE/.test(cfg.value))throw Error('MCP settings incomplete');
+        const cfg=document.getElementById('mcp-config');if(!cfg||!/parity-mcp\.cjs/.test(cfg.value)||!/--rules/.test(cfg.value)||!/ELECTRON_RUN_AS_NODE/.test(cfg.value))throw Error('MCP settings incomplete');
         document.querySelector('[data-mcp-client="codex"]').click();
-        if(!document.getElementById('mcp-config').value.includes('[mcp_servers.labro]'))throw Error('Codex TOML config missing');
+        if(!document.getElementById('mcp-config').value.includes('[mcp_servers.parity]'))throw Error('Codex TOML config missing');
         document.querySelector('[data-mcp-client="claude"]').click();
-        if(!JSON.parse(document.getElementById('mcp-config').value).mcpServers.labro)throw Error('Claude JSON config missing');
+        if(!JSON.parse(document.getElementById('mcp-config').value).mcpServers.parity)throw Error('Claude JSON config missing');
         document.getElementById('ilab-machines').click();
         document.getElementById('conn-forget').click();await wait(()=>!document.getElementById('conn-forget'));
         return true})()`);
@@ -370,14 +370,14 @@ async function createWindow() {
         if(!document.body.innerText.includes('24 unique bookings'))throw Error('iLab normalized count wrong');
         return {fbs:true,ilab:true,invalidBlocked:true,retry:true,import:true};
       })()`);
-      fs.writeFileSync(path.join(require('node:os').tmpdir(),'labro-app.png'),(await main.webContents.capturePage()).toPNG());
+      fs.writeFileSync(path.join(require('node:os').tmpdir(),'parity-app.png'),(await main.webContents.capturePage()).toPNG());
       console.log('DESKTOP PASS '+JSON.stringify({...result,watched,connected,agent:agentResult}));app.exit(0);
     } catch(e){console.error(e);app.exit(1);}
   }
 }
 app.whenReady().then(async()=>{
   folder=loadFolder();startWatch();loadConn();
-  protocol.handle('labro',request=>{
+  protocol.handle('parity',request=>{
     try {
       const u=new URL(request.url);
       if(u.host!=='app'||!['GET','HEAD'].includes(request.method))return new Response('',{status:403});

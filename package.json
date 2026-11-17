@@ -1,9 +1,9 @@
 {
-  "name": "labro-desktop",
+  "name": "parity-desktop",
   "version": "0.8.1",
   "private": true,
   "description": "Local-first core facility requests, billing review and campus reporting",
-  "author": "LaBro",
+  "author": "Parity",
   "main": "desktop/main.cjs",
   "scripts": {
     "desktop:prepare": "node desktop/prepare.cjs",
@@ -22,8 +22,8 @@
     "electron-builder": "26.18.0"
   },
   "build": {
-    "appId": "org.labro.desktop",
-    "productName": "LaBro",
+    "appId": "org.parity.desktop",
+    "productName": "Parity",
     "directories": {
       "output": "release"
     },
@@ -50,6 +50,6 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     },
-    "artifactName": "LaBro-${version}-${os}-${arch}.${ext}"
+    "artifactName": "Parity-${version}-${os}-${arch}.${ext}"
   }
 }
