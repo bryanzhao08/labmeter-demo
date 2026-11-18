@@ -235,3 +235,60 @@ const SEGS = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 9.5, secConnect], [9.5, 14.5, sec
 window.DURATION = 41;
 window.renderAt = T => { T = clamp(Number(T) || 0, 0, window.DURATION); const s = SEGS.find(g => T < g[1]) || SEGS[SEGS.length - 1]; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; if (typeof s[2] === 'function') { s[2](T - s[0]); if (T - s[0] < .08) { ctx.fillStyle = 'rgba(244,196,48,.35)'; ctx.fillRect(0, 0, W, H) } } else hype(s[2] + (T - s[0])) };
 window.selfTest = () => { [0, 5, 8, 12, 16, 18, 22, 29, 33, 40].forEach(window.renderAt); return true };
+
+// ===== v5: the agent IS the 1–5 pipeline. Find and Collect show the agent's real work; MCP comes after as its own beat. =====
+const PIPE = ['Find', 'Collect', 'Match', 'Price', 'Flag'];
+function rail(i, frac) { for (let j = 0; j < 5; j++) { const x = 120 + j * 360; ctx.fillStyle = 'rgba(246,245,240,.18)'; ctx.fillRect(x, 70, 330, 10); ctx.fillStyle = YEL; if (j < i) ctx.fillRect(x, 70, 330, 10); else if (j === i) ctx.fillRect(x, 70, 330 * clamp(frac), 10); ctx.font = F(700, 30); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = j <= i ? YEL : 'rgba(246,245,240,.35)'; ctx.fillText(`${j + 1} ${PIPE[j]}`, x, 125) } }
+function stepLeft(i, st, subs, subT) {
+  ctx.save(); shake(st + 200 + i, 6); slam(String(i + 1), 210, 390, 330, YEL, 0, st, { from: 1.8 }); slam(PIPE[i], 110, 640, 130, PAP, .12, st, { align: 'left', from: 1.3 }); ctx.restore();
+  subs.forEach((l, k) => { const a = ease(clamp((subT - .25 - k * .2) / .25)); if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.font = F(500, 36); ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = k === subs.length - 1 ? YEL : 'rgba(246,245,240,.85)'; ctx.fillText(l, 114 + (1 - a) * 24, 750 + k * 52); ctx.restore() });
+}
+function stepBg(t) { fill(INK); grid(t, 'rgba(246,245,240,.03)') }
+// 1 Find: the agent locates the scheduler and everything around it.
+function cFind(t) {
+  const cx = 1380, cy = 590, L = [['FBS', 400], ['iLab', 590], ['PPMS', 780]], R = [['Instrument PCs', 400], ['Price sheets', 590], ['Exports', 780]];
+  [...L.map(([n, y], i) => [n, 900, y, i]), ...R.map(([n, y], i) => [n, 1560, y, i + 3])].forEach(([n, x, y, i]) => { const a = clamp((t - .3 - i * .12) / .2), w = 300, h = 96; flow(x < cx ? x + w : x, y, cx, cy, t + i * .3, ease(clamp((t - .6 - i * .12) / .3))); ctx.save(); if (a > 0) { ctx.globalAlpha = a; ctx.fillStyle = PAP; ctx.fillRect(x, y - h / 2, w, h); ctx.fillStyle = INK; ctx.font = F(700, 30); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(n, x + w / 2, y + 2) } ctx.restore() });
+  const ring = (t * 1.2) % 1; ctx.save(); ctx.strokeStyle = YEL; ctx.lineWidth = 5; ctx.globalAlpha = 1 - ring; ctx.beginPath(); ctx.arc(cx, cy, 105 + ring * 100, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(cx, cy, 105, 0, Math.PI * 2); ctx.fillStyle = YEL; ctx.fill(); ctx.restore(); mark('parity-mark-ink', cx, cy - 3, 140);
+}
+// 2a Collect: the agent's real run log — pages, the retry, mapping, checks.
+function cAgentLog(t) {
+  const e = clamp(3 + Math.floor((t - .2) / .42), 3, 10), m = view(SH['08-agent-run'], 520, clamp(mix(600, 900, ease(clamp(t / 3))), 280, 720), 1060, 960, 170, 880, 820, ease(clamp(t / .3)));
+  for (let k = 0; k <= e; k++) { const r = EV[k]; if (k === e) hlBox(m, r, k === 4 ? RED : YEL, 1, k === 4 && Math.floor(t * 10) % 2 ? .35 : .2); else { const [x0, y0] = m(r[0] - 6, r[1] + 20); if (y0 < 175) continue; ctx.fillStyle = k === 4 ? RED : YEL; ctx.fillRect(x0 - 16, y0, 8, (r[3] - r[1] - 40) * 880 / 1060) } }
+  const pages = e >= 7 ? 4 : e >= 6 ? 3 : e >= 5 ? 2 : 1; stat('pages', `${pages}/4`, 114, 950, 1); stat('bookings', e >= 9 ? '24' : '…', 520, 950, 1);
+}
+function cMapper(t) { const m = view(SH['09-agent-mapping'], 1610, 590, 1520, 960, 220, 880, 700, ease(clamp(t / .25))); for (let i = 0; i < 10; i++) { const a = clamp((t - .2 - i * .17) / .15); if (a <= 0) continue; const cur = t - .2 - i * .17 < .3; hlBox(m, [1638, MAPROWS[i], 3102, MAPROWS[i + 1]], YEL, cur ? 1 : .55, cur ? .3 : .12) } }
+function cCollector(t) {
+  const X = 940, Y = 250, MW = 620, MH = 400, a = ease(clamp(t / .25));
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#2b3036'; ctx.beginPath(); ctx.roundRect(X - 20, Y - 20, MW + 40, MH + 40, 18); ctx.fill(); ctx.fillStyle = '#0f1214'; ctx.fillRect(X, Y, MW, MH); ctx.fillStyle = '#2b3036'; ctx.fillRect(X + MW / 2 - 40, Y + MH + 20, 80, 70); ctx.fillRect(X + MW / 2 - 150, Y + MH + 86, 300, 18);
+  for (let r = 0; r < 5; r++) { const y = Y + 50 + r * 72, s = [.05, .3, .12, .55, .22][r], len = [.5, .35, .7, .3, .45][r], g = clamp((t - .2 - r * .12) / 1); ctx.fillStyle = 'rgba(246,245,240,.1)'; ctx.fillRect(X + 36, y, MW - 72, 32); ctx.fillStyle = r === 0 ? RED : YEL; ctx.fillRect(X + 36 + (MW - 72) * s, y, (MW - 72) * len * g, 32) }
+  ctx.fillStyle = PAP; ctx.fillRect(X + 36 + (MW - 72) * clamp((t - .2) / 1.3), Y + 32, 3, MH - 64); ctx.restore();
+  const ma = ease(clamp((t - .4) / .3)); flow(X + MW + 24, Y + MH / 2, 1700, Y + MH / 2, t, ma, 2); ctx.save(); ctx.globalAlpha = ma; ctx.beginPath(); ctx.arc(1780, Y + MH / 2, 85, 0, Math.PI * 2); ctx.fillStyle = YEL; ctx.fill(); ctx.restore(); mark('parity-mark-ink', 1780, Y + MH / 2 - 3, 112, ma);
+}
+// 3–5: the real app screens with their highlight.
+function cScreen(i, t) { const s = steps[i], prev = steps[i - 1], X = 900, Y = 230, FW = 960, FH = FW * 1906 / 3200, slide = ease(clamp(t / .3)); appCrop(images[s.img], s.r, .55 * ease(clamp((t - .1) / .7)), ease(clamp((t - .45) / .25)), slide, mix(W, X, slide), Y, FW, FH) }
+// Step plan: [start, end, step index, content, subs]. Collect spans three beats.
+const PLAN = [
+  [0, 3, 0, cFind, ['The agent finds your scheduler,', 'instruments and prices.']],
+  [3, 6.4, 1, cAgentLog, ['The agent reads every page', 'and retries when blocked.']],
+  [6.4, 8.6, 1, cMapper, ['It maps any export layout', 'to the right fields.']],
+  [8.6, 10.8, 1, cCollector, ['The Collector logs real use', 'on each instrument PC.']],
+  [10.8, 12.9, 2, t => cScreen(2, t), ['Booked time against', 'real use.']],
+  [12.9, 15, 3, t => cScreen(3, t), ['Each session, with', "the core's own rules."]],
+  [15, 17.4, 4, t => cScreen(4, t), ['No-shows, overruns,', 'use nobody booked.']]
+];
+function secSteps(T) {
+  stepBg(T); const p = PLAN.find(g => T < g[1]) || PLAN[PLAN.length - 1], i = p[2], first = PLAN.find(g => g[2] === i), last = [...PLAN].reverse().find(g => g[2] === i);
+  const st = T - first[0], lt = T - p[0]; rail(i, (T - first[0]) / (last[1] - first[0]));
+  p[3](lt); stepLeft(i, st, p[4], lt);
+  if (lt < .08) { ctx.fillStyle = 'rgba(244,196,48,.3)'; ctx.fillRect(0, 0, W, H) }
+}
+function secMcp2(t) {
+  secMcp(t);
+  // relabel: the MCP server is how outside AI assistants use Parity's tools
+  ctx.fillStyle = INK; ctx.fillRect(0, 170, 1000, 80);
+  ctx.save(); ctx.globalAlpha = ease(clamp((t - .3) / .3)); ctx.font = F(500, 38); ctx.fillStyle = YEL; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('Claude or Codex can ask Parity too.', 94, 210); ctx.restore();
+}
+const SEGS2 = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 23.9, T => secSteps(T)], [23.9, 28.9, secMcp2], [28.9, 38.4, 21.5]];
+window.DURATION = 38.4;
+window.renderAt = T => { T = clamp(Number(T) || 0, 0, window.DURATION); const s = SEGS2.find(g => T < g[1]) || SEGS2[SEGS2.length - 1]; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; if (typeof s[2] === 'function') { s[2](T - s[0]); if (T - s[0] < .08 && s[0] !== 6.5) { ctx.fillStyle = 'rgba(244,196,48,.35)'; ctx.fillRect(0, 0, W, H) } } else hype(s[2] + (T - s[0])) };
+window.selfTest = () => { [0, 5, 8, 11, 14, 16, 18, 20, 23, 26, 33, 37].forEach(window.renderAt); return true };
