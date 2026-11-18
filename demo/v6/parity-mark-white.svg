@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Parity">
+  <title>Parity</title>
+  <!-- Parity parrot: the head is a P, the crest and tail are circuit traces, the eye is a sensor. -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M20 58V19.5H48C56.5 19.5 60.5 25.5 60.5 33.5V42L55 47.5V37C55 33 52.5 30.5 48.5 30.5H44Q44 42.5 32 42.5H20"/>
+    <path d="M43 19.5V30.5"/>
+    <path d="M20 19.5 12 11.5H6.5M26.5 19.5 20 13 17 7"/>
+    <path d="M20 51 14 57"/>
+  </g>
+  <circle cx="31.5" cy="29" r="4.6" fill="none" stroke="#FFFFFF" stroke-width="2.4"/>
+  <g fill="#FFFFFF"><circle cx="5.5" cy="11.5" r="2.7"/><circle cx="16.5" cy="6" r="2.7"/><circle cx="13" cy="58" r="2.7"/><circle cx="31.5" cy="29" r="1.9"/></g>
+</svg>

@@ -7,13 +7,13 @@ app.whenReady().then(async () => {
     webPreferences: { contextIsolation: true, backgroundThrottling: false, autoplayPolicy: 'no-user-gesture-required' } });
   win.webContents.on('console-message', (e, level, msg) => { if (/AUDIO|REC/.test(msg)) console.log(msg); });
   try {
-    await win.loadFile(path.join(__dirname, 'film.html'));
+    await win.loadFile(path.join(__dirname, process.env.FILM_HTML || 'film.html'));
     await win.webContents.executeJavaScript('window.ready');
     const result = await win.webContents.executeJavaScript(`(async () => {
       if (!window.selfTest()) throw new Error('Film self-test failed');
       const canvas = document.getElementById('out');
       const review = {};
-      for (const t of [2, 5.5, 8.6, 10.3, 11.8, 14.2, 16.6, 19.0, 21.4, 22.4, 23.5, 26.5]) {
+      for (const t of ${process.env.REVIEW || '[2, 5.5, 8.6, 10.3, 11.8, 14.2, 16.6, 19.0, 21.4, 22.4, 23.5, 26.5]'}) {
         if (window.prepare) await window.prepare(t);
         window.renderAt(t);
         review[t] = canvas.toDataURL('image/png').split(',')[1];
@@ -67,10 +67,10 @@ app.whenReady().then(async () => {
       return { mime, base64, review };
     })()`, true);
     const ext = result.mime.startsWith('video/mp4') ? 'mp4' : 'webm';
-    const output = path.join(__dirname, `parity-demo-v8.${ext}`);
+    const output = path.join(__dirname, `${process.env.OUT || 'parity-demo-v8'}.${ext}`);
     const data = Buffer.from(result.base64, 'base64');
     fs.writeFileSync(output, data);
-    const reviewDir = path.join(__dirname, 'review');
+    const reviewDir = path.join(__dirname, process.env.REVIEW_DIR || 'review');
     fs.mkdirSync(reviewDir, { recursive: true });
     for (const [time, png] of Object.entries(result.review)) {
       fs.writeFileSync(path.join(reviewDir, `frame-${time}s.png`), Buffer.from(png, 'base64'));
