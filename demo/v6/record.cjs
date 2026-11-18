@@ -13,13 +13,13 @@ app.whenReady().then(async () => {
       if (!window.selfTest()) throw new Error('Film self-test failed');
       const canvas = document.getElementById('out');
       const review = {};
-      for (const t of [3.5, 4.0, 4.35, 4.7, 5.0, 5.34, 5.5, 5.85, 6.3, 6.75, 8.6, 10.5, 17.9]) {
+      for (const t of [2, 5.5, 8.6, 10.3, 11.8, 14.2, 16.6, 19.0, 21.4, 22.4, 23.5, 26.5]) {
         if (window.prepare) await window.prepare(t);
         window.renderAt(t);
         review[t] = canvas.toDataURL('image/png').split(',')[1];
       }
       const withAudio = 'video/mp4;codecs=avc1.640028,mp4a.40.2';
-      const preferred = MediaRecorder.isTypeSupported(withAudio) ? withAudio : 'video/mp4;codecs=avc1.640028';
+      const preferred = (window.VOICEOVER || []).length && MediaRecorder.isTypeSupported(withAudio) ? withAudio : 'video/mp4;codecs=avc1.640028';
       const fallback = 'video/webm;codecs=vp9';
       const mime = MediaRecorder.isTypeSupported(preferred) ? preferred : fallback;
       if (!MediaRecorder.isTypeSupported(mime)) throw new Error('Neither requested recording format is supported');
@@ -67,7 +67,7 @@ app.whenReady().then(async () => {
       return { mime, base64, review };
     })()`, true);
     const ext = result.mime.startsWith('video/mp4') ? 'mp4' : 'webm';
-    const output = path.join(__dirname, `parity-demo-v7.${ext}`);
+    const output = path.join(__dirname, `parity-demo-v8.${ext}`);
     const data = Buffer.from(result.base64, 'base64');
     fs.writeFileSync(output, data);
     const reviewDir = path.join(__dirname, 'review');

@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from './vendor/addons/RoundedBoxGeometry.js';
 
 const W=1920,H=1080, out=document.getElementById('out'), ctx=out.getContext('2d');
-window.DURATION=20;
+window.DURATION=27;
 // ElevenLabs narration (voice: Arthur). The end card holds after t=18 while the last line finishes.
 // vo-1 was recorded as "LaBro's agents pull..."; from:.46 skips the old name so it plays "Agents pull...". vo-4 said the old name and is dropped.
-window.VOICEOVER=[{src:'audio/vo-1.mp3',at:5.85,from:.46,rate:1.2},{src:'audio/vo-2.mp3',at:11.7,rate:1.15}];
+window.VOICEOVER=[]; // silent cut: Bryan talks over the film on stage.
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
 renderer.setSize(W,H); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
 const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(36,W/H,.1,300);
@@ -29,7 +29,7 @@ cyl(room,4.6,1.55,-3.2,.65,.75,white);cyl(room,4.6,1.98,-3.2,.68,.12,light);
 // Desk and monitor.
 box(room,3.5,1.15,2.8,3.7,.22,1.8,white);for(const dx of [-1.55,1.55])for(const dz of [-.65,.65])box(room,3.5+dx,.55,2.8+dz,.16,1.1,.16,light);
 box(room,3.5,1.56,2.45,.22,.7,.22,light);box(room,3.5,2.12,2.45,2.1,1.25,.12,dark,.08);box(room,3.5,1.3,3.15,1.4,.07,.45,light,.02);
-const images={};const imageNames=['02-schedule','03-drawer','05-results'];
+const images={};const imageNames=['02-schedule','03-drawer','04-week','05-results'];
 const markLoad=new Promise(r=>{const im=new Image(256,256);im.onload=()=>{images.mark=im;r()};im.onerror=()=>r();im.src='./parity-mark-ink.svg'});
 const loaded=[markLoad,...imageNames.map(n=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{images[n]=im;resolve()};im.onerror=reject;im.src=`./stills/${n}.png`}))];
 let screen;
@@ -118,19 +118,56 @@ const clips={};
 for(const [k,src,from,to] of [['a','clips/shot-a.mp4',0,3.5],['b','clips/shot-b.mp4',3.5,5.5]]){const v=document.createElement('video');v.src=src;v.muted=true;v.preload='auto';v.playsInline=true;clips[k]={id:k,v,from,to,ok:false};v.addEventListener('loadeddata',()=>{clips[k].ok=true});}
 function clipFor(t){for(const c of Object.values(clips))if(c.ok&&t>=c.from&&t<c.to)return c;return null}
 window.prepare=t=>{const c=clipFor(t);if(!c)return Promise.resolve();const target=Math.min(c.v.duration-0.04,c.id==='b'?clamp((t-3.5)/.85):(t-c.from)/(c.to-c.from)*c.v.duration);if(Math.abs(c.v.currentTime-target)<0.001)return Promise.resolve();return new Promise(r=>{c.v.addEventListener('seeked',()=>r(),{once:true});c.v.currentTime=target})};
-window.renderAt=function(t){t=clamp(Number(t)||0,0,18);sceneFrame(t);let grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#1b2130');grad.addColorStop(1,'#2a3242');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+function legacyRender(t){sceneFrame(t);let grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#1b2130');grad.addColorStop(1,'#2a3242');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
  if(t>=5.5&&t<5.85){ctx.drawImage(images['02-schedule'],0,0,W,H)}
  else if(t>=5.85&&t<6.75){const q=ease((t-5.85)/.9);ctx.save();ctx.globalAlpha=q;ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480+(1-q)*300,0,1440,1080);ctx.restore();
    const r=[mix(0,45,q),mix(0,250,q),mix(1920,850,q),mix(1080,478.125,q)];appFrame(images['02-schedule'],r[0],r[1],r[2],r[3],1)}
  else if(t<5.5&&clipFor(t)){const c=clipFor(t);if(c.id==='b')monitorHandoff(t,c);else ctx.drawImage(c.v,0,0,W,H)}
  else if(t<5.5||t>=14)ctx.drawImage(renderer.domElement,0,0);else{ctx.save();ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480,0,1440,1080);ctx.restore();const zoom=1;if(t<10){appFrame(images['02-schedule'],45,250,850,478.125,zoom);if(t>=7.8)appFrame(images['03-drawer'],45,250,850,478.125,zoom,ease((t-7.8)/.4))}else appFrame(images['05-results'],45,250,850,478.125,1)}
  if(window.NO_OVERLAY)return;
- if(t<3.5){overlayBooking(t);caption('Booked 2 hours. Used 3.5.')}else if(t>=6.8&&t<10)caption('Bookings from the scheduler. Use from sensors and PCs.');else if(t>=10&&t<14)caption('Match. Price. Flag. You approve.');
- if(t>=7.1&&t<10)overlaySources(t);if(t>=10&&t<14)overlayAgents(t);if(t>=14.3&&t<15.6)caption('One crew of agents for every core.');
+ if(t<3.5)overlayBooking(t);
+ if(t>=7.1&&t<10)overlaySources(t);
  if(t>=16.35){const Y='#F4C430',INK='#22221F';const f=ease((t-16.35)/.3);ctx.fillStyle=Y;ctx.globalAlpha=f;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;
   if(t>=16.6){const m=ease((t-16.6)/.6),sz=mix(120,220,m);ctx.globalAlpha=m;if(images.mark)ctx.drawImage(images.mark,W/2-sz/2,mix(470,330,m)-sz/2,sz,sz);ctx.globalAlpha=1;
    const w=ease((t-16.9)/.55);ctx.save();ctx.beginPath();ctx.rect(0,450,W,190);ctx.clip();ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 132px RobotoMono, monospace';ctx.fillText('Parity',W/2,mix(700,540,w));ctx.restore();
    const g=ease((t-17.25)/.5);ctx.globalAlpha=g;ctx.fillStyle=INK;ctx.font='500 40px RobotoMono, monospace';ctx.textAlign='center';ctx.fillText('You run the science. Parity runs the lab.',W/2,mix(700,680,g));ctx.globalAlpha=1}}
 };
-window.selfTest=()=>{[0,5,9,12,17].forEach(window.renderAt);return true};
+
+// Agent pipeline, 10s to 22s of the film: five steps, one at a time, each paired with the app screen it produces.
+const AG0=10,STEP=2.4,AG1=AG0+.6+STEP*5; // 22.6
+const steps=[
+ {n:'Find',sub:'the scheduler',img:'02-schedule',r:[480,120,3200,1300]},
+ {n:'Collect',sub:'bookings + use',img:'04-week',r:[480,700,3200,1420]},
+ {n:'Match',sub:'booked vs used',img:'03-drawer',r:[2440,1440,3160,1760]},
+ {n:'Price',sub:'core rules',img:'05-results',r:[1410,500,1790,1720]},
+ {n:'Flag',sub:'for approval',img:'05-results',r:[1790,500,2620,1720]}
+];
+function fitRegion(r,img){const IW=img.width,IH=img.height,A=IW/IH;let[x0,y0,x1,y1]=r;let w=x1-x0,h=y1-y0,cx=(x0+x1)/2,cy=(y0+y1)/2;w*=1.25;h*=1.25;if(w/h<A)w=h*A;else h=w/A;w=Math.min(w,IW);h=Math.min(h,IH);return[clamp(cx-w/2,0,IW-w),clamp(cy-h/2,0,IH-h),w,h]}
+function appCrop(img,r,z,hl,alpha,X,Y,FW,FH){const IW=img.width,IH=img.height,[rx,ry,rw,rh]=fitRegion(r,img);const sx=mix(0,rx,z),sy=mix(0,ry,z),sw=mix(IW,rw,z),sh=mix(IH,rh,z);
+ ctx.save();ctx.globalAlpha=alpha;roundRect(X,Y,FW,FH,6,'#fff','#e7e5de');ctx.beginPath();ctx.roundRect(X+3,Y+3,FW-6,FH-6,4);ctx.clip();ctx.drawImage(img,sx,sy,sw,sh,X+3,Y+3,FW-6,FH-6);
+ if(hl>0){const k=(FW-6)/sw,hx=X+3+(r[0]-sx)*k,hy=Y+3+(r[1]-sy)*k,hw=(r[2]-r[0])*k,hh=(r[3]-r[1])*k;ctx.globalAlpha=alpha*hl;ctx.strokeStyle='#f4c430';ctx.lineWidth=7;ctx.beginPath();ctx.roundRect(hx,hy,hw,hh,8);ctx.stroke()}
+ ctx.restore()}
+function pipeline(T){const n=steps.length,cw=318,gap=46,x0=(W-(n*cw+(n-1)*gap))/2,y=56,h=128,cur=Math.floor((T-AG0-.6)/STEP);
+ steps.forEach((s,i)=>{const app=ease((T-AG0-i*.1)/.4);if(app<=0)return;const x=x0+i*(cw+gap),st=T-AG0-.6-i*STEP,active=st>=0&&st<STEP,done=st>=STEP,pulse=active?ease(st/.35):0;
+  // connector arrow to the next step, filled as work passes along it
+  if(i<n-1){const ax=x+cw+6,bx=x+cw+gap-6,ay=y+h/2;ctx.save();ctx.globalAlpha=app;ctx.strokeStyle='rgba(246,245,240,.35)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx-8,ay);ctx.stroke();
+   const f=clamp((st-STEP+.45)/.45);if(f>0){ctx.strokeStyle='#f4c430';ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(mix(ax,bx-8,f),ay);ctx.stroke()}
+   ctx.fillStyle=f>=1?'#f4c430':'rgba(246,245,240,.35)';ctx.beginPath();ctx.moveTo(bx,ay);ctx.lineTo(bx-14,ay-10);ctx.lineTo(bx-14,ay+10);ctx.fill();ctx.restore()}
+  ctx.save();ctx.globalAlpha=app*(active||done?1:.55);const sc=1+.07*pulse*(active?1:0);ctx.translate(x+cw/2,y+h/2);ctx.scale(sc,sc);ctx.translate(-(x+cw/2),-(y+h/2));
+  ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=active?26:12;ctx.shadowOffsetY=6;roundRect(x,y,cw,h,12,active?'#f4c430':'#f6f5f0',active?'#22221f':null);ctx.shadowColor='transparent';
+  // number badge, becomes a check when the step is done
+  const bx=x+52,by=y+h/2;ctx.beginPath();ctx.arc(bx,by,30,0,Math.PI*2);ctx.fillStyle=done?'#22221f':(active?'#22221f':'#d9d6cc');ctx.fill();ctx.fillStyle=done||active?'#f4c430':'#22221f';ctx.font='700 32px RobotoMono, monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(done?'✓':String(i+1),bx,by+1);
+  ctx.fillStyle='#22221f';ctx.textAlign='left';ctx.font='700 38px RobotoMono, monospace';ctx.fillText(s.n,x+98,y+h/2-16);ctx.font='500 22px RobotoMono, monospace';ctx.fillStyle='#4b4a44';ctx.fillText(s.sub,x+99,y+h/2+24);ctx.restore()});
+ return clamp(cur,0,n-1)}
+function agentScene(T){const legacyT=AG0+(T-AG0)*(4/(AG1-AG0));sceneFrame(Math.min(legacyT,13.99));let grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#1b2130');grad.addColorStop(1,'#2a3242');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.beginPath();ctx.rect(960,0,960,1080);ctx.clip();ctx.drawImage(renderer.domElement,480,0,1440,1080);ctx.restore();
+ const X=45,Y=250,FW=850,FH=478.125;const st=T-AG0-.6,i=clamp(Math.floor(st/STEP),0,4),local=st-i*STEP;
+ if(st<0){appCrop(images['02-schedule'],steps[0].r,0,0,1,X,Y,FW,FH)}else{const s=steps[i],prev=steps[i-1];const fade=i>0&&prev.img!==s.img?ease(local/.35):1;
+  if(fade<1){const pz=1-ease(local/.35);appCrop(images[prev.img],prev.r,.55*pz,0,1,X,Y,FW,FH)}
+  const z=.55*ease((local-.15)/.8)*(i===4?1:1);appCrop(images[s.img],s.r,z,ease((local-.5)/.3),fade,X,Y,FW,FH);
+  // a yellow wire from the active step down to the lab monitor
+  const n=5,cw=318,gap=46,x0=(W-(n*cw+(n-1)*gap))/2,cx=x0+i*(cw+gap)+cw/2;const[dx,dy]=rightProj(3.5,2.4,2.45);wire(cx,56+128,dx,dy,ease(local/.3)*(1-ease((local-STEP+.25)/.25)))}
+ pipeline(T)}
+window.renderAt=function(T){T=clamp(Number(T)||0,0,window.DURATION);if(T<AG0)return legacyRender(T);if(T<AG1)return agentScene(T);const t=Math.min(T-(AG1-14),18);legacyRender(t);};
+window.selfTest=()=>{[0,5,9,11,14,17,20,23,26].forEach(window.renderAt);return true};
 window.ready=Promise.all([...loaded,document.fonts.ready,...Object.values(clips).map(c=>new Promise(r=>{if(c.v.readyState>=2)return r();c.v.addEventListener('loadeddata',r,{once:true});c.v.addEventListener('error',r,{once:true});setTimeout(r,4000)}))]).then(()=>{const tex=new THREE.Texture(images['02-schedule']);tex.colorSpace=THREE.SRGBColorSpace;tex.needsUpdate=true;screen=new THREE.Mesh(new THREE.PlaneGeometry(1.94,1.1),new THREE.MeshBasicMaterial({map:tex}));screen.position.set(3.5,2.12,2.52);room.add(screen);window.renderAt(0)});
