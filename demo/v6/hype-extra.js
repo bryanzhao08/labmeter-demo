@@ -156,7 +156,7 @@ function hype(T) {
   { const t = T - 28; fill(YEL); const m = ease(clamp(t / .5)); mark('parity-mark-ink', W / 2, mix(420, 300, m), mix(160, 230, m), m);
     ctx.save(); ctx.globalAlpha = ease(clamp((t - .3) / .4)); ctx.fillStyle = INK; ctx.font = F(700, 160); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('Parity', W / 2, 560); ctx.restore();
     ctx.save(); ctx.globalAlpha = ease(clamp((t - .8) / .4)); ctx.fillStyle = INK; ctx.font = F(500, 52); ctx.textAlign = 'center'; ctx.fillText('You run the science. Parity runs the lab.', W / 2, 700); ctx.restore();
-    ctx.save(); ctx.globalAlpha = ease(clamp((t - 1.4) / .4)); ctx.fillStyle = INK; ctx.font = F(600, 38); ctx.textAlign = 'center'; ctx.fillText('bryanzhao08.github.io/parity', W / 2, 840); ctx.restore(); }
+    ctx.save(); ctx.globalAlpha = ease(clamp((t - 1.4) / .4)); ctx.fillStyle = INK; ctx.font = F(600, 38); ctx.textAlign = 'center';  ctx.restore(); }
 }
 // v2: no opening text or number cards. Open in the lab (old 4–8), skip old 0–4 and 8–11.5.
 const remap = T => T < 4 ? T + 4 : T + 7.5;
@@ -272,9 +272,9 @@ const PLAN = [
   [3, 6.4, 1, cAgentLog, ['The agent reads every page', 'and retries when blocked.']],
   [6.4, 8.6, 1, cMapper, ['It maps any export layout', 'to the right fields.']],
   [8.6, 10.8, 1, cCollector, ['The Collector logs real use', 'on each instrument PC.']],
-  [10.8, 14.3, 2, t => cScreen(2, t), ['Booked time against', 'real use.']],
-  [14.3, 17.8, 3, t => cScreen(3, t), ['Each session, with', "the core's own rules."]],
-  [17.8, 21.5, 4, t => cScreen(4, t), ['No-shows, overruns,', 'use nobody booked.']]
+  [10.8, 15.3, 2, t => cScreen(2, t), ['Booked time against', 'real use.']],
+  [15.3, 19.8, 3, t => cScreen(3, t), ['Each session, with', "the core's own rules."]],
+  [19.8, 24.5, 4, t => cScreen(4, t), ['No-shows, overruns,', 'use nobody booked.']]
 ];
 function secSteps(T) {
   stepBg(T); const p = PLAN.find(g => T < g[1]) || PLAN[PLAN.length - 1], i = p[2], first = PLAN.find(g => g[2] === i), last = [...PLAN].reverse().find(g => g[2] === i);
@@ -288,7 +288,7 @@ function secMcp2(t) {
   ctx.fillStyle = INK; ctx.fillRect(0, 170, 1000, 80);
   ctx.save(); ctx.globalAlpha = ease(clamp((t - .3) / .3)); ctx.font = F(500, 38); ctx.fillStyle = YEL; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('Claude or Codex can ask Parity too.', 94, 210); ctx.restore();
 }
-const SEGS2 = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 28, T => secSteps(T)], [28, 33, secMcp2], [33, 42.5, 21.5]];
-window.DURATION = 42.5;
+const SEGS2 = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 31, T => secSteps(T)], [31, 36, secMcp2], [36, 45.5, 21.5]];
+window.DURATION = 45.5;
 window.renderAt = T => { T = clamp(Number(T) || 0, 0, window.DURATION); const s = SEGS2.find(g => T < g[1]) || SEGS2[SEGS2.length - 1]; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; if (typeof s[2] === 'function') { s[2](T - s[0]); if (T - s[0] < .08 && s[0] !== 6.5) { ctx.fillStyle = 'rgba(244,196,48,.35)'; ctx.fillRect(0, 0, W, H) } } else hype(s[2] + (T - s[0])) };
 window.selfTest = () => { [0, 5, 8, 11, 14, 16, 18, 20, 23, 26, 33, 37].forEach(window.renderAt); return true };

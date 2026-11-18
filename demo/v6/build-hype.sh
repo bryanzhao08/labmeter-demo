@@ -3,4 +3,4 @@
 cd "$(dirname "$0")"
 cat film.js hype-extra.js > hype.js
 sed 's/film.js/hype.js/' film.html > hype.html
-FILM_HTML=hype.html OUT=parity-hype-silent REVIEW_DIR=review-hype REVIEW='[18.5,21,23,26.5]' ../../node_modules/.bin/electron record.cjs
+FILM_HTML=hype.html OUT=parity-hype-silent REVIEW_DIR=review-hype REVIEW='[14,18,23,44.5]' ../../node_modules/.bin/electron record.cjs
