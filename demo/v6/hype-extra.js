@@ -252,11 +252,11 @@ function cFind(t) {
 }
 // 2a Collect: the agent's real run log — pages, the retry, mapping, checks.
 function cAgentLog(t) {
-  const e = clamp(3 + Math.floor((t - .2) / .42), 3, 10), m = view(SH['08-agent-run'], 520, clamp(mix(600, 900, ease(clamp(t / 3))), 280, 720), 1060, 960, 170, 880, 820, ease(clamp(t / .3)));
+  const e = clamp(3 + Math.floor((t - .2) / .55), 3, 10), m = view(SH['08-agent-run'], 520, clamp(mix(600, 900, ease(clamp(t / 3))), 280, 720), 1060, 960, 170, 880, 820, ease(clamp(t / .3)));
   for (let k = 0; k <= e; k++) { const r = EV[k]; if (k === e) hlBox(m, r, k === 4 ? RED : YEL, 1, k === 4 && Math.floor(t * 10) % 2 ? .35 : .2); else { const [x0, y0] = m(r[0] - 6, r[1] + 20); if (y0 < 175) continue; ctx.fillStyle = k === 4 ? RED : YEL; ctx.fillRect(x0 - 16, y0, 8, (r[3] - r[1] - 40) * 880 / 1060) } }
   const pages = e >= 7 ? 4 : e >= 6 ? 3 : e >= 5 ? 2 : 1; stat('pages', `${pages}/4`, 114, 950, 1); stat('bookings', e >= 9 ? '24' : '…', 520, 950, 1);
 }
-function cMapper(t) { const m = view(SH['09-agent-mapping'], 1610, 590, 1520, 960, 220, 880, 700, ease(clamp(t / .25))); for (let i = 0; i < 10; i++) { const a = clamp((t - .2 - i * .17) / .15); if (a <= 0) continue; const cur = t - .2 - i * .17 < .3; hlBox(m, [1638, MAPROWS[i], 3102, MAPROWS[i + 1]], YEL, cur ? 1 : .55, cur ? .3 : .12) } }
+function cMapper(t) { const m = view(SH['09-agent-mapping'], 1610, 590, 1520, 960, 220, 880, 700, ease(clamp(t / .25))); for (let i = 0; i < 10; i++) { const a = clamp((t - .2 - i * .22) / .15); if (a <= 0) continue; const cur = t - .2 - i * .22 < .35; hlBox(m, [1638, MAPROWS[i], 3102, MAPROWS[i + 1]], YEL, cur ? 1 : .55, cur ? .3 : .12) } }
 function cCollector(t) {
   const X = 940, Y = 250, MW = 620, MH = 400, a = ease(clamp(t / .25));
   ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#2b3036'; ctx.beginPath(); ctx.roundRect(X - 20, Y - 20, MW + 40, MH + 40, 18); ctx.fill(); ctx.fillStyle = '#0f1214'; ctx.fillRect(X, Y, MW, MH); ctx.fillStyle = '#2b3036'; ctx.fillRect(X + MW / 2 - 40, Y + MH + 20, 80, 70); ctx.fillRect(X + MW / 2 - 150, Y + MH + 86, 300, 18);
@@ -268,13 +268,13 @@ function cCollector(t) {
 function cScreen(i, t) { const s = steps[i], prev = steps[i - 1], X = 900, Y = 230, FW = 960, FH = FW * 1906 / 3200, slide = ease(clamp(t / .3)); appCrop(images[s.img], s.r, .55 * ease(clamp((t - .1) / .7)) + .15 * ease(clamp((t - .9) / 2.4)), ease(clamp((t - .45) / .25)), slide, mix(W, X, slide), Y, FW, FH) }
 // Step plan: [start, end, step index, content, subs]. Collect spans three beats.
 const PLAN = [
-  [0, 3, 0, cFind, ['The agent finds your scheduler,', 'instruments and prices.']],
-  [3, 6.4, 1, cAgentLog, ['The agent reads every page', 'and retries when blocked.']],
-  [6.4, 8.6, 1, cMapper, ['It maps any export layout', 'to the right fields.']],
-  [8.6, 10.8, 1, cCollector, ['The Collector logs real use', 'on each instrument PC.']],
-  [10.8, 15.3, 2, t => cScreen(2, t), ['Booked time against', 'real use.']],
-  [15.3, 19.8, 3, t => cScreen(3, t), ['Each session, with', "the core's own rules."]],
-  [19.8, 24.5, 4, t => cScreen(4, t), ['No-shows, overruns,', 'use nobody booked.']]
+  [0, 5, 0, cFind, ['The agent finds your scheduler,', 'instruments and prices.']],
+  [5, 9.4, 1, cAgentLog, ['The agent reads every page', 'and retries when blocked.']],
+  [9.4, 12.1, 1, cMapper, ['It maps any export layout', 'to the right fields.']],
+  [12.1, 14.8, 1, cCollector, ['The Collector logs real use', 'on each instrument PC.']],
+  [14.8, 19.3, 2, t => cScreen(2, t), ['Booked time against', 'real use.']],
+  [19.3, 23.8, 3, t => cScreen(3, t), ['Each session, with', "the core's own rules."]],
+  [23.8, 28.5, 4, t => cScreen(4, t), ['No-shows, overruns,', 'use nobody booked.']]
 ];
 function secSteps(T) {
   stepBg(T); const p = PLAN.find(g => T < g[1]) || PLAN[PLAN.length - 1], i = p[2], first = PLAN.find(g => g[2] === i), last = [...PLAN].reverse().find(g => g[2] === i);
@@ -288,7 +288,7 @@ function secMcp2(t) {
   ctx.fillStyle = INK; ctx.fillRect(0, 170, 1000, 80);
   ctx.save(); ctx.globalAlpha = ease(clamp((t - .3) / .3)); ctx.font = F(500, 38); ctx.fillStyle = YEL; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('Claude or Codex can ask Parity too.', 94, 210); ctx.restore();
 }
-const SEGS2 = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 31, T => secSteps(T)], [31, 36, secMcp2], [36, 45.5, 21.5]];
-window.DURATION = 45.5;
+const SEGS2 = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 35, T => secSteps(T)], [35, 40, secMcp2], [40, 49.5, 21.5]];
+window.DURATION = 49.5;
 window.renderAt = T => { T = clamp(Number(T) || 0, 0, window.DURATION); const s = SEGS2.find(g => T < g[1]) || SEGS2[SEGS2.length - 1]; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; if (typeof s[2] === 'function') { s[2](T - s[0]); if (T - s[0] < .08 && s[0] !== 6.5) { ctx.fillStyle = 'rgba(244,196,48,.35)'; ctx.fillRect(0, 0, W, H) } } else hype(s[2] + (T - s[0])) };
 window.selfTest = () => { [0, 5, 8, 11, 14, 16, 18, 20, 23, 26, 33, 37].forEach(window.renderAt); return true };
