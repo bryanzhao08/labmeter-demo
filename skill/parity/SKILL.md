@@ -17,10 +17,14 @@ This skill needs the Parity MCP server. If none of the tools below are available
 4. `sessions_needing_review` – the flagged sessions and why (no-show, use without a booking, ran past the booking, overlapping users).
 5. `test_report` – only if something looks wrong or the user asks for diagnostics.
 
-## Pulling the schedule (only if the user asks and the tools exist)
-- `parity_pull_practice_schedule` with `system` (`fbs` or `ilab`) and `month` (`YYYY-MM`). It returns a `run_id`.
-- Call `parity_practice_run_status` with that `run_id` every few seconds until the status is no longer running.
-- Report pages read, bookings staged, duplicates removed and any rejected rows. The manager imports the result in Parity with **Use in Parity**; you do not.
+## Working with Parity's agent crew (if the crew tools are available)
+Parity has six specialist agents, each with its own locally trained model: Sherlock Ohms (find sources), Sir Slots-a-Lot (pull and map the schedule), Count Wattula (PC logins and smart-plug power), Dr. Venn (match bookings to use), Baron Von Markup (price by the core's rules) and Captain Nitpick (flag discrepancies).
+- `parity_list_agents` – see the crew, presets, model accuracy and whether a folder is connected. Call it first.
+- `parity_ask_crew` with a plain-language `goal` (for example "Close October and flag discrepancies") – the crew plans and runs it.
+- `parity_run_agent` – run one agent, a list, or a preset when the manager names one.
+- `parity_pull_practice_schedule` with `system` (`fbs` or `ilab`) and `month` (`YYYY-MM`), then poll `parity_practice_run_status` with the returned `run_id` until it is no longer running.
+- Report what each agent did: pages read, bookings staged, duplicates removed, sessions matched, discrepancies flagged. The manager imports and approves in Parity; you do not.
+- Do not call `parity_train_models` unless the manager asks to retrain.
 
 ## What to hand back
 A short summary the manager can act on:
