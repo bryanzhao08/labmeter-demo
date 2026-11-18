@@ -265,16 +265,16 @@ function cCollector(t) {
   const ma = ease(clamp((t - .4) / .3)); flow(X + MW + 24, Y + MH / 2, 1700, Y + MH / 2, t, ma, 2); ctx.save(); ctx.globalAlpha = ma; ctx.beginPath(); ctx.arc(1780, Y + MH / 2, 85, 0, Math.PI * 2); ctx.fillStyle = YEL; ctx.fill(); ctx.restore(); mark('parity-mark-ink', 1780, Y + MH / 2 - 3, 112, ma);
 }
 // 3–5: the real app screens with their highlight.
-function cScreen(i, t) { const s = steps[i], prev = steps[i - 1], X = 900, Y = 230, FW = 960, FH = FW * 1906 / 3200, slide = ease(clamp(t / .3)); appCrop(images[s.img], s.r, .55 * ease(clamp((t - .1) / .7)), ease(clamp((t - .45) / .25)), slide, mix(W, X, slide), Y, FW, FH) }
+function cScreen(i, t) { const s = steps[i], prev = steps[i - 1], X = 900, Y = 230, FW = 960, FH = FW * 1906 / 3200, slide = ease(clamp(t / .3)); appCrop(images[s.img], s.r, .55 * ease(clamp((t - .1) / .7)) + .15 * ease(clamp((t - .9) / 2.4)), ease(clamp((t - .45) / .25)), slide, mix(W, X, slide), Y, FW, FH) }
 // Step plan: [start, end, step index, content, subs]. Collect spans three beats.
 const PLAN = [
   [0, 3, 0, cFind, ['The agent finds your scheduler,', 'instruments and prices.']],
   [3, 6.4, 1, cAgentLog, ['The agent reads every page', 'and retries when blocked.']],
   [6.4, 8.6, 1, cMapper, ['It maps any export layout', 'to the right fields.']],
   [8.6, 10.8, 1, cCollector, ['The Collector logs real use', 'on each instrument PC.']],
-  [10.8, 12.9, 2, t => cScreen(2, t), ['Booked time against', 'real use.']],
-  [12.9, 15, 3, t => cScreen(3, t), ['Each session, with', "the core's own rules."]],
-  [15, 17.4, 4, t => cScreen(4, t), ['No-shows, overruns,', 'use nobody booked.']]
+  [10.8, 14.3, 2, t => cScreen(2, t), ['Booked time against', 'real use.']],
+  [14.3, 17.8, 3, t => cScreen(3, t), ['Each session, with', "the core's own rules."]],
+  [17.8, 21.5, 4, t => cScreen(4, t), ['No-shows, overruns,', 'use nobody booked.']]
 ];
 function secSteps(T) {
   stepBg(T); const p = PLAN.find(g => T < g[1]) || PLAN[PLAN.length - 1], i = p[2], first = PLAN.find(g => g[2] === i), last = [...PLAN].reverse().find(g => g[2] === i);
@@ -288,7 +288,7 @@ function secMcp2(t) {
   ctx.fillStyle = INK; ctx.fillRect(0, 170, 1000, 80);
   ctx.save(); ctx.globalAlpha = ease(clamp((t - .3) / .3)); ctx.font = F(500, 38); ctx.fillStyle = YEL; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('Claude or Codex can ask Parity too.', 94, 210); ctx.restore();
 }
-const SEGS2 = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 23.9, T => secSteps(T)], [23.9, 28.9, secMcp2], [28.9, 38.4, 21.5]];
-window.DURATION = 38.4;
+const SEGS2 = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 28, T => secSteps(T)], [28, 33, secMcp2], [33, 42.5, 21.5]];
+window.DURATION = 42.5;
 window.renderAt = T => { T = clamp(Number(T) || 0, 0, window.DURATION); const s = SEGS2.find(g => T < g[1]) || SEGS2[SEGS2.length - 1]; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; if (typeof s[2] === 'function') { s[2](T - s[0]); if (T - s[0] < .08 && s[0] !== 6.5) { ctx.fillStyle = 'rgba(244,196,48,.35)'; ctx.fillRect(0, 0, W, H) } } else hype(s[2] + (T - s[0])) };
 window.selfTest = () => { [0, 5, 8, 11, 14, 16, 18, 20, 23, 26, 33, 37].forEach(window.renderAt); return true };
