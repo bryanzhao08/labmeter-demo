@@ -1,0 +1,10 @@
+aevalsrc='
+(between(t,0,3.5)+between(t,4,38))*sin(2*PI*(50*mod(t,0.5)+2.6*(1-exp(-35*mod(t,0.5)))))*exp(-7*mod(t,0.5))*0.9
++(between(t,0,3.5)+between(t,4,38))*(random(0)*2-1)*exp(-60*mod(t+0.25,0.5))*0.13
++between(t,4,38)*(random(1)*2-1)*exp(-22*mod(t+0.5,1))*0.28
++(between(t,0,3.5)+between(t,4,38))*(sin(2*PI*55*if(lt(mod(t,4),2),1,1.335)*t)+0.5*sin(4*PI*55*if(lt(mod(t,4),2),1,1.335)*t)+0.33*sin(6*PI*55*if(lt(mod(t,4),2),1,1.335)*t))*exp(-6*mod(t,0.25))*0.2
++between(t,0,4)*sin(2*PI*if(lt(mod(t,0.5),0.25),988,740)*t)*lt(mod(t,0.25),0.13)*0.14*(0.4+0.6*t/4)
++between(t,2,4)*(random(2)*2-1)*0.3*pow((t-2)/2,2)
++between(t,4,6.5)*((random(3)*2-1)*exp(-3*(t-4))*0.45+sin(2*PI*42*(t-4))*exp(-4*(t-4))*0.7)
++between(t,38,41)*((sin(2*PI*220*t)+sin(2*PI*277.18*t)+sin(2*PI*329.63*t))*0.13*exp(-0.8*(t-38))+sin(2*PI*(50*(t-38)+2.6*(1-exp(-35*(t-38)))))*exp(-5*(t-38))*0.9)
+':s=44100:d=41,alimiter=limit=0.9,afade=t=out:st=40.3:d=0.7[out]

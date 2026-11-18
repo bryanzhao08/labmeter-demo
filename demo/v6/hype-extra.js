@@ -39,6 +39,45 @@ const HSTEP = [
   { n: 'Price', sub: ['each session,', "the core's rules"] },
   { n: 'Flag', sub: ['no-shows, overruns,', 'unbooked use'] }
 ];
+
+// ---- chaos opening ----
+const rnd = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x) };
+const redMat = mat(0xd6453d, .45);
+const errPk = []; for (let k = 0; k < 54; k++) { const p = box(room, 0, 0, 0, .17, .17, .17, k % 4 ? redMat : yellow, .04); p.visible = false; errPk.push(p) }
+const crowd = [0, 1].map(() => { const h = human.clone(true); h.visible = false; room.add(h); return h });
+const SPOTS = [[-4.8, 3.0, -3.2], [0, 3.0, -3.2], [4.6, 2.3, -3.2], [3.5, 3.0, 2.45], [-5.5, 1.6, 2.5], [1.5, 1.6, .5]];
+function limbs(h, w) { const c = h.children; c[3].rotation.x = w; c[5].rotation.x = -w; c[4].rotation.x = -w; c[6].rotation.x = w }
+function chaos(t, heat) {
+  // two more researchers: one walks to the microscope with no booking, one paces in and out
+  const [A, B] = crowd; A.visible = B.visible = true;
+  const qa = clamp(t / 2.2); A.position.set(mix(5.5, .4, ease(qa)), 0, mix(3.5, -1.9, ease(qa))); A.rotation.y = qa < 1 ? Math.atan2(-5.1, -5.4) : Math.PI; limbs(A, qa < 1 ? Math.sin(t * 11) * .4 : 0);
+  const pb = Math.sin(t * 1.9); B.position.set(mix(2.4, 5.4, (pb + 1) / 2), 0, -1.3); B.rotation.y = Math.cos(t * 1.9) > 0 ? Math.PI / 2 : -Math.PI / 2; limbs(B, Math.sin(t * 11) * .4);
+  // data sprays out of every machine and lands anywhere but the bill
+  const srcs = [[-4.8, 2.4, -3.2], [0, 2.4, -3.2], [4.6, 2.2, -3.2]];
+  errPk.forEach((p, k) => {
+    const per = .9 + rnd(k) * .9, ph = t / per + rnd(k + 9), cyc = Math.floor(ph), q = ph - cyc;
+    const show = k < 12 + heat * 42; p.visible = show; if (!show) return;
+    const s = srcs[(k + cyc) % 3], tx = mix(-7, 7, rnd(k * 7 + cyc)), tz = mix(-5, 5, rnd(k * 13 + cyc * 3)), ty = rnd(k + cyc * 5) < .5 ? .1 : mix(1, 4, rnd(k * 3 + cyc));
+    p.position.set(mix(s[0], tx, q), mix(s[1], ty, q) + Math.sin(q * Math.PI) * mix(1.2, 3.2, rnd(k * 5)), mix(s[2], tz, q)); p.rotation.set(q * 6 + k, q * 4, 0);
+  });
+  if (screen) { const f = Math.floor(t * 8) % 2 ? 1 : 1 - .7 * heat; screen.material.color.setRGB(1, f, f) }
+}
+function errorBadge(x, y, r, a) { ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = RED; ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * .95, y + r * .7); ctx.lineTo(x - r * .95, y + r * .7); ctx.closePath(); ctx.fill(); ctx.fillStyle = PAP; ctx.fillRect(x - r * .09, y - r * .45, r * .18, r * .65); ctx.fillRect(x - r * .09, y + r * .32, r * .18, r * .18); ctx.restore() }
+function errorOverlay(t, heat) {
+  // pulsing alarm rings and warning triangles on every spot, faster as it heats up
+  SPOTS.forEach(([x, y, z], k) => {
+    if (t < k * .35) return; const [px, py] = project(x, y, z), rate = mix(3, 9, heat), on = (Math.floor(t * rate + k * .5) % 2) === 0;
+    const ring = (t * 1.6 + k * .3) % 1; ctx.save(); ctx.strokeStyle = RED; ctx.lineWidth = 6; ctx.globalAlpha = (1 - ring) * .8; ctx.beginPath(); ctx.arc(px, py, 30 + ring * 110, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    errorBadge(px, py, 42, on ? 1 : .35);
+  });
+  // stray red error chips flicker in at random places
+  for (let k = 0; k < Math.floor(heat * 14); k++) { const c = Math.floor(t * 6), x = rnd(k * 31 + c) * W, y = rnd(k * 17 + c * 2) * H * .9; errorBadge(x, y, 18 + rnd(k + c) * 22, .9) }
+  // red vignette pumping on the beat
+  const beat = Math.exp(-(t % .5) * 8), g = ctx.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * .95);
+  g.addColorStop(0, 'rgba(214,69,61,0)'); g.addColorStop(1, `rgba(214,69,61,${(.25 + .5 * heat) * (.5 + .5 * beat)})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (heat > .6 && Math.floor(t * 10) % 3 === 0) { ctx.fillStyle = `rgba(214,69,61,${.15 * heat})`; ctx.fillRect(0, 0, W, H) }
+}
+function glitch(t) { const out = ctx.canvas; for (let k = 0; k < 14; k++) { const y = rnd(k + Math.floor(t * 30)) * H, h = 20 + rnd(k * 3) * 90, dx = (rnd(k * 7 + Math.floor(t * 30)) - .5) * 260; ctx.drawImage(out, 0, y, W, h, dx, y, W, h) } ctx.fillStyle = `rgba(214,69,61,${clamp((t - 3.45) / .55) * .5})`; ctx.fillRect(0, 0, W, H) }
 function hype(T) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
   // A · 0–4 cold open
@@ -48,18 +87,15 @@ function hype(T) {
     else { slam('And bills them', W / 2, 400, 110, PAP, 2, T); slam('wrong.', W / 2, 600, 260, RED, 2.5, T, { rot: -4, from: 2.4 }) }
     ctx.restore(); return;
   }
-  // B · 4–8 the lab: John books 2 hours, uses 3.5
+  // B · 4–8 the lab in chaos: no text. Errors flash on every machine, data sprays everywhere and misses.
   if (T < 8) {
-    const t = T - 4, walk = clamp(t / 1.6), a = mix(.95, .45, ease(t / 4));
-    const hx = walk < .6 ? mix(1, -4.2, ease(walk / .6)) : -4.2, hz = walk < .6 ? mix(1.2, -.4, ease(walk / .6)) : mix(-.4, -2.15, ease((walk - .6) / .4));
-    lab(T, orbit(a, 13, mix(9, 6.5, ease(t / 4))), [-2.5, 1.2, -2], { human: [hx, hz, walk < .6 ? Math.atan2(-5.2, -1.6) : Math.PI, walk < 1], packets: false });
-    ctx.save(); ctx.fillStyle = 'rgba(23,25,28,.25)'; ctx.fillRect(0, 0, W, H); ctx.restore();
-    clock(1640, 250, 130, 9 + 3.5 * ease(clamp((t - .4) / 3)));
-    ctx.save(); shake(T, 5);
-    slam('Booked: 2 h', 120, 720, 100, INK, 5, T, { align: 'left', box: PAP });
-    slam('Used: 3.5 h', 120, 880, 100, INK, 6, T, { align: 'left', box: YEL });
-    slam('BILLED 2 H', 1420, 760, 120, RED, 7, T, { rot: -8, from: 2.2, w: 700 });
-    ctx.restore(); return;
+    const t = T - 4, heat = clamp(t / 3.6), a = mix(1.0, .35, ease(t / 4));
+    const walk = clamp(t / 1.6), hx = walk < .6 ? mix(1, -4.2, ease(walk / .6)) : -4.2, hz = walk < .6 ? mix(1.2, -.4, ease(walk / .6)) : mix(-.4, -2.15, ease((walk - .6) / .4));
+    chaos(t, heat);
+    lab(T, orbit(a, mix(13, 10.5, ease(t / 4)), mix(9.5, 7, ease(t / 4))), [-1, 1.3, -1.6], { human: [hx, hz, walk < .6 ? Math.atan2(-5.2, -1.6) : Math.PI, walk < 1], packets: false });
+    errorOverlay(t, heat);
+    if (t > 3.45) glitch(t);
+    return;
   }
   // C · 8–11.5 what it costs
   if (T < 11.5) {
@@ -126,3 +162,76 @@ function hype(T) {
 const remap = T => T < 4 ? T + 4 : T + 7.5;
 window.renderAt = T => hype(remap(clamp(Number(T) || 0, 0, window.DURATION)));
 window.selfTest = () => { [0, 2, 5, 8, 12, 15, 18, 22].forEach(window.renderAt); return true };
+
+// ===== v4: extended product demo — connectors, scheduling agent, column mapper, collector, MCP =====
+const SH = {}; window.ready = Promise.all([window.ready, ...['08-agent-run', '09-agent-mapping', '10-mcp'].map(n => new Promise(r => { const im = new Image(); im.onload = () => { SH[n] = im; r() }; im.onerror = r; im.src = './stills/' + n + '.png' }))]);
+const EV = [[550,332,1524,485],[550,485,1524,638],[550,638,1524,752],[550,752,1524,866],[550,866,1524,980],[550,980,1524,1094],[550,1094,1524,1208],[550,1208,1524,1322],[550,1322,1524,1475],[550,1475,1524,1628],[550,1628,1524,1742]];
+const MAPROWS = [648,721,794,867,940,1013,1086,1159,1232,1305,1377];
+// Draw part of a screenshot into a frame; returns a mapper from image to screen coordinates.
+function view(img, cx, cy, cw, X, Y, FW, FH, alpha = 1) {
+  const ch = cw * FH / FW, k = FW / cw;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14; ctx.fillStyle = PAP; ctx.fillRect(X, Y, FW, FH); ctx.shadowColor = 'transparent';
+  ctx.beginPath(); ctx.rect(X, Y, FW, FH); ctx.clip(); if (img) ctx.drawImage(img, cx, cy, cw, ch, X, Y, FW, FH); ctx.restore();
+  return (x, y) => [X + (x - cx) * k, Y + (y - cy) * k];
+}
+function hlBox(m, r, color, a, fillA = .18) { const [x0, y0] = m(r[0], r[1]), [x1, y1] = m(r[2], r[3]); ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = color; ctx.globalAlpha = a * fillA; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.globalAlpha = a; ctx.strokeStyle = color; ctx.lineWidth = 6; ctx.beginPath(); ctx.roundRect(x0 - 4, y0 - 2, x1 - x0 + 8, y1 - y0 + 4, 8); ctx.stroke(); ctx.restore() }
+function ftitle(name, subs, t, x = 110, y = 300) { ctx.save(); shake(t + 100, 5); slam(name, x, y, 74, PAP, 0, t, { align: 'left', from: 1.3 }); ctx.restore(); subs.forEach((s, i) => { const a = ease(clamp((t - .35 - i * .35) / .3)); if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.font = F(500, 34); ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = i === subs.length - 1 && subs.length > 1 ? YEL : 'rgba(246,245,240,.85)'; ctx.fillText(s, x + 4 + (1 - a) * 30, y + 110 + i * 56); ctx.restore() }) }
+function stat(label, value, x, y, a, color = YEL) { if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = F(700, 72); ctx.fillStyle = color; ctx.fillText(value, x, y); const w = ctx.measureText(value).width; ctx.font = F(500, 30); ctx.fillStyle = 'rgba(246,245,240,.75)'; ctx.fillText(label, x + w + 18, y - 8); ctx.restore() }
+function chipBox(text, x, y, w, h, a, on) { if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; const s = mix(1.3, 1, ease(a)); ctx.translate(x + w / 2, y + h / 2); ctx.scale(s, s); ctx.translate(-(x + w / 2), -(y + h / 2)); ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 8; ctx.fillStyle = on ? YEL : PAP; ctx.fillRect(x, y, w, h); ctx.shadowColor = 'transparent'; ctx.fillStyle = INK; ctx.font = F(700, 36); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x + w / 2, y + h / 2 + 2); ctx.restore() }
+function flow(x0, y0, x1, y1, t, a, n = 3) { ctx.save(); ctx.globalAlpha = a * .5; ctx.strokeStyle = YEL; ctx.lineWidth = 3; ctx.setLineDash([12, 12]); ctx.lineDashOffset = -t * 60; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = a; ctx.fillStyle = YEL; for (let k = 0; k < n; k++) { const q = (t * .9 + k / n) % 1; ctx.fillRect(mix(x0, x1, q) - 9, mix(y0, y1, q) - 9, 18, 18) } ctx.restore() }
+
+function secConnect(t) {
+  fill(INK); grid(t, 'rgba(246,245,240,.03)');
+  ctx.save(); shake(t + 40, 5); slam('Plugs into what your core already runs.', W / 2, 150, 58, PAP, 0, t, { from: 1.25 }); ctx.restore();
+  const cx = W / 2, cy = 600, L = [['FBS', 410], ['iLab', 600], ['PPMS', 790]], R = [['Instrument PCs', 410], ['Price sheets', 600], ['Export folders', 790]];
+  [...L.map(([n, y], i) => [n, 160, y, i]), ...R.map(([n, y], i) => [n, 1400, y, i + 3])].forEach(([n, x, y, i]) => { const a = clamp((t - .25 - i * .12) / .2); const w = 360, h = 110; flow(x < cx ? x + w : x, y, cx, cy, t + i * .3, ease(clamp((t - .6 - i * .12) / .3))); chipBox(n, x, y - h / 2, w, h, a, false) });
+  const ring = (t * 1.2) % 1; ctx.save(); ctx.strokeStyle = YEL; ctx.lineWidth = 5; ctx.globalAlpha = 1 - ring; ctx.beginPath(); ctx.arc(cx, cy, 130 + ring * 120, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, 130, 0, Math.PI * 2); ctx.fillStyle = YEL; ctx.fill(); ctx.restore(); mark('parity-mark-ink', cx, cy - 4, 170);
+}
+function secAgent(t) {
+  fill(INK); grid(t, 'rgba(246,245,240,.03)');
+  const e = clamp(Math.floor((t - .5) / .38), -1, 10), img = SH['08-agent-run'];
+  ftitle('Scheduling agent', ['Reads every report page.', 'Retries when the source pushes back.', 'Checks every booking.'], t);
+  const pages = e >= 7 ? 4 : e >= 6 ? 3 : e >= 5 ? 2 : e >= 3 ? 1 : 0;
+  stat('pages read', `${pages}/4`, 114, 720, ease(clamp((t - .6) / .3)));
+  stat('bookings staged', e >= 9 ? '24' : '—', 114, 820, ease(clamp((t - .6) / .3)));
+  stat('duplicate removed', e >= 9 ? '1' : '—', 114, 920, ease(clamp((t - .6) / .3)), e >= 9 ? RED : YEL);
+  const focus = e < 0 ? 332 : EV[e][1], cy = clamp(mix(300, focus - 380, ease(clamp((t - .5) / 4.2))), 280, 720);
+  const m = view(img, 520, cy, 1060, 1000, 110, 840, 860, ease(clamp(t / .35)));
+  if (e >= 0) for (let k = 0; k <= e; k++) { const r = EV[k]; if (k === e) { const retry = k === 4, flash = retry && Math.floor(t * 10) % 2; hlBox(m, r, retry ? RED : YEL, 1, flash ? .35 : .2) } else { const [x0, y0] = m(r[0] - 6, r[1] + 20); ctx.save(); ctx.fillStyle = k === 4 ? RED : YEL; ctx.fillRect(x0 - 16, y0, 8, (r[3] - r[1] - 40) * 840 / 1060); ctx.restore() } }
+}
+function secMapping(t) {
+  fill(INK); grid(t, 'rgba(246,245,240,.03)');
+  ftitle('Column mapper', ['Any export layout.', 'Every column, mapped.'], t);
+  const m = view(SH['09-agent-mapping'], 1610, 590, 1520, 1000, 200, 840, 680, ease(clamp(t / .3)));
+  for (let i = 0; i < 10; i++) { const a = clamp((t - .35 - i * .17) / .15); if (a <= 0) continue; const cur = t - .35 - i * .17 < .3; hlBox(m, [1638, MAPROWS[i], 3102, MAPROWS[i + 1]], YEL, cur ? 1 : .55, cur ? .3 : .12) }
+  stat('columns mapped', String(Math.min(10, Math.max(0, Math.floor((t - .35) / .17) + 1))), 114, 720, ease(clamp((t - .4) / .3)));
+}
+function secCollector(t) {
+  fill(INK); grid(t, 'rgba(246,245,240,.03)');
+  ftitle('Collector', ['Runs on each instrument PC.', 'Logs real use, minute by minute.'], t);
+  const a = ease(clamp(t / .3)), X = 880, Y = 230, MW = 680, MH = 420;
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#2b3036'; ctx.beginPath(); ctx.roundRect(X - 20, Y - 20, MW + 40, MH + 40, 18); ctx.fill(); ctx.fillStyle = '#0f1214'; ctx.fillRect(X, Y, MW, MH); ctx.fillStyle = '#2b3036'; ctx.fillRect(X + MW / 2 - 40, Y + MH + 20, 80, 70); ctx.fillRect(X + MW / 2 - 160, Y + MH + 86, 320, 18);
+  // session timeline: rows of usage bars growing in real time
+  for (let r = 0; r < 5; r++) { const y = Y + 60 + r * 78, start = [.05, .3, .12, .55, .22][r], len = [.5, .35, .7, .3, .45][r], g = clamp((t - .3 - r * .15) / 1.1); ctx.fillStyle = 'rgba(246,245,240,.1)'; ctx.fillRect(X + 40, y, MW - 80, 34); ctx.fillStyle = r === 0 ? RED : YEL; ctx.fillRect(X + 40 + (MW - 80) * start, y, (MW - 80) * len * g, 34) }
+  const sx = X + 40 + (MW - 80) * clamp((t - .3) / 1.4); ctx.fillStyle = PAP; ctx.fillRect(sx, Y + 40, 3, MH - 80); ctx.restore();
+  const ma = ease(clamp((t - .5) / .3)); flow(X + MW + 24, Y + MH / 2, 1700, Y + MH / 2, t, ma, 2); ctx.save(); ctx.globalAlpha = ma; ctx.beginPath(); ctx.arc(1780, Y + MH / 2, 90, 0, Math.PI * 2); ctx.fillStyle = YEL; ctx.fill(); ctx.restore(); mark('parity-mark-ink', 1780, Y + MH / 2 - 3, 120, ma);
+}
+function secMcp(t) {
+  fill(INK); grid(t, 'rgba(246,245,240,.03)');
+  ctx.save(); shake(t + 70, 5); slam('MCP server', 90, 120, 84, PAP, 0, t, { align: 'left', from: 1.3 }); ctx.restore();
+  ctx.save(); ctx.globalAlpha = ease(clamp((t - .3) / .3)); ctx.font = F(500, 38); ctx.fillStyle = YEL; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('Ask Claude or Codex about your month.', 94, 210); ctx.restore();
+  const m = view(SH['10-mcp'], 520, 280, 1250, 90, 290, 840, 640, ease(clamp(t / .3)));
+  if (t > .5) hlBox(m, [546, 405, 958, 465], YEL, ease(clamp((t - .5) / .2)), .25);
+  if (t > 1.0) hlBox(m, [546, 1015, 1760, 1222], YEL, ease(clamp((t - 1) / .2)), .1);
+  // chat panel: one question, Parity's tools run, one answer
+  const PX = 1000, PY = 290, PW = 840, PH = 640, pa = ease(clamp((t - .9) / .3));
+  ctx.save(); ctx.globalAlpha = pa; ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14; ctx.fillStyle = PAP; ctx.fillRect(PX, PY, PW, PH); ctx.restore();
+  const q = ease(clamp((t - 1.3) / .25)); if (q > 0) { ctx.save(); ctx.globalAlpha = q; ctx.font = F(600, 30); const txt = 'Check this month with Parity.', w = ctx.measureText(txt).width + 48; ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(PX + PW - 40 - w, PY + 40, w, 70, 14); ctx.fill(); ctx.fillStyle = PAP; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(txt, PX + PW - 64, PY + 76); ctx.restore() }
+  ['find_exports', 'read_prices', 'check_month', 'sessions_needing_review'].forEach((tool, i) => { const a = ease(clamp((t - 1.8 - i * .4) / .2)); if (a <= 0) return; const y = PY + 150 + i * 78, done = t > 2.05 + i * .4; ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(23,25,28,.06)'; ctx.fillRect(PX + 40, y, PW - 80, 62); ctx.fillStyle = YEL; ctx.fillRect(PX + 40, y, 10, 62); ctx.font = F(700, 22); ctx.fillStyle = '#6b6a62'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('parity', PX + 70, y + 31); ctx.font = F(600, 30); ctx.fillStyle = INK; ctx.fillText(tool, PX + 170, y + 31); ctx.font = F(700, 32); ctx.textAlign = 'right'; ctx.fillStyle = done ? '#2f7d4f' : '#9a988f'; ctx.fillText(done ? '✓' : '…', PX + PW - 64, y + 33); ctx.restore() });
+  const r = ease(clamp((t - 3.6) / .3)); if (r > 0) { ctx.save(); ctx.globalAlpha = r; ctx.fillStyle = YEL; ctx.beginPath(); ctx.roundRect(PX + 40, PY + 480, PW - 80, 120, 14); ctx.fill(); ctx.fillStyle = INK; ctx.font = F(700, 36); ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('144 sessions checked.', PX + 70, PY + 520); ctx.fillText('43 need a look.', PX + 70, PY + 566); ctx.restore() }
+}
+const SEGS = [[0, 4, 4], [4, 6.5, 11.5], [6.5, 9.5, secConnect], [9.5, 14.5, secAgent], [14.5, 17, secMapping], [17, 19, secCollector], [19, 26.5, 14], [26.5, 31.5, secMcp], [31.5, 41, 21.5]];
+window.DURATION = 41;
+window.renderAt = T => { T = clamp(Number(T) || 0, 0, window.DURATION); const s = SEGS.find(g => T < g[1]) || SEGS[SEGS.length - 1]; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; if (typeof s[2] === 'function') { s[2](T - s[0]); if (T - s[0] < .08) { ctx.fillStyle = 'rgba(244,196,48,.35)'; ctx.fillRect(0, 0, W, H) } } else hype(s[2] + (T - s[0])) };
+window.selfTest = () => { [0, 5, 8, 12, 16, 18, 22, 29, 33, 40].forEach(window.renderAt); return true };
