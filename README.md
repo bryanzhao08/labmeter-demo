@@ -33,11 +33,14 @@ The practice data is synthetic. For the full walkthrough, see [Getting started](
 
 ## How it works
 
-- **Finder:** detects the lab's booking system and data sources.
-- **Collector:** pulls the month's bookings, instrument logs and price sheet.
-- **Matcher:** pairs every booking with the time the instrument actually ran.
-- **Pricer:** applies the lab's rates, tiers and after-hours rules.
-- **Reviewer:** flags exceptions and hands you one bill to approve.
+Six selectable, locally trained agents prepare the month — powered by 7 built-in local ML models (with optional local Ollama LLM routing/briefings), **Ask the Crew** autopilot, and live-synced MCP tools so Claude or Codex can summon any agent individually:
+
+- **Sherlock Ohms (Source Scout):** detects the booking system, classifies spreadsheets/telemetry, and hashes provenance.
+- **Sir Slots-a-Lot (Schedule Puller):** pulls paginated bookings, maps columns via ML, and blocks invalid rows.
+- **Count Wattula (Plug & Log Collector):** collects workstation logon logs and smart-plug watt streams, separating active runs from standby file-copying.
+- **Dr. Venn (Session Matcher):** pairs every booking with PC & smart-plug runs, isolating walk-ups and no-shows.
+- **Baron Von Markup (Rate & Rule Pricer):** applies your rates, tiers, rounding steps, and after-hours windows.
+- **Captain Nitpick (Discrepancy Auditor):** classifies overruns, no-shows, walk-ups, short sessions, and outliers for one-click approval.
 
 ## For developers
 

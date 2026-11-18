@@ -1,59 +1,60 @@
-# Parity scheduling agent — 0.7.0
+# Parity multi-agent crew — 1.1.0
 
-Working prototype for two **independent practice systems**, inspired by FBS and iLab export workflows. No vendor credentials, live university access, bookings or charges are changed.
+Selectable 6-agent crew, 7 locally trained supervised ML models, optional local Ollama LLM briefing/routing, and live-synced MCP tools for core facility scheduling, smart-plug telemetry, matching, pricing, and discrepancy auditing. Runs locally on your computer against FBS/iLab practice simulators or your loaded Parity workspace spreadsheets. No vendor credentials, cloud APIs, or automatic upstream charges.
 
-In the desktop app, open **Scheduling agent**, choose FBS or iLab, a month and a scenario, then **Run scheduling agent**. Open the practice scheduler to see the source report in Chrome. Review the activity log and reservations, then **Use in Parity**. This temporarily replaces the current workspace's schedule and usage logs; reload restores saved billing rules. The synthetic data stays clearly marked. No automatic billing approval occurs.
+## The 6 specialist agents
+
+1. **Sherlock Ohms** (`scout`) · *Source Scout* — `source_classifier` (hybrid NB + Softmax text model). Discovers endpoints/catalogs, classifies uploaded files (`reservations`, `usage_log`, `power_telemetry`, `price_sheet`, `unrelated_notes`), and hashes source payloads with SHA-256.
+2. **Sir Slots-a-Lot** (`scheduler`) · *Schedule Puller* — `column_mapper` (hybrid NB + Softmax text model). Paginates FBS/iLab booking reports with bounded 429/502/503 retries, maps unfamiliar column headers, deduplicates pages, and blocks invalid rows.
+3. **Count Wattula** (`telemetry`) · *Plug & Log Collector* — `power_state` (hybrid Softmax + Gaussian NB tabular model). Collects workstation logon/logoff sessions and smart-plug watt streams, separating `active_acquisition` laser/pump runs from `standby_idle` file copying, `off`, and `sensor_dropout`.
+4. **Dr. Venn** (`matcher`) · *Session Matcher* — `session_matcher` (hybrid Softmax + Gaussian NB tabular model). Pairs reservations with PC & active plug runs across operators and days, isolating unbooked walk-ups and no-shows without guessing missing logouts.
+5. **Baron Von Markup** (`pricer`) · *Rate & Rule Pricer* — `policy_pricer` (hybrid NB + Softmax text model). Classifies rate-card modes, user tiers, and billing clauses; applies rounding increments and after-hours/weekend splits.
+6. **Captain Nitpick** (`auditor`) · *Discrepancy Auditor* — `anomaly_auditor` (hybrid Softmax + Gaussian NB tabular model). Audits every reconciled session (`clean_match`, `overrun`, `idle_login_mismatch`, `walk_up_unbooked`, `no_show`, `short_underrun`, `duration_outlier`) and stages flags for manager sign-off.
+7. **Crew Commander** (`agent/commander.cjs`) — `intent_router` (7th trained model). Routes natural-language goals in **Ask the crew** and `parity_ask_crew`, optionally augmented by a local Ollama model (`127.0.0.1:11434`, e.g. `llama3.2:1b`, `phi3:latest`).
 
 ## What actually runs
 
 ```mermaid
 flowchart LR
- UI[Electron agent workspace] -->|Restricted IPC| J[Local job runtime]
- J --> P[Capability-driven tool planner]
- P -->|Read-only HTTP, pagination and retry| F[FBS practice report]
- P -->|Read-only HTTP, pagination and retry| I[iLab practice nested report]
- F --> M[Trained header mapper]
- I --> M
- M --> V[Validate dates, identities, status and duplicates]
- V --> R[Staged review + source digest + run history]
- R -->|Manager imports| B[Existing schedule and billing engine]
- MCP[Scheduling practice MCP] --> J
+ UI[Electron Agent Crew UI] -->|Restricted IPC| R[Local crew runtime]
+ ASK[Ask the Crew / Autopilot] -->|intent_router + optional Ollama| R
+ R --> S[Sherlock Ohms: discover + classify sources]
+ S --> L[Sir Slots-a-Lot: paginate + retry + map columns]
+ L --> T[Count Wattula: PC logs + smart-plug power ML]
+ T --> M[Dr. Venn: pair sessions + isolate walk-ups/no-shows]
+ M --> P[Baron Von Markup: tiers + rounding + after-hours]
+ P --> A[Captain Nitpick: score discrepancies + stage]
+ A -->|Manager imports or Autopilot| B[Schedule, Results & CSV Export]
+ TR[Local ML Model Lab] -->|In-app train / fine-tune| R
+ MCP[Parity Crew MCP --full-crew] <-->|userData/agent-runs live sync| R
 ```
 
-- **Agent runtime:** bounded autonomous read/observe/retry loop, capability discovery, source-specific report extraction, up to 10 pages, three attempts for temporary 429/502/503 responses, five-second request deadline, 1 MB response limit, cancellation and source count completeness check. Arbitrary URLs and redirects are disallowed. This is a constrained tool planner, not an LLM making unrestricted computer actions.
-- **Connectors:** two different localhost report schemas and paginated HTTP endpoints. FBS simulator returns report tables; iLab simulator nests reports. Their paths are our own simulation contracts, **not documented vendor scheduling APIs**.
-- **Local model:** multinomial Naive Bayes classifier trained on 80 labeled synthetic column names covering 10 field classes. `npm run agent:train` reproduces `model/columns.json` and `model/evaluation.json`. It scored 20/20 on held-out phrases using familiar vocabulary. This small benchmark does not establish performance on unseen institutions, real exports or schema drift. Model scores are not calibrated probabilities. Missing or ambiguous required columns stop the run.
-- **Validation:** finite wall-clock dates, end after start, month bounds, known instrument, supported reservation status, duplicate identity/content checks. Invalid rows block import; they are never silently billed. Original source pages are hashed with SHA-256 for provenance.
-- **Persistence:** atomic per-run JSON snapshots under Electron's user-data `agent-runs` directory, private file permissions, last 30 runs retained. In-progress runs appear interrupted after restart. No cloud database, paid API or GPU required.
-- **Security boundary:** sandboxed renderer calls only fixed IPC operations; all source requests originate from the main backend. Dummy servers bind to 127.0.0.1, expose read-only synthetic fixtures and have no customer-data input. Existing iLab credentials remain in the separate credential flow.
+- **Selectable & solo runs:** Enable/disable any subset of agents, pick a preset (`Full Crew (All 6)`, `Schedule Pull Only`, `Sensors & Match`, `Booked-Time Billing`), or click **Solo run** on a single agent.
+- **Built-in ML vs Local Ollama LLM:** Switch between **Built-in Trained ML** (instant offline across all 7 models) and **Built-in ML + Local Ollama LLM** (`llama3.2:1b` / `phi3:latest` on `127.0.0.1:11434` for goal planning and plain-English executive briefings while keeping all billing math deterministic).
+- **Ask the Crew & Autopilot:** Type a natural-language task or pick a quick mission; with **Auto-apply clean runs into Parity** enabled, the crew runs end-to-end and opens Schedule or Results automatically (stopping before billing export for human approval).
+- **In-app local training:** Click **Train all 7 models** or **Fine-tune on my sessions** right inside the app (`runtime.train()`). Because packaged Electron bundles (`app.asar`) are read-only, in-app training writes atomic weights to `trained-models.json` inside Electron's `userData/agent-runs` directory and hot-reloads immediately.
+- **CLI training & evaluation:** `npm run agent:train` trains all 7 models deterministically on 1,540 synthetic training examples and evaluates on 362 non-overlapping held-out examples, writing `agent/model/columns.json`, `agent/model/models.json`, and `agent/model/evaluation.json`.
+- **Pitch story scenario:** Includes the full `pitch` practice scenario alongside `normal`, `retry`, and `invalid`: John's overrun + idle file-copy tail (`09:02–12:30` active laser + `12:30–13:00` standby file copy), Adam's unbooked walk-up (`14:15–15:45`), John's next-day no-show, and Billy's 20-minute sprint on a 3-hour booking.
+- **Security boundary:** Sandboxed renderer calls only fixed IPC handlers (`parity:agent:info|start|ask|llm|get|cancel|train|practice`). Dummy simulators bind only to `127.0.0.1` and expose read-only synthetic fixtures.
 
 ## Run and verify
 
 ```sh
 npm run agent:train
+node tests/crew-models.test.cjs
+node tests/mcp-crew.test.cjs
 npm run agent:test
 node tests/agent-mcp.test.cjs
 npm run desktop:test
 npm run desktop:start
 ```
 
-`npm run agent:practice` starts the two viewable scheduling simulators without Electron and prints their URLs. Ctrl+C stops them.
-
-The fixture has 24 unique reservations, one cancellation and one duplicate row across four pages. The retry scenario returns HTTP 429 once on page two. The invalid scenario adds a booking whose end precedes its start. John books 9–11; the synthetic computer log ends at 13:00. **The agent does not infer experiment end time from that login.**
-
 ## External MCP agent
 
-The Connections screen now gives settings for the existing five-tool billing MCP plus the separate two-tool scheduling-practice MCP. The new process exposes:
+`agent/mcp.cjs` runs in two modes:
+- Default (no flags): two-tool scheduling practice server (`parity_pull_practice_schedule`, `parity_practice_run_status`).
+- Full-crew mode (`--full-crew --runs-dir <dir> [--folder <dir>] [--rules <file>]`, wired on the **Connections** screen): exposes 6 tools (`parity_list_agents`, `parity_run_agent`, `parity_ask_crew`, `parity_train_models`, `parity_pull_practice_schedule`, `parity_practice_run_status`) so Claude Desktop or Codex can summon any funny-named agent individually or in presets and watch results sync live into the open Parity app.
 
-- `parity_pull_practice_schedule(system, month, scenario?)`: starts the bounded workflow.
-- `parity_practice_run_status(run_id)`: returns progress and final synthetic records.
+## Limits
 
-The scheduling MCP owns an in-memory runtime separate from the desktop workspace. It does not silently import into the app. Both Node and the packaged Electron binary (`ELECTRON_RUN_AS_NODE=1`) can run `agent/mcp.cjs`. No client permissions are changed automatically.
-
-## What can be pitched accurately
-
-“Parity has a local scheduling agent that collects paginated records from two realistic practice systems, maps their columns with a small trained model, and stages validated bookings for a manager's review. It also exposes that workflow over MCP.”
-
-Live FBS and iLab scheduling access, enterprise authentication/SSO, production browser automation, model generalization, real customer time savings and upstream billing writes remain **unvalidated**. Existing export-folder ingestion and iLab equipment-token connection continue to work.
-
-Vendor references reviewed November 14, 2026: [Priority FBS](https://www.prioritysoftware.com/fbs-core-facility-management-software/), [Agilent iLab API access](https://help.ilab.agilent.com/ilab-api). Simulators reproduce workflow concepts, not proprietary vendor software or an authenticated API contract.
+Live FBS and iLab scheduling APIs, enterprise SSO, real customer exports, unseen-institution model generalization, and upstream billing pushes remain unvalidated in the practice simulator. Workspace mode runs the crew directly on local CSV/Excel files you provide in Parity.

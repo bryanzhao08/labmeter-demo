@@ -1,9 +1,869 @@
 {
-  "scope": "Synthetic headers only; no vendor access or real-data validation",
-  "trainingSamples": 80,
-  "heldoutSamples": 20,
-  "correct": 20,
-  "accuracy": 1,
-  "split": "Held-out header phrases; familiar vocabulary, not unseen institutions",
-  "failures": []
+  "scope": "Synthetic multi-agent training & non-overlapping held-out benchmarks; no vendor credentials or customer PII.",
+  "trainedAt": "2026-11-18T05:12:15.844Z",
+  "durationMs": 340,
+  "trainingSamples": 200,
+  "heldoutSamples": 50,
+  "correct": 49,
+  "accuracy": 0.98,
+  "split": "Non-overlapping synthetic held-out splits per specialist agent",
+  "failures": [
+    {
+      "expected": "user",
+      "predicted": "resource",
+      "confidence": 0.5389,
+      "input": "equipment operator name"
+    }
+  ],
+  "totalTrainingSamples": 1540,
+  "totalHeldoutSamples": 362,
+  "averageAccuracy": 0.9971,
+  "averageMacroF1": 0.9971,
+  "models": {
+    "source_classifier": {
+      "name": "source_classifier",
+      "agent": "Sherlock Ohms",
+      "kind": "text",
+      "type": "hybrid-nb-softmax-text",
+      "classes": 5,
+      "trainingSamples": 200,
+      "heldoutSamples": 25,
+      "customAdded": 0,
+      "correct": 25,
+      "accuracy": 1,
+      "macroF1": 1,
+      "perClass": {
+        "power_telemetry": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "price_sheet": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "reservations": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "unrelated_notes": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "usage_log": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        }
+      },
+      "confusionMatrix": {
+        "power_telemetry": {
+          "power_telemetry": 5,
+          "price_sheet": 0,
+          "reservations": 0,
+          "unrelated_notes": 0,
+          "usage_log": 0
+        },
+        "price_sheet": {
+          "power_telemetry": 0,
+          "price_sheet": 5,
+          "reservations": 0,
+          "unrelated_notes": 0,
+          "usage_log": 0
+        },
+        "reservations": {
+          "power_telemetry": 0,
+          "price_sheet": 0,
+          "reservations": 5,
+          "unrelated_notes": 0,
+          "usage_log": 0
+        },
+        "unrelated_notes": {
+          "power_telemetry": 0,
+          "price_sheet": 0,
+          "reservations": 0,
+          "unrelated_notes": 5,
+          "usage_log": 0
+        },
+        "usage_log": {
+          "power_telemetry": 0,
+          "price_sheet": 0,
+          "reservations": 0,
+          "unrelated_notes": 0,
+          "usage_log": 5
+        }
+      },
+      "failures": []
+    },
+    "column_mapper": {
+      "name": "column_mapper",
+      "agent": "Sir Slots-a-Lot",
+      "kind": "text",
+      "type": "hybrid-nb-softmax-text",
+      "classes": 10,
+      "trainingSamples": 200,
+      "heldoutSamples": 50,
+      "customAdded": 0,
+      "correct": 49,
+      "accuracy": 0.98,
+      "macroF1": 0.9798,
+      "perClass": {
+        "account": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "end": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "id": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "lab": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "resource": {
+          "precision": 0.8333,
+          "recall": 1,
+          "f1": 0.9091,
+          "support": 5
+        },
+        "service": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "start": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "status": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "tier": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "user": {
+          "precision": 1,
+          "recall": 0.8,
+          "f1": 0.8889,
+          "support": 5
+        }
+      },
+      "confusionMatrix": {
+        "account": {
+          "account": 5,
+          "end": 0,
+          "id": 0,
+          "lab": 0,
+          "resource": 0,
+          "service": 0,
+          "start": 0,
+          "status": 0,
+          "tier": 0,
+          "user": 0
+        },
+        "end": {
+          "account": 0,
+          "end": 5,
+          "id": 0,
+          "lab": 0,
+          "resource": 0,
+          "service": 0,
+          "start": 0,
+          "status": 0,
+          "tier": 0,
+          "user": 0
+        },
+        "id": {
+          "account": 0,
+          "end": 0,
+          "id": 5,
+          "lab": 0,
+          "resource": 0,
+          "service": 0,
+          "start": 0,
+          "status": 0,
+          "tier": 0,
+          "user": 0
+        },
+        "lab": {
+          "account": 0,
+          "end": 0,
+          "id": 0,
+          "lab": 5,
+          "resource": 0,
+          "service": 0,
+          "start": 0,
+          "status": 0,
+          "tier": 0,
+          "user": 0
+        },
+        "resource": {
+          "account": 0,
+          "end": 0,
+          "id": 0,
+          "lab": 0,
+          "resource": 5,
+          "service": 0,
+          "start": 0,
+          "status": 0,
+          "tier": 0,
+          "user": 0
+        },
+        "service": {
+          "account": 0,
+          "end": 0,
+          "id": 0,
+          "lab": 0,
+          "resource": 0,
+          "service": 5,
+          "start": 0,
+          "status": 0,
+          "tier": 0,
+          "user": 0
+        },
+        "start": {
+          "account": 0,
+          "end": 0,
+          "id": 0,
+          "lab": 0,
+          "resource": 0,
+          "service": 0,
+          "start": 5,
+          "status": 0,
+          "tier": 0,
+          "user": 0
+        },
+        "status": {
+          "account": 0,
+          "end": 0,
+          "id": 0,
+          "lab": 0,
+          "resource": 0,
+          "service": 0,
+          "start": 0,
+          "status": 5,
+          "tier": 0,
+          "user": 0
+        },
+        "tier": {
+          "account": 0,
+          "end": 0,
+          "id": 0,
+          "lab": 0,
+          "resource": 0,
+          "service": 0,
+          "start": 0,
+          "status": 0,
+          "tier": 5,
+          "user": 0
+        },
+        "user": {
+          "account": 0,
+          "end": 0,
+          "id": 0,
+          "lab": 0,
+          "resource": 1,
+          "service": 0,
+          "start": 0,
+          "status": 0,
+          "tier": 0,
+          "user": 4
+        }
+      },
+      "failures": [
+        {
+          "expected": "user",
+          "predicted": "resource",
+          "confidence": 0.5389,
+          "input": "equipment operator name"
+        }
+      ]
+    },
+    "power_state": {
+      "name": "power_state",
+      "agent": "Count Wattula",
+      "kind": "tabular",
+      "type": "hybrid-softmax-gnb-tabular",
+      "classes": 4,
+      "trainingSamples": 280,
+      "heldoutSamples": 72,
+      "customAdded": 0,
+      "correct": 72,
+      "accuracy": 1,
+      "macroF1": 1,
+      "perClass": {
+        "active_acquisition": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 18
+        },
+        "off": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 18
+        },
+        "sensor_dropout": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 18
+        },
+        "standby_idle": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 18
+        }
+      },
+      "confusionMatrix": {
+        "active_acquisition": {
+          "active_acquisition": 18,
+          "off": 0,
+          "sensor_dropout": 0,
+          "standby_idle": 0
+        },
+        "off": {
+          "active_acquisition": 0,
+          "off": 18,
+          "sensor_dropout": 0,
+          "standby_idle": 0
+        },
+        "sensor_dropout": {
+          "active_acquisition": 0,
+          "off": 0,
+          "sensor_dropout": 18,
+          "standby_idle": 0
+        },
+        "standby_idle": {
+          "active_acquisition": 0,
+          "off": 0,
+          "sensor_dropout": 0,
+          "standby_idle": 18
+        }
+      },
+      "failures": []
+    },
+    "session_matcher": {
+      "name": "session_matcher",
+      "agent": "Dr. Venn",
+      "kind": "tabular",
+      "type": "hybrid-softmax-gnb-tabular",
+      "classes": 3,
+      "trainingSamples": 240,
+      "heldoutSamples": 60,
+      "customAdded": 0,
+      "correct": 60,
+      "accuracy": 1,
+      "macroF1": 1,
+      "perClass": {
+        "ambiguous_review": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 20
+        },
+        "matched": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 20
+        },
+        "unmatched": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 20
+        }
+      },
+      "confusionMatrix": {
+        "ambiguous_review": {
+          "ambiguous_review": 20,
+          "matched": 0,
+          "unmatched": 0
+        },
+        "matched": {
+          "ambiguous_review": 0,
+          "matched": 20,
+          "unmatched": 0
+        },
+        "unmatched": {
+          "ambiguous_review": 0,
+          "matched": 0,
+          "unmatched": 20
+        }
+      },
+      "failures": []
+    },
+    "policy_pricer": {
+      "name": "policy_pricer",
+      "agent": "Baron Von Markup",
+      "kind": "text",
+      "type": "hybrid-nb-softmax-text",
+      "classes": 9,
+      "trainingSamples": 180,
+      "heldoutSamples": 45,
+      "customAdded": 0,
+      "correct": 45,
+      "accuracy": 1,
+      "macroF1": 1,
+      "perClass": {
+        "basis_actual": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "basis_booked": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "basis_union": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "mode_assisted": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "mode_self": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "mode_training": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "tier_commercial": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "tier_external": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "tier_internal": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        }
+      },
+      "confusionMatrix": {
+        "basis_actual": {
+          "basis_actual": 5,
+          "basis_booked": 0,
+          "basis_union": 0,
+          "mode_assisted": 0,
+          "mode_self": 0,
+          "mode_training": 0,
+          "tier_commercial": 0,
+          "tier_external": 0,
+          "tier_internal": 0
+        },
+        "basis_booked": {
+          "basis_actual": 0,
+          "basis_booked": 5,
+          "basis_union": 0,
+          "mode_assisted": 0,
+          "mode_self": 0,
+          "mode_training": 0,
+          "tier_commercial": 0,
+          "tier_external": 0,
+          "tier_internal": 0
+        },
+        "basis_union": {
+          "basis_actual": 0,
+          "basis_booked": 0,
+          "basis_union": 5,
+          "mode_assisted": 0,
+          "mode_self": 0,
+          "mode_training": 0,
+          "tier_commercial": 0,
+          "tier_external": 0,
+          "tier_internal": 0
+        },
+        "mode_assisted": {
+          "basis_actual": 0,
+          "basis_booked": 0,
+          "basis_union": 0,
+          "mode_assisted": 5,
+          "mode_self": 0,
+          "mode_training": 0,
+          "tier_commercial": 0,
+          "tier_external": 0,
+          "tier_internal": 0
+        },
+        "mode_self": {
+          "basis_actual": 0,
+          "basis_booked": 0,
+          "basis_union": 0,
+          "mode_assisted": 0,
+          "mode_self": 5,
+          "mode_training": 0,
+          "tier_commercial": 0,
+          "tier_external": 0,
+          "tier_internal": 0
+        },
+        "mode_training": {
+          "basis_actual": 0,
+          "basis_booked": 0,
+          "basis_union": 0,
+          "mode_assisted": 0,
+          "mode_self": 0,
+          "mode_training": 5,
+          "tier_commercial": 0,
+          "tier_external": 0,
+          "tier_internal": 0
+        },
+        "tier_commercial": {
+          "basis_actual": 0,
+          "basis_booked": 0,
+          "basis_union": 0,
+          "mode_assisted": 0,
+          "mode_self": 0,
+          "mode_training": 0,
+          "tier_commercial": 5,
+          "tier_external": 0,
+          "tier_internal": 0
+        },
+        "tier_external": {
+          "basis_actual": 0,
+          "basis_booked": 0,
+          "basis_union": 0,
+          "mode_assisted": 0,
+          "mode_self": 0,
+          "mode_training": 0,
+          "tier_commercial": 0,
+          "tier_external": 5,
+          "tier_internal": 0
+        },
+        "tier_internal": {
+          "basis_actual": 0,
+          "basis_booked": 0,
+          "basis_union": 0,
+          "mode_assisted": 0,
+          "mode_self": 0,
+          "mode_training": 0,
+          "tier_commercial": 0,
+          "tier_external": 0,
+          "tier_internal": 5
+        }
+      },
+      "failures": []
+    },
+    "anomaly_auditor": {
+      "name": "anomaly_auditor",
+      "agent": "Captain Nitpick",
+      "kind": "tabular",
+      "type": "hybrid-softmax-gnb-tabular",
+      "classes": 7,
+      "trainingSamples": 280,
+      "heldoutSamples": 70,
+      "customAdded": 0,
+      "correct": 70,
+      "accuracy": 1,
+      "macroF1": 1,
+      "perClass": {
+        "clean_match": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 10
+        },
+        "duration_outlier": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 10
+        },
+        "idle_login_mismatch": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 10
+        },
+        "no_show": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 10
+        },
+        "overrun": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 10
+        },
+        "short_underrun": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 10
+        },
+        "walk_up_unbooked": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 10
+        }
+      },
+      "confusionMatrix": {
+        "clean_match": {
+          "clean_match": 10,
+          "duration_outlier": 0,
+          "idle_login_mismatch": 0,
+          "no_show": 0,
+          "overrun": 0,
+          "short_underrun": 0,
+          "walk_up_unbooked": 0
+        },
+        "duration_outlier": {
+          "clean_match": 0,
+          "duration_outlier": 10,
+          "idle_login_mismatch": 0,
+          "no_show": 0,
+          "overrun": 0,
+          "short_underrun": 0,
+          "walk_up_unbooked": 0
+        },
+        "idle_login_mismatch": {
+          "clean_match": 0,
+          "duration_outlier": 0,
+          "idle_login_mismatch": 10,
+          "no_show": 0,
+          "overrun": 0,
+          "short_underrun": 0,
+          "walk_up_unbooked": 0
+        },
+        "no_show": {
+          "clean_match": 0,
+          "duration_outlier": 0,
+          "idle_login_mismatch": 0,
+          "no_show": 10,
+          "overrun": 0,
+          "short_underrun": 0,
+          "walk_up_unbooked": 0
+        },
+        "overrun": {
+          "clean_match": 0,
+          "duration_outlier": 0,
+          "idle_login_mismatch": 0,
+          "no_show": 0,
+          "overrun": 10,
+          "short_underrun": 0,
+          "walk_up_unbooked": 0
+        },
+        "short_underrun": {
+          "clean_match": 0,
+          "duration_outlier": 0,
+          "idle_login_mismatch": 0,
+          "no_show": 0,
+          "overrun": 0,
+          "short_underrun": 10,
+          "walk_up_unbooked": 0
+        },
+        "walk_up_unbooked": {
+          "clean_match": 0,
+          "duration_outlier": 0,
+          "idle_login_mismatch": 0,
+          "no_show": 0,
+          "overrun": 0,
+          "short_underrun": 0,
+          "walk_up_unbooked": 10
+        }
+      },
+      "failures": []
+    },
+    "intent_router": {
+      "name": "intent_router",
+      "agent": "Parity Commander",
+      "kind": "text",
+      "type": "hybrid-nb-softmax-text",
+      "classes": 8,
+      "trainingSamples": 160,
+      "heldoutSamples": 40,
+      "customAdded": 0,
+      "correct": 40,
+      "accuracy": 1,
+      "macroF1": 1,
+      "perClass": {
+        "audit_flags": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "check_workspace": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "full_close_pitch": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "inspect_power": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "price_month": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "pull_schedule": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "scout_sources": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        },
+        "train_models": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 5
+        }
+      },
+      "confusionMatrix": {
+        "audit_flags": {
+          "audit_flags": 5,
+          "check_workspace": 0,
+          "full_close_pitch": 0,
+          "inspect_power": 0,
+          "price_month": 0,
+          "pull_schedule": 0,
+          "scout_sources": 0,
+          "train_models": 0
+        },
+        "check_workspace": {
+          "audit_flags": 0,
+          "check_workspace": 5,
+          "full_close_pitch": 0,
+          "inspect_power": 0,
+          "price_month": 0,
+          "pull_schedule": 0,
+          "scout_sources": 0,
+          "train_models": 0
+        },
+        "full_close_pitch": {
+          "audit_flags": 0,
+          "check_workspace": 0,
+          "full_close_pitch": 5,
+          "inspect_power": 0,
+          "price_month": 0,
+          "pull_schedule": 0,
+          "scout_sources": 0,
+          "train_models": 0
+        },
+        "inspect_power": {
+          "audit_flags": 0,
+          "check_workspace": 0,
+          "full_close_pitch": 0,
+          "inspect_power": 5,
+          "price_month": 0,
+          "pull_schedule": 0,
+          "scout_sources": 0,
+          "train_models": 0
+        },
+        "price_month": {
+          "audit_flags": 0,
+          "check_workspace": 0,
+          "full_close_pitch": 0,
+          "inspect_power": 0,
+          "price_month": 5,
+          "pull_schedule": 0,
+          "scout_sources": 0,
+          "train_models": 0
+        },
+        "pull_schedule": {
+          "audit_flags": 0,
+          "check_workspace": 0,
+          "full_close_pitch": 0,
+          "inspect_power": 0,
+          "price_month": 0,
+          "pull_schedule": 5,
+          "scout_sources": 0,
+          "train_models": 0
+        },
+        "scout_sources": {
+          "audit_flags": 0,
+          "check_workspace": 0,
+          "full_close_pitch": 0,
+          "inspect_power": 0,
+          "price_month": 0,
+          "pull_schedule": 0,
+          "scout_sources": 5,
+          "train_models": 0
+        },
+        "train_models": {
+          "audit_flags": 0,
+          "check_workspace": 0,
+          "full_close_pitch": 0,
+          "inspect_power": 0,
+          "price_month": 0,
+          "pull_schedule": 0,
+          "scout_sources": 0,
+          "train_models": 5
+        }
+      },
+      "failures": []
+    }
+  }
 }

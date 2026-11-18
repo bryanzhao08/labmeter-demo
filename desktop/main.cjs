@@ -107,9 +107,15 @@ function listFiles(){
 const trusted=e=>{try{return new URL(e.senderFrame.url).protocol==='parity:'}catch{return false}};
 // Scheduling agent is local-only. The renderer never supplies a network URL or script.
 const agentTrusted=e=>trusted(e)&&e.sender===main?.webContents&&e.senderFrame===main.webContents.mainFrame;
-for(const action of ['info','start','get','cancel'])ipcMain.handle('parity:agent:'+action,(e,input)=>{
+for(const action of ['info','start','ask','get','cancel','train'])ipcMain.handle('parity:agent:'+action,(e,input)=>{
   if(!agentTrusted(e)||!schedulingAgent)throw Error('Scheduling agent is unavailable.');
+  if(action==='train'&&input&&JSON.stringify(input).length>512*1024)throw Error('Training payload too large.');
+  if((action==='start'||action==='ask')&&input&&JSON.stringify(input).length>10*1024*1024)throw Error('Workspace payload too large.');
   return schedulingAgent[action](input);
+});
+ipcMain.handle('parity:agent:llm',e=>{
+  if(!agentTrusted(e)||!schedulingAgent)throw Error('Scheduling agent is unavailable.');
+  return schedulingAgent.llmStatus();
 });
 ipcMain.handle('parity:agent:practice',async(e,system)=>{
   if(!agentTrusted(e)||!schedulingAgent)throw Error('Scheduling agent is unavailable.');
@@ -164,7 +170,10 @@ ipcMain.handle('parity:mcp:info',e=>{
   if(!trusted(e))return null;
   const script=path.join(root,'mcp','parity-mcp.cjs');
   const args=[script,'--folder',folder||'<your exports folder>'];if(fs.existsSync(rulesPath()))args.push('--rules',rulesPath());
-  return {available:fs.existsSync(script),command:process.execPath,args,env:{ELECTRON_RUN_AS_NODE:'1'},folder,agentArgs:[path.join(root,'agent','mcp.cjs')]};
+  const agentArgs=[path.join(root,'agent','mcp.cjs'),'--full-crew','--runs-dir',path.join(app.getPath('userData'),'agent-runs')];
+  if(folder)agentArgs.push('--folder',folder);
+  if(fs.existsSync(rulesPath()))agentArgs.push('--rules',rulesPath());
+  return {available:fs.existsSync(script),command:process.execPath,args,env:{ELECTRON_RUN_AS_NODE:'1'},folder,agentArgs};
 });
 ipcMain.handle('parity:folder:get',e=>trusted(e)?folder:null);
 ipcMain.handle('parity:folder:pick',async e=>{
@@ -355,20 +364,32 @@ async function createWindow() {
       if(seen[0].auth!=='bearer wrong-token'||seen[seen.length-1].auth!=='bearer test-token-123')throw new Error('Token not sent as a bearer header');
       if(fs.existsSync(connPath()))throw new Error('Connection file left behind after removal');
       const agentResult=await main.webContents.executeJavaScript(String.raw`(async()=>{
-        const wait=async fn=>{for(let i=0;i<300;i++){if(fn())return;await new Promise(r=>setTimeout(r,30))}throw Error('Agent UI timed out')};
+        const wait=async fn=>{for(let i=0;i<350;i++){if(fn())return;await new Promise(r=>setTimeout(r,30))}throw Error('Agent UI timed out')};
         location.hash='agent';await wait(()=>document.getElementById('agent-run'));
         const btn=id=>document.getElementById(id);
+        for(const name of ['Sherlock Ohms','Sir Slots-a-Lot','Count Wattula','Dr. Venn','Baron Von Markup','Captain Nitpick']){
+          if(!document.body.innerText.includes(name))throw Error('Missing crew member: '+name);
+        }
+        const firstToggle=document.querySelector('[data-agent-toggle="auditor"]');
+        firstToggle.click();await wait(()=>btn('agent-run').innerText.includes('5/6'));
+        document.querySelector('[data-agent-preset="full"]').click();await wait(()=>btn('agent-run').innerText.includes('6/6'));
         btn('agent-scenario').value='invalid';btn('agent-scenario').dispatchEvent(new Event('change'));btn('agent-run').click();
-        await wait(()=>btn('agent-import'));if(!btn('agent-import').disabled||!document.body.innerText.includes('Import blocked'))throw Error('Invalid source row did not block import');
+        await wait(()=>btn('agent-run')&&!btn('agent-run').disabled&&btn('agent-import')&&document.body.innerText.includes('Import blocked'));
+        if(!btn('agent-import').disabled)throw Error('Invalid source row did not block import');
         btn('agent-system').value='fbs';btn('agent-system').dispatchEvent(new Event('change'));btn('agent-scenario').value='retry';btn('agent-scenario').dispatchEvent(new Event('change'));btn('agent-run').click();
-        await wait(()=>btn('agent-import')&&!btn('agent-import').disabled);
-        if(!document.body.innerText.includes('Source returned 429'))throw Error('Retry trace missing');
+        await wait(()=>btn('agent-run')&&!btn('agent-run').disabled&&btn('agent-import')&&!btn('agent-import').disabled&&document.body.innerText.includes('Source returned 429'));
         btn('agent-import').click();await wait(()=>location.hash==='#schedule'&&document.querySelector('.blk'));
         if(!document.body.innerText.includes('John'))throw Error('Agent reservations missing from schedule');
         location.hash='agent';await wait(()=>btn('agent-system'));btn('agent-system').value='ilab';btn('agent-system').dispatchEvent(new Event('change'));btn('agent-scenario').value='normal';btn('agent-scenario').dispatchEvent(new Event('change'));btn('agent-run').click();
-        await wait(()=>btn('agent-import')&&!btn('agent-import').disabled);
-        if(!document.body.innerText.includes('24 unique bookings'))throw Error('iLab normalized count wrong');
-        return {fbs:true,ilab:true,invalidBlocked:true,retry:true,import:true};
+        await wait(()=>btn('agent-run')&&!btn('agent-run').disabled&&document.body.innerText.includes('iLab ·')&&document.body.innerText.includes('24 unique bookings'));
+        btn('agent-system').value='fbs';btn('agent-system').dispatchEvent(new Event('change'));btn('agent-scenario').value='pitch';btn('agent-scenario').dispatchEvent(new Event('change'));btn('agent-run').click();
+        await wait(()=>btn('agent-run')&&!btn('agent-run').disabled&&document.body.innerText.includes('Pitch Story')&&document.body.innerText.includes('Adam')&&document.body.innerText.includes('Billy')&&document.body.innerText.includes('Unbooked walk-up'));
+        document.querySelector('[data-agent-tab="telemetry"]').click();await wait(()=>document.body.innerText.includes('Active laser / run'));
+        btn('agent-train').click();await wait(()=>btn('agent-train')&&!btn('agent-train').disabled&&document.body.innerText.includes('Trained all 7 local models'));
+        btn('agent-prompt').value='Have Sir Slots-a-Lot pull iLab normal schedule';
+        btn('agent-ask').click();
+        await wait(()=>btn('agent-run')&&!btn('agent-run').disabled&&document.body.innerText.includes('iLab ·')&&btn('agent-run').innerText.includes('1/6'));
+        return {fbs:true,ilab:true,invalidBlocked:true,retry:true,import:true,crew:true,pitch:true,trainedInApp:true,askCrew:true};
       })()`);
       fs.writeFileSync(path.join(require('node:os').tmpdir(),'parity-app.png'),(await main.webContents.capturePage()).toPNG());
       console.log('DESKTOP PASS '+JSON.stringify({...result,watched,connected,agent:agentResult}));app.exit(0);
@@ -396,7 +417,10 @@ app.whenReady().then(async()=>{
     {label:'File',submenu:[{role:'close'}]},
     {role:'editMenu'},{role:'viewMenu'},{role:'windowMenu'}
   ]));
-  schedulingAgent=await require('./web/agent/runtime.cjs').createRuntime({directory:path.join(app.getPath('userData'),'agent-runs')});
+  schedulingAgent=await require('./web/agent/runtime.cjs').createRuntime({
+    directory:path.join(app.getPath('userData'),'agent-runs'),
+    onEvent:ev=>{if(ev.type==='external-sync'&&main&&!main.isDestroyed())main.webContents.send('parity:agent-updated')}
+  });
   await createWindow();
 });
 app.on('before-quit',()=>{if(schedulingAgent)void schedulingAgent.close()});

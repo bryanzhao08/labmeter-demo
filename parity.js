@@ -3,7 +3,7 @@
 'use strict';
 if(typeof document==='undefined')return;
 const H=root.LBHelpers,R=root.LBRates,S=root.LBSchedule,E=root.LBReconcile,I=root.LBIntake,FS=root.parityFS||null;
-const APP_VERSION='0.8.1',CONN=root.parityConn||null;
+const APP_VERSION='1.1.0',CONN=root.parityConn||null;
 const {choices,detectColumns,keywordParser,validateModel,extractMachines,machineRulesFrom,policyFor,outliers,flagKind,applyRateCard,setBilling,tierKey,MODE_NAME}=H;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -23,7 +23,7 @@ let draft=structuredClone(profile);
 let review=configured,badge='',priceSrc=null;
 let res=null,sources={},logs=[],rows=null,rowIndex=new Map(),issues=[],approved={},routeToken=0;
 let sched={view:'day',day:null,sel:null,hidden:new Set()},resFilter='all';
-let cx={info:null,system:null,guess:null,guessText:'',apps:null,test:null,busy:false,mcp:null,loaded:false,error:'',client:'claude',practice:false};
+let cx={info:null,system:null,guess:null,guessText:'',apps:null,test:null,busy:false,mcp:null,loaded:false,error:'',client:'claude',practice:true};
 let folder={path:null,entries:[],busy:false,error:'',cache:new Map(),sig:'',scanned:false},sampleMode=false;
 
 /* ---------------------------------------------------------------- rules (setup) */
@@ -268,7 +268,7 @@ function upload(embedded=false){
   return `${embedded?'':`<div class="page-head"><div><h1>Upload a month</h1><p class="sub">${FS?'Use the files Parity found in your folder, or add files by hand.':'Add the reservations and the instrument logs for the month.'} CSV and Excel files stay on this computer.</p></div></div>`}
   ${fcard}${FS?'<h2 style="margin:20px 0 8px">Or add files by hand</h2>':''}<div class="sources">${bookSection()}<section class="card"><h2>Instrument logs</h2><p class="hint">Add one log per machine if your machines export different formats.</p>${logs.map((s,i)=>`<div class="logcard"><p><strong>${esc(s.name)}</strong> · ${s.table.rows.length} rows, ${s.detect.missing.length?'some columns need matching':'columns matched'}</p><label>Instrument<select data-logmachine="${i}"><option value="">The log has an instrument column</option>${[...new Set([...names,...(s.machine?[s.machine]:[])])].map(n=>`<option value="${esc(n)}" ${s.machine===n?'selected':''}>${esc(n)}</option>`).join('')}</select></label>${s.detect.missing.length?mappingView('use',i):''}<button class="link" data-removelog="${i}">Remove</button></div>`).join('')}<label class="drop" data-drop="log"><strong>Add an instrument log</strong><span>or click to choose a CSV or Excel file</span><input id="log-file" type="file" accept=".csv,.xlsx,.xls" multiple></label></section></div>
   <p class="hint" style="margin-top:12px">If a log has no instrument column, a unique reservation for the same person and day identifies it. Unmatched entries stay unidentified.</p><p id="upload-error" class="error" role="alert"></p>
-  <div class="actions"><button id="analyze" class="primary" ${canAnalyze()?'':'disabled'}>Analyze the month</button>${canAnalyze()?'':`<span class="hint">${!configured?'Add your billing rules first.':!sources.book?'Add a reservation export first.':!logs.length?'Add at least one instrument log.':'Match the missing columns above.'}</span>`}</div>
+  <div class="actions"><button id="analyze" class="primary" ${canAnalyze()?'':'disabled'}>Analyze the month</button><button id="upload-crew" class="secondary" type="button">Run agent crew</button>${canAnalyze()?'':`<span class="hint">${!configured?'Add your billing rules first.':!sources.book?'Add a reservation export first.':!logs.length?'Add at least one instrument log.':'Match the missing columns above.'}</span>`}</div>
   <div class="curious"><strong>Just curious?</strong><span>Try it with simulated data: a made-up month from a small core.</span><button class="secondary" id="mock" type="button">Try it with simulated data</button></div>`;
 }
 function canAnalyze(){return !!(configured&&sources.book&&!sources.book.detect.missing.length&&logs.length&&logs.every(s=>!s.detect.missing.length))}
@@ -319,6 +319,7 @@ function results(){
   const tab=(k,l,n)=>`<button type="button" data-filter="${k}" aria-pressed="${resFilter===k}">${l} <span class="hint">${n}</span></button>`;
   return `<div class="result-head"><div><h1>${issues.length?'Incomplete analysis':'Ready to bill'} <span class="figure">${money(ready.reduce((s,r)=>s+r.amount,0))}</span></h1><p class="sub">${issues.length?'Provisional total · ':''}${plural(ready.length,'session','sessions')} ${issues.length?'included':'ready'} · ${held} ${held===1?'session needs':'sessions need'} a look</p></div><div class="head-actions"><button id="export" class="secondary" ${!ready.length||issues.length?'disabled':''}>Export spreadsheet</button></div></div>
   ${issues.length?`<div class="banner warn" role="alert"><div><strong>Some source rows could not be read. Correct the files and analyze again before exporting.</strong><ul>${issues.slice(0,10).map(x=>`<li>${esc(x)}</li>`).join('')}${issues.length>10?`<li>and ${issues.length-10} more</li>`:''}</ul></div></div>`:''}
+  <div class="banner" style="margin-bottom:12px"><div><strong>Captain Nitpick audit:</strong> ${plural(ready.length,'session','sessions')} cleared (${money(ready.reduce((s,r)=>s+r.amount,0))}), ${held} held for manager review. Nothing is billed until you approve and export.</div></div>
   <div class="tabs" role="group" aria-label="Filter sessions">${tab('all','All',rows.length)}${tab('look','Needs a look',held)}${tab('ready','Ready',ready.length)}</div>
   <p class="legend"><span class="flag k-time">Time</span><span class="flag k-who">Who pays</span><span class="flag k-unusual">Unusual</span><span class="flag k-data">Data</span></p>
   <div class="table-wrap"><table><thead><tr><th>Who</th><th>Instrument</th><th class="num">Booked</th><th class="num">Used</th><th class="num">Hours billed</th><th class="num">Charge</th><th>Status</th></tr></thead><tbody>${shown.map(({r,i})=>`<tr><td class="who">${res?`<a href="#schedule" data-goto="${r.day}" data-goto-res="${esc(r.instrument)}" title="View on schedule">${esc(r.user)}</a>`:esc(r.user)}<small>${S.fmtDay(r.day)}</small></td><td class="inst">${esc(r.instrument)}<small>${esc(MODE_NAME[r.mode]||'No service type')}${r.tier?' · '+esc(r.tier.replace(/^\w/,c=>c.toUpperCase())):''}</small></td><td class="num">${(r.booked/60).toFixed(2)} h</td><td class="num">${(r.used/60).toFixed(2)} h</td><td class="num">${(r.billed/60).toFixed(2)}${r.afterMinutes?`<small>${(r.afterMinutes/60).toFixed(2)} after hours</small>`:''}</td><td class="num">${money(r.amount)}<small>${money(r.rate)}/h</small></td><td>${eligible(r)?(Object.prototype.hasOwnProperty.call(approved,r.id)&&r.flags.length?'<span class="pill ok">Approved</span>':'<span class="pill ok">Ready</span>'):`<strong class="needs">Needs a look</strong><div>${r.flags.map(f=>`<span class="flag k-${flagKind(f)}">${esc(f)}</span>`).join('')}</div><div class="row-actions"><input data-note="${i}" aria-label="Optional approval reason for ${esc(r.user)}" placeholder="Reason (optional)"><button class="secondary" data-approve="${i}">Approve</button></div>`}</td></tr>`).join('')}</tbody></table></div>`;
@@ -471,13 +472,13 @@ function otherCard(){
 }
 function mcpCard(){
   const m=cx.mcp,client=cx.client||'claude',cfg=root.LBConnectorConfig.config(m,client,cx.practice),codex=client==='codex';
-  return `<section class="card"><h3>Choose your AI agent</h3><p class="hint">Let Claude or Codex read your existing exports and check the month using Parity's tools. No API key is needed for this local connector.</p>
+  return `<section class="card"><h3>Choose your AI agent</h3><p class="hint">Let Claude or Codex read your existing exports, summon individual Parity specialists (Sir Slots-a-Lot, Count Wattula, Captain Nitpick), or trigger local model training — synced live into Parity. No API key is needed.</p>
   <div class="chips" role="group" aria-label="AI agent">${[['claude','Claude Desktop'],['codex','Codex']].map(([id,label])=>`<button class="chip" data-mcp-client="${id}" aria-pressed="${client===id}">${label}</button>`).join('')}</div>
-  ${cfg?`<ol class="how-list compact"><li>${m.folder?'Your exports folder is connected.':'Choose the folder containing your reservations, instrument logs and prices.'}${!m.folder&&FS?'<button class="secondary" id="mcp-folder">Choose exports folder</button>':''}</li><li>${codex?'Add the settings below to <code>~/.codex/config.toml</code>. Keep your other settings.':'In Claude Desktop, open Settings → Developer → Edit Config. Merge the Parity entry into <code>mcpServers</code> in <code>claude_desktop_config.json</code>.'}</li><li>Restart ${codex?'Codex':'Claude Desktop'}, then ask it to review your sheets using the prompt below.</li></ol>
-  <label for="mcp-config">${codex?'Codex settings (TOML)':'Claude settings (JSON)'}</label><textarea id="mcp-config" rows="8" readonly spellcheck="false" class="config-code">${esc(cfg)}</textarea><div class="actions"><button class="secondary" id="mcp-copy" ${!m.folder?'disabled':''}>Copy ${codex?'Codex':'Claude'} settings</button></div>
-  <label class="checkline"><input id="mcp-practice" type="checkbox" ${cx.practice?'checked':''}>Also include the FBS / iLab practice agent (synthetic data)</label>
-  <div class="connector-prompt"><strong>Try this with your agent</strong><p id="mcp-prompt">Use Parity to find my exports, read my prices, and check this month. Summarize missing data and sessions needing review. Do not submit charges.</p><button class="link" id="mcp-prompt-copy">Copy prompt</button></div>
-  ${client==='claude'?`<div class="connector-prompt"><strong>Optional: make Claude a Parity agent</strong><p>Install the Parity skill and Claude runs the month check the same way every time: find exports, read prices, check the month, list what needs a look, and hand you a summary to approve. It never submits charges.</p><div class="actions"><a class="secondary" id="skill-download" href="skill/parity-skill.zip" download="parity-skill.zip">Download Claude skill</a></div><p class="hint">Claude Desktop or claude.ai: Settings › Capabilities › Skills › Upload, then choose the zip. Claude Code: unzip it into ~/.claude/skills/.</p></div>`:''}<p class="hint">The connector reads only your selected folder. By default it returns counts and totals; names and account codes are hidden. It does not send bills.</p>`:`<p class="hint" style="margin-top:10px">Open the desktop app to connect Claude or Codex to your local spreadsheets.</p>`}</section>`;
+  ${cfg?`<ol class="how-list compact"><li>${m.folder?'Your exports folder is connected.':'Optional: choose a folder containing your reservations, instrument logs and prices (or start immediately with the 6-agent crew).'}${!m.folder&&FS?'<button class="secondary" id="mcp-folder">Choose exports folder</button>':''}</li><li>${codex?'Add the settings below to <code>~/.codex/config.toml</code>. Keep your other settings.':'In Claude Desktop, open Settings → Developer → Edit Config. Merge the Parity entry into <code>mcpServers</code> in <code>claude_desktop_config.json</code>.'}</li><li>Restart ${codex?'Codex':'Claude Desktop'}, then ask it to run Parity’s crew or review your sheets using the prompt below.</li></ol>
+  <label for="mcp-config">${codex?'Codex settings (TOML)':'Claude settings (JSON)'}</label><textarea id="mcp-config" rows="8" readonly spellcheck="false" class="config-code">${esc(cfg)}</textarea><div class="actions"><button class="secondary" id="mcp-copy" ${!m.folder&&!cx.practice?'disabled':''}>Copy ${codex?'Codex':'Claude'} settings</button></div>
+  <label class="checkline"><input id="mcp-practice" type="checkbox" ${cx.practice?'checked':''}>Include the 6-agent crew MCP (run individual agents, ask the crew &amp; sync live into Parity)</label>
+  <div class="connector-prompt"><strong>Try this with Claude or Codex</strong><p id="mcp-prompt">Use Parity to list available agents, have Count Wattula inspect smart-plug watts and Captain Nitpick flag discrepancies in the October pitch month (or my connected folder), and summarize what needs approval without submitting charges.</p><button class="link" id="mcp-prompt-copy">Copy prompt</button></div>
+  ${client==='claude'?`<div class="connector-prompt"><strong>Optional: make Claude a Parity agent</strong><p>Install the Parity skill and Claude runs the month check the same way every time: find exports, read prices, check the month, list what needs a look, and hand you a summary to approve. It never submits charges.</p><div class="actions"><a class="secondary" id="skill-download" href="skill/parity-skill.zip" download="parity-skill.zip">Download Claude skill</a></div><p class="hint">Claude Desktop or claude.ai: Settings › Capabilities › Skills › Upload, then choose the zip. Claude Code: unzip it into ~/.claude/skills/.</p></div>`:''}<p class="hint">The connector reads only your selected folder and runs local Parity crew tools. Runs triggered from Claude or Codex appear live inside Parity’s Agent crew view.</p>`:`<p class="hint" style="margin-top:10px">Open the desktop app to connect Claude or Codex to your local spreadsheets.</p>`}</section>`;
 }
 function connections(){
   if(!cx.loaded){loadConnections().then(()=>{if(location.hash==='#connect')render(true)});return `<div class="page-head"><div><h1>Connections</h1></div></div><div class="card"><p class="hint">Loading…</p></div>`}
@@ -509,7 +510,7 @@ async function copyReport(){
 }
 
 /* ---------------------------------------------------------------- routing and events */
-const TITLES={home:'Home',agent:'Scheduling agent',connect:'Connections',start:'Welcome',schedule:'Home',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
+const TITLES={home:'Home',agent:'Agent crew',connect:'Connections',start:'Welcome',schedule:'Home',upload:'Upload a month',progress:'Upload a month',results:'Results',setup:'Billing rules'};
 function render(keep){
   let route=location.hash.slice(1)||(profile?'schedule':'start');
   if(route==='dashboard'||route==='home')route='schedule';
@@ -529,16 +530,70 @@ function bindDrop(kind,handler){
   if(input)input.onchange=()=>{handler(Array.from(input.files));input.value=''};
   if(drop){drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};drop.ondragleave=()=>drop.classList.remove('over');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');handler(Array.from(e.dataTransfer.files))}}
 }
-function importAgentRun(run){
+function workspaceForAgent(){
+  const priceEntry=FS?folder.entries.find(e=>e.kind==='prices'&&e.include):null;
+  let prices=null;
+  if(priceEntry&&priceEntry.price){
+    prices={name:priceEntry.name,rows:(priceEntry.price.items||[]).map(i=>[i.machine,i.mode,i.unit,i.rates.internal??'',i.rates.external??'',i.rates.commercial??'',i.after?.['*']??i.after?.internal??''])};
+  }else if(priceSrc&&priceSrc.result){
+    prices={name:priceSrc.name,rows:(priceSrc.result.items||[]).map(i=>[i.machine,i.mode,i.unit,i.rates.internal??'',i.rates.external??'',i.rates.commercial??'',i.after?.['*']??i.after?.internal??''])};
+  }
+  return {
+    reservations:sources.book?{name:sources.book.name,table:sources.book.table}:null,
+    logs:logs.map(l=>({name:l.name,table:l.table,machine:l.machine||''})),
+    prices,
+    profile:configured?structuredClone(profile):null
+  };
+}
+function feedbackSamplesForAgent(){
+  const column_mapper=[],anomaly_auditor=[];
+  if(sources.book?.table?.head&&sources.book?.detect?.map){
+    const head=sources.book.table.head,m=sources.book.detect.map;
+    const fieldMap={instrument:'resource',user:'user',start:'start',end:'end',lab:'lab',account:'account',mode:'service',tier:'tier'};
+    for(const [k,lbl] of Object.entries(fieldMap)){
+      if(m[k]>=0&&head[m[k]])column_mapper.push({text:String(head[m[k]]),label:lbl});
+    }
+  }
+  if(Array.isArray(rows)){
+    for(const r of rows.slice(0,80)){
+      const isApp=Object.prototype.hasOwnProperty.call(approved,r.id);
+      const label=isApp||!r.flags.length?'clean_match':!r.book.length?'walk_up_unbooked':!r.use.length?'no_show':r.used-r.booked>=15?'overrun':'clean_match';
+      const overrun=Math.max(0,r.used-r.booked),ratio=r.booked>0?r.used/r.booked:0;
+      anomaly_auditor.push({features:[r.booked,r.used,r.used,overrun,ratio,r.book.length?1:0,r.use.length?1:0,0,0],label});
+    }
+  }
+  return {column_mapper,anomaly_auditor};
+}
+function importAgentRun(run,openResults=false){
   // Explicit manager action replaces this workspace's records; never pushes charges upstream.
-  setReservations(run.result.table,run.system.toUpperCase()+' agent · '+run.month+' (synthetic)');
-  logs=[{name:'Synthetic computer usage',table:run.result.usage,detect:detectColumns(run.result.usage,'use')}];
+  const isSynthetic=run.result.source?.mode==='synthetic';
+  if(run.result.table?.rows?.length){
+    setReservations(run.result.table,(run.system==='workspace'?'Workspace':run.system.toUpperCase())+' crew · '+run.month+(isSynthetic?' (synthetic)':''));
+  }
+  const activePlug=(run.result.powerClassified||[]).filter(p=>p.state==='active_acquisition'&&p.operator).map(p=>[p.instrument,p.operator,p.start,p.end]);
+  if(activePlug.length){
+    const plugTable={head:['Workstation','Username','Logon Time','Logoff Time'],rows:activePlug};
+    logs=[{name:'Smart-plug active acquisition (Count Wattula)',table:plugTable,detect:detectColumns(plugTable,'use')}];
+  }else if(run.result.usage?.rows?.length){
+    logs=[{name:isSynthetic?'Synthetic computer usage':'Workspace usage',table:run.result.usage,detect:detectColumns(run.result.usage,'use')}];
+  }
   if(!profile){profile=defaults();draft=structuredClone(profile)}
-  const names=run.result.resources.map(r=>r.name);
-  profile.machines=names;profile.machines_on=names;profile.booking_system=run.system==='fbs'?'FBS':'iLab';
-  draft=structuredClone(profile);sampleMode=true;
+  if(run.result.pricingProfile&&run.result.pricingSummary?.priced){
+    const pp=run.result.pricingProfile;
+    profile.rate_card=structuredClone(pp.rate_card||profile.rate_card);
+    profile.tiers=structuredClone(pp.tiers||profile.tiers);
+    profile.after_hours=pp.after_hours?structuredClone(pp.after_hours):profile.after_hours;
+    profile.round_minutes=pp.round_minutes||profile.round_minutes;
+    profile.basis=pp.basis||profile.basis;
+    configured=true;
+  }
+  const names=(run.result.resources||[]).map(r=>r.name);
+  if(names.length){profile.machines=names;profile.machines_on=names}
+  if(run.system==='fbs'||run.system==='ilab')profile.booking_system=run.system==='fbs'?'FBS':'iLab';
+  draft=structuredClone(profile);sampleMode=isSynthetic;
+  if(sources.book&&logs.length&&configured)calculate();
   // Practice configuration is temporary; reload restores the manager's saved rules.
-  location.hash='schedule';render();
+  location.hash=openResults?'results':'schedule';render();
 }
 function bind(){
   const welcomeChoice=choice=>{onboarding=false;try{localStorage.setItem('labro-onboarded','1')}catch{};if(choice==='agent'){location.hash='agent';render()}else if(choice==='upload'){render();$('home-uploads')?.scrollIntoView({block:'start'})}else render()};
@@ -550,7 +605,7 @@ function bind(){
   if($('home-today'))$('home-today').onclick=()=>{homeMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);homeDay=S.ymd(Math.floor(Date.now()/86400000));render(true)};
   if($('jump-uploads'))$('jump-uploads').onclick=e=>{e.preventDefault();$('home-uploads').scrollIntoView({block:'start'})};
 
-  if(location.hash==='#agent')root.LBAgentUI.bind({render,toast,importRun:importAgentRun});
+  if(location.hash==='#agent')root.LBAgentUI.bind({render,toast,importRun:importAgentRun,getWorkspace:workspaceForAgent,getFeedbackSamples:feedbackSamplesForAgent});
   /* folder */
   if($('pick-folder'))$('pick-folder').onclick=connectFolder;
   if($('rescan'))$('rescan').onclick=async()=>{await refreshFolder();if(profile)applyFolder();render(true)};
@@ -618,6 +673,7 @@ function bind(){
   /* upload and results */
   if($('mock'))$('mock').onclick=()=>loadMock(location.hash==='#upload'?'results':'schedule');
   if($('analyze'))$('analyze').onclick=run;if($('analyze-folder'))$('analyze-folder').onclick=run;
+  if($('upload-crew'))$('upload-crew').onclick=()=>{if(root.LBAgentUI?.preferSystem)root.LBAgentUI.preferSystem(sources.book?'workspace':'fbs');location.hash='agent'};
   if($('export'))$('export').onclick=exportCSV;
   on('[data-filter]',b=>b.onclick=()=>{resFilter=b.dataset.filter;render(true)});
   on('[data-approve]',b=>b.onclick=()=>{approved[rows[+b.dataset.approve].id]=document.querySelector(`[data-note="${b.dataset.approve}"]`).value.trim();render(true)});

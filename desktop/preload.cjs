@@ -20,8 +20,30 @@ contextBridge.exposeInMainWorld('parityConn',{
 
 contextBridge.exposeInMainWorld('parityAgent',{
   info:()=>ipcRenderer.invoke('parity:agent:info'),
-  start:input=>ipcRenderer.invoke('parity:agent:start',{system:String(input.system),month:String(input.month),scenario:String(input.scenario||'normal')}),
+  start:input=>ipcRenderer.invoke('parity:agent:start',{
+    system:String(input.system),
+    month:String(input.month),
+    scenario:String(input.scenario||'normal'),
+    ...(input.engine?{engine:String(input.engine)}:{}),
+    ...(input.llmModel?{llmModel:String(input.llmModel)}:{}),
+    ...(input.targetView?{targetView:String(input.targetView)}:{}),
+    ...(input.triggeredBy?{triggeredBy:String(input.triggeredBy)}:{}),
+    ...(Array.isArray(input.agents)?{agents:input.agents.map(String)}:{}),
+    ...(input.workspace&&typeof input.workspace==='object'?{workspace:input.workspace}:{})
+  }),
+  ask:input=>ipcRenderer.invoke('parity:agent:ask',{
+    prompt:String(input?.prompt||''),
+    ...(input?.system?{system:String(input.system)}:{}),
+    ...(input?.month?{month:String(input.month)}:{}),
+    ...(input?.scenario?{scenario:String(input.scenario)}:{}),
+    ...(input?.engine?{engine:String(input.engine)}:{}),
+    ...(input?.llmModel?{llmModel:String(input.llmModel)}:{}),
+    ...(input?.workspace&&typeof input.workspace==='object'?{workspace:input.workspace}:{})
+  }),
+  llm:()=>ipcRenderer.invoke('parity:agent:llm'),
   get:id=>ipcRenderer.invoke('parity:agent:get',String(id)),
   cancel:id=>ipcRenderer.invoke('parity:agent:cancel',String(id)),
-  openPractice:system=>ipcRenderer.invoke('parity:agent:practice',String(system))
+  train:opts=>ipcRenderer.invoke('parity:agent:train',opts&&typeof opts==='object'?opts:{}),
+  openPractice:system=>ipcRenderer.invoke('parity:agent:practice',String(system)),
+  onUpdate:cb=>{ipcRenderer.on('parity:agent-updated',()=>cb())}
 });
