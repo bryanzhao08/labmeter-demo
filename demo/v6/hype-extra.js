@@ -1,7 +1,7 @@
 
 // ===== HYPE CUT (appended to film.js by build-hype.sh) =====
 // 31 s at 120 BPM: cold open, the problem, logo drop, five agents, one click, every campus, end card.
-window.DURATION = 31;
+window.DURATION = 23.5;
 window.prepare = () => Promise.resolve();
 const HY = {}; window.ready = Promise.all([window.ready, ...['parity-mark-yellow', 'parity-mark-ink'].map(n => new Promise(r => { const im = new Image(512, 512); im.onload = () => { HY[n] = im; r() }; im.onerror = r; im.src = './' + n + '.svg' }))]);
 const INK = '#17191c', YEL = '#F4C430', PAP = '#F6F5F0', RED = '#d6453d';
@@ -122,5 +122,7 @@ function hype(T) {
     ctx.save(); ctx.globalAlpha = ease(clamp((t - .8) / .4)); ctx.fillStyle = INK; ctx.font = F(500, 52); ctx.textAlign = 'center'; ctx.fillText('You run the science. Parity runs the lab.', W / 2, 700); ctx.restore();
     ctx.save(); ctx.globalAlpha = ease(clamp((t - 1.4) / .4)); ctx.fillStyle = INK; ctx.font = F(600, 38); ctx.textAlign = 'center'; ctx.fillText('bryanzhao08.github.io/parity', W / 2, 840); ctx.restore(); }
 }
-window.renderAt = T => hype(clamp(Number(T) || 0, 0, window.DURATION));
-window.selfTest = () => { [0, 3, 6, 9, 12, 15, 20, 23, 26, 30].forEach(window.renderAt); return true };
+// v2: no opening text or number cards. Open in the lab (old 4–8), skip old 0–4 and 8–11.5.
+const remap = T => T < 4 ? T + 4 : T + 7.5;
+window.renderAt = T => hype(remap(clamp(Number(T) || 0, 0, window.DURATION)));
+window.selfTest = () => { [0, 2, 5, 8, 12, 15, 18, 22].forEach(window.renderAt); return true };
